@@ -3,7 +3,13 @@ import svgPaths from "./svg-lsjg1a895r";
 export default function RaceCourseTrackLine() {
   return (
     <div className="relative size-full" data-name="Race Course Track Line">
-      <svg className="absolute block inset-0 size-full" fill="none" height="545.562" preserveAspectRatio="none" viewBox="0 0 1808.2 545.562" width="1808.2">
+      <svg
+        className="absolute block inset-0"
+        fill="none"
+        preserveAspectRatio="none"
+        viewBox="0 0 1808.2 545.562"
+        style={{ width: "100%", height: "100%" }}
+      >
         <g id="Race Course Track Line" opacity="0.9">
           <path d={svgPaths.p1981e900} fill="url(#paint0_linear_0_4)" id="course" />
           <path d={svgPaths.p2dbf7800} fill="url(#paint1_linear_0_4)" id="course_2" />

@@ -4,7 +4,13 @@ export default function RaceCourseTrackLine() {
   return (
     <div className="relative size-full" data-name="Race Course Track Line 2">
       <div className="absolute inset-[0_-0.19%_0_0]">
-        <svg className="block size-full" fill="none" height="2210.94" preserveAspectRatio="none" viewBox="0 0 1845.48 2210.94" width="1845.48">
+        <svg
+          className="block"
+          fill="none"
+          preserveAspectRatio="none"
+          viewBox="0 0 1845.48 2210.94"
+          style={{ width: "100%", height: "100%" }}
+        >
           <g id="Race Course Track Line 2">
             <path d={svgPaths.p35a9ed00} id="Vector" stroke="#F5D6C4" strokeDasharray="18 22" strokeLinecap="round" strokeLinejoin="round" strokeWidth="7" />
             <g id="Group 7">

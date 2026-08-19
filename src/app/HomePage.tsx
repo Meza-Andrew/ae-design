@@ -32,6 +32,163 @@ import raceDirectorIconSvg from "@/imports/for_race_directors_icon.svg";
 // Desktop (hidden @md:block) → continuous N-up, slides 1 card at a time.
 
 const DESKTOP_GAP = 24;
+const TRACK_SCALE_BASE_WIDTH = 1550;
+const TRACK_SCALE_MIN_WIDTH = 1280;
+
+type TrackRevealDirection = "ltr" | "rtl" | "ttb";
+type TrackRevealSet = [number, number, number, number, number, number];
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const getTrackScaleForWidth = (width: number) =>
+  Math.max(TRACK_SCALE_MIN_WIDTH / TRACK_SCALE_BASE_WIDTH, width / TRACK_SCALE_BASE_WIDTH);
+const scalePx = (value: number) => `calc(${value}px * var(--track-scale))`;
+const scalePercent = (value: number) => `calc(${value}% * var(--track-scale))`;
+
+const getTrackRevealStyle = (direction: TrackRevealDirection, reveal: number) =>
+  ({
+    overflow: "hidden",
+    clipPath:
+      direction === "ltr"
+        ? `inset(0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}% 0 0)`
+        : direction === "rtl"
+          ? `inset(0 0 0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}%)`
+          : `inset(0 0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}% 0)`,
+    transition: "clip-path 260ms cubic-bezier(0.4, 0, 0.2, 1)",
+    willChange: "clip-path",
+  }) as const;
+
+const getBuiltTrackRevealStyles = (reveal: number) => {
+  const progress = clamp01(reveal);
+  const handoffPoint = 0.432;
+  const blendStart = 0.36;
+  const blendSpan = 0.2;
+  const verticalProgress = clamp01(progress / handoffPoint);
+  const horizontalProgress = clamp01((progress - handoffPoint) / (1 - handoffPoint));
+  const blend = clamp01((progress - blendStart) / blendSpan);
+
+  return {
+    vertical: {
+      overflow: "hidden",
+      clipPath: `inset(0 0 ${((1 - verticalProgress) * 100).toFixed(4)}% 0)`,
+      opacity: 1 - blend * 0.9,
+      transition: "clip-path 360ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
+      willChange: "clip-path, opacity",
+    } as const,
+    horizontal: {
+      overflow: "hidden",
+      clipPath: `inset(0 ${((1 - horizontalProgress) * 100).toFixed(4)}% 0 0)`,
+      opacity: blend,
+      transition: "clip-path 360ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
+      willChange: "clip-path, opacity",
+    } as const,
+  };
+};
+
+function useTrackScale() {
+  const [trackScale, setTrackScale] = useState(1);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const update = () => setTrackScale(getTrackScaleForWidth(window.innerWidth));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return trackScale;
+}
+
+function useTrackReveal(
+  sectionRefs: [React.RefObject<HTMLElement | null>, React.RefObject<HTMLElement | null>, React.RefObject<HTMLElement | null>, React.RefObject<HTMLElement | null>, React.RefObject<HTMLElement | null>, React.RefObject<HTMLElement | null>],
+  heroInitialReveal = 0.78,
+) {
+  const [heroRef, servicesRef, racesRef, builtRef, resourcesRef, ctaRef] = sectionRefs;
+  const [reveal, setReveal] = useState<TrackRevealSet>([
+    heroInitialReveal,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setReveal([1, 1, 1, 1, 1, 1]);
+      return;
+    }
+
+    let rafId = 0;
+
+    const update = () => {
+      const viewportHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+
+      const nextReveal = sectionRefs.map((sectionRef, index) => {
+        const node = sectionRef.current;
+        if (!node) return index === 0 ? heroInitialReveal : 0;
+
+        const rect = node.getBoundingClientRect();
+        if (index === 0) {
+          const travel = Math.max(1, viewportHeight + rect.height);
+          const span = Math.max(travel * 0.22, 160);
+          const progress = clamp01(scrollY / span);
+          return heroInitialReveal + (1 - heroInitialReveal) * progress;
+        }
+
+        const travel = Math.max(1, viewportHeight + rect.height);
+        const entered = clamp01((viewportHeight - rect.top) / travel);
+
+        switch (index) {
+          case 1: {
+            const eased = clamp01(entered / 0.7);
+            return 1 - Math.pow(1 - eased, 2.4);
+          }
+          case 2: {
+            return clamp01(entered / 0.75);
+          }
+          case 3: {
+            return clamp01((entered - 0.15) / 0.58);
+          }
+          case 4: {
+            return clamp01((entered - 0.2) / 0.68);
+          }
+          case 5: {
+            return clamp01(entered / 0.68);
+          }
+          default:
+            return entered;
+        }
+      }) as TrackRevealSet;
+
+      setReveal(prev => {
+        const same = nextReveal.every((value, index) => Math.abs(value - prev[index]) < 0.001);
+        return same ? prev : nextReveal;
+      });
+    };
+
+    const requestUpdate = () => {
+      cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    update();
+
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+    };
+  }, [heroInitialReveal, heroRef, servicesRef, racesRef, builtRef, resourcesRef, ctaRef]);
+
+  return reveal;
+}
 
 function ResponsiveSlider({
   children,
@@ -145,9 +302,43 @@ function HeroBtn({ to, children }: { to: string; children: React.ReactNode }) {
   );
 }
 
-function Hero() {
+function Hero({
+  sectionRef,
+  trackReveal,
+}: {
+  sectionRef: React.RefObject<HTMLElement | null>;
+  trackReveal: number;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -15% 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [sectionRef]);
+
   return (
-    <section className="relative overflow-hidden" style={{ background: "var(--surface-dark)" }}>
+    <section ref={sectionRef} className="relative overflow-hidden" style={{ background: "var(--surface-dark)" }}>
       {/* ── Photo ── */}
       <img
         src={imgHero}
@@ -162,14 +353,29 @@ function Hero() {
 
       {/* ── Race course track line — aspect-ratio locks 1808×546 proportions, no stretch ── */}
       <div
-        className="absolute pointer-events-none"
-        style={{ top: "-15%", left: "-6%", width: "115%", aspectRatio: "1808.2 / 545.562" }}
+        className="absolute pointer-events-none hidden min-[1280px]:block"
+        style={{
+          top: scalePercent(-15),
+          left: scalePercent(-6),
+          width: scalePercent(115),
+          aspectRatio: "1808.2 / 545.562",
+          ...getTrackRevealStyle("ltr", trackReveal),
+        }}
       >
         <RaceCourseTrackLine />
       </div>
 
       {/* ── Hero copy — bottom-left, inside max-width container ── */}
-      <div className="relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 @md:pb-20" style={{ paddingTop: "clamp(200px, 28vw, 420px)" }}>
+      <div
+        className="relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 @md:pb-20"
+        style={{
+          paddingTop: "clamp(200px, 28vw, 420px)",
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? "translateX(0)" : "translateX(-48px)",
+          transition: "opacity 0.7s ease, transform 0.7s ease",
+          willChange: "opacity, transform",
+        }}
+      >
         {/* Headline */}
         <h1
           className="text-[clamp(48px,7vw,96px)] font-bold italic leading-none mb-5"
@@ -239,7 +445,13 @@ function RunnersIcon({ size = 28 }: { size?: number }) {
   );
 }
 
-function Services() {
+function Services({
+  sectionRef,
+  trackReveal,
+}: {
+  sectionRef: React.RefObject<HTMLElement | null>;
+  trackReveal: number;
+}) {
   const [activeCard, setActiveCard] = useState<"directors" | "runners">("directors");
   const [isPaused, setIsPaused] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -283,25 +495,27 @@ function Services() {
 
   return (
     <section
+      ref={sectionRef}
       className="relative overflow-hidden pt-16 @sm:pt-24 pb-11 @sm:pb-16"
       style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
     >
       {/* Decorative route — desktop only, behind all section content */}
-      <img
-        src={trackTopSvg}
-        alt=""
-        aria-hidden="true"
-        className="hidden @lg:block"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "auto",
-          pointerEvents: "none",
-          zIndex: 0,
-        }}
-      />
+        <img
+          src={trackTopSvg}
+          alt=""
+          aria-hidden="true"
+          className="hidden min-[1280px]:block"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: scalePercent(100),
+            height: "auto",
+            pointerEvents: "none",
+            zIndex: 0,
+          ...getTrackRevealStyle("rtl", trackReveal),
+          }}
+        />
       <div className="relative max-w-[1440px] mx-auto px-5 @sm:px-10 text-center">
         <style>{`
           @media (hover: hover) and (pointer: fine) {
@@ -610,7 +824,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
       className="race-card"
       style={{
         background: "var(--surface-card)",
-        borderRadius: "10px",
+        borderRadius: "10px 10px 5px 5px",
         boxShadow: "0px 1px 4px 0px rgba(165,162,169,1)",
         overflow: "hidden",
         width: "100%",
@@ -622,7 +836,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
       }}
     >
       {/* Image area: blurred race photo bg + teal tint + race logo */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: "390/320" }}>
+      <div className="relative overflow-hidden upcoming-race-media" style={{ height: "367.177px" }}>
         <img
           src={race.bgImg}
           aria-hidden
@@ -644,7 +858,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
       </div>
 
       {/* Card content */}
-      <div className="flex flex-col flex-1" style={{ padding: "18px 20px 20px" }}>
+      <div className="upcoming-race-content flex flex-col flex-1" style={{ padding: "18px 20px 20px" }}>
         <p
           style={{
             fontSize: "14px",
@@ -671,14 +885,17 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
         </h3>
         {/* Card is the link — Register is a visual CTA div with its own hover skew */}
         <div
-          className="ae-btn-register flex items-center justify-center mt-auto"
+          className="ae-btn-register upcoming-race-register flex items-center justify-center mt-auto"
           style={{
             background: "var(--action-secondary-default)",
             color: "var(--action-secondary-text)",
             fontSize: "20px",
             fontWeight: 600,
-            padding: "10px 20px",
+            width: "263.668px",
+            height: "42.581px",
+            padding: "0 20px",
             borderRadius: "10px",
+            alignSelf: "center",
           }}
         >
           Register
@@ -688,10 +905,74 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
   );
 }
 
-function FeaturedRaces() {
+function FeaturedRaces({
+  sectionRef,
+  trackReveal,
+}: {
+  sectionRef: React.RefObject<HTMLElement | null>;
+  trackReveal: number;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -15% 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="pt-11 @sm:pt-16 pb-16 @sm:pb-24" style={{ background: "var(--surface-default)", overflow: "hidden", position: "relative" }}>
+    <section
+      ref={sectionRef}
+      className="pt-11 @sm:pt-16 pb-16 @sm:pb-24"
+      style={{ background: "var(--surface-default)", overflow: "hidden", position: "relative" }}
+    >
       <style>{`
+        .upcoming-race-content {
+          min-height: 154px;
+        }
+        .upcoming-race-register {
+          flex: 0 0 auto;
+        }
+        .upcoming-races-reveal {
+          opacity: 0;
+          transform: translateX(-48px);
+          transition: opacity 0.7s ease, transform 0.7s ease;
+          will-change: opacity, transform;
+        }
+        .upcoming-races-reveal.is-visible {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        .upcoming-races-card-reveal {
+          opacity: 0;
+          transform: translateY(48px);
+          transition: opacity 0.7s ease, transform 0.7s ease;
+          will-change: opacity, transform;
+        }
+        .upcoming-races-card-reveal.is-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
         @media (hover: hover) and (pointer: fine) {
           .ae-btn {
             transition: transform 0.25s ease, background-color 0.25s ease;
@@ -728,27 +1009,43 @@ function FeaturedRaces() {
           .ae-btn-register { transition: background-color 0.2s ease !important; }
           .ae-btn-register:hover { transform: none !important; }
         }
+        @media (min-width: 768px) {
+          .upcoming-race-media {
+            height: 367.177px !important;
+          }
+        }
       `}</style>
 
-      {/* Decorative route — desktop only, on top of section content except description copy */}
-      <img
-        src={trackMiddleSvg}
-        alt=""
-        aria-hidden="true"
-        className="hidden @lg:block"
-        style={{
-          position: "absolute",
-          top: -13,
-          left: -27,
-          width: "100%",
-          height: "auto",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
+      <div className="relative mx-auto max-w-[1440px] px-8 @sm:px-12">
+        {/* Decorative route — desktop only, static backdrop */}
+        <div
+          className="hidden min-[1280px]:block"
+          style={{
+            position: "absolute",
+            top: scalePx(-13),
+            left: scalePx(-27),
+            width: scalePercent(100),
+            height: "auto",
+            pointerEvents: "none",
+            zIndex: 4,
+            ...getTrackRevealStyle("ttb", trackReveal),
+          }}
+        >
+            <img
+              src={trackMiddleSvg}
+              alt=""
+              aria-hidden="true"
+              style={{
+                display: "block",
+                width: "100%",
+                height: "auto",
+              }}
+            />
+        </div>
 
-      {/* ── Desktop: left content column + right cards overflow ── */}
-      <div className="hidden @md:flex" style={{ width: "100%" }}>
+        <div className={`upcoming-races-reveal ${isVisible ? "is-visible" : ""}`} style={{ position: "relative", zIndex: 2 }}>
+          {/* ── Desktop: left content column + right cards overflow ── */}
+          <div className="hidden @md:flex" style={{ width: "100%" }}>
 
         {/* Left column — 60px left section padding, navy block bleeds to edge */}
         <div
@@ -763,17 +1060,29 @@ function FeaturedRaces() {
           }}
         >
           {/* Navy heading: negative margin cancels section padding, bleeds to left edge */}
-          <div className="rounded-l-[0px] rounded-r-[10px]"
+          <div
+            className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]"
             style={{
-              background: "var(--surface-dark)",
-              padding: "20px 40px 20px 60px",
-              marginLeft: "-60px",
               marginBottom: "32px",
             }}
           >
+            <div
+              aria-hidden="true"
+              className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+              style={{
+                left: "-400px",
+                right: "0",
+                background: "var(--surface-dark)",
+              }}
+            />
             <h2
-              className="font-bold italic"
-              style={{ fontSize: "48px", lineHeight: "48px", color: "var(--text-inverse)" }}
+              className="relative font-bold italic"
+              style={{
+                fontSize: "48px",
+                lineHeight: "48px",
+                color: "var(--text-inverse)",
+                padding: "20px 40px 20px 0",
+              }}
             >
               Upcoming Races
             </h2>
@@ -781,10 +1090,10 @@ function FeaturedRaces() {
 
           {/* Copy — padded away from right; lifted above decorative route */}
           <div style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
-            <p style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px" }}>
+            <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
               Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
             </p>
-            <p style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px" }}>
+            <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
               Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
             </p>
 
@@ -797,7 +1106,9 @@ function FeaturedRaces() {
                 color: "var(--action-primary-text)",
                 fontSize: "20px",
                 fontWeight: 600,
-                padding: "18px 40px",
+                width: "274.894px",
+                height: "68.318px",
+                padding: "0 40px",
                 borderRadius: "10px",
               }}
             >
@@ -812,11 +1123,21 @@ function FeaturedRaces() {
           style={{ paddingLeft: "32px", paddingTop: "8px", marginTop: "-8px", position: "relative", zIndex: 2 }}
         >
           <div className="flex" style={{ gap: "24px" }}>
-            {races.map((race) => (
-              <div key={race.name} style={{ width: "390px", minWidth: "390px" }}>
+            {races.map((race, index) => (
+              <div
+                key={race.name}
+                className={`upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}
+                style={{
+                  width: "390px",
+                  minWidth: "390px",
+                  transitionDelay: `${index * 120}ms`,
+                }}
+              >
                 <RaceCard race={race} />
               </div>
             ))}
+          </div>
+        </div>
           </div>
         </div>
       </div>
@@ -975,7 +1296,13 @@ function BuiltTestimonialItem({
   );
 }
 
-function BuiltForRaceDay() {
+function BuiltForRaceDay({
+  sectionRef,
+  trackReveal,
+}: {
+  sectionRef: React.RefObject<HTMLElement | null>;
+  trackReveal: number;
+}) {
   const NUM_PAIRS = Math.floor(BUILT_TESTIMONIALS.length / 2);
   const [activePair, setActivePair] = useState(0);
 
@@ -989,23 +1316,47 @@ function BuiltForRaceDay() {
   }, [NUM_PAIRS]);
 
   return (
-    <section style={{ background: "var(--surface-dark)", position: "relative"}}>
+    <section ref={sectionRef} style={{ background: "var(--surface-dark)", position: "relative"}}>
       {/* Decorative route — desktop only, behind all section content */}
-      <img
-        src={trackBottomSvg}
-        alt=""
-        aria-hidden="true"
-        className="hidden @lg:block mx-[10px] my-[0px]"
-        style={{
-          position: "absolute",
-          top: -25,
-          left: -92,
-          width: "1200%",
-          height: "115%",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
+      {(() => {
+        const builtTrackStyles = getBuiltTrackRevealStyles(trackReveal);
+        return (
+          <>
+            <img
+              src={trackBottomSvg}
+              alt=""
+              aria-hidden="true"
+              className="hidden min-[1280px]:block mx-[10px] my-[0px]"
+              style={{
+                position: "absolute",
+                top: scalePx(-25),
+                left: scalePx(-92),
+                width: scalePercent(1200),
+                height: scalePercent(115),
+                pointerEvents: "none",
+                zIndex: 1,
+                ...builtTrackStyles.vertical,
+              }}
+            />
+            <img
+              src={trackBottomSvg}
+              alt=""
+              aria-hidden="true"
+              className="hidden min-[1280px]:block mx-[10px] my-[0px]"
+              style={{
+                position: "absolute",
+                top: scalePx(-25),
+                left: scalePx(-92),
+                width: scalePercent(1200),
+                height: scalePercent(115),
+                pointerEvents: "none",
+                zIndex: 1,
+                ...builtTrackStyles.horizontal,
+              }}
+            />
+          </>
+        );
+      })()}
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .bfrd-btn {
@@ -1175,12 +1526,20 @@ const RESOURCE_CARDS = [
   },
 ];
 
-function ResourceCard({ card }: { card: (typeof RESOURCE_CARDS)[number] }) {
+function ResourceCard({
+  card,
+  className = "",
+  style,
+}: {
+  card: (typeof RESOURCE_CARDS)[number];
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const isRunners = card.category === "For Runners";
   return (
     <Link
       to={card.to}
-      className="resource-card"
+      className={`resource-card ${className}`.trim()}
       style={{
         display: "block",
         flex: "1 1 0",
@@ -1191,6 +1550,7 @@ function ResourceCard({ card }: { card: (typeof RESOURCE_CARDS)[number] }) {
         position: "relative",
         aspectRatio: "390 / 374",
         boxShadow: "0px 1px 4px 0px rgba(165,162,169,0.8)",
+        ...style,
       }}
     >
       {/* Photo */}
@@ -1242,15 +1602,57 @@ function ResourceCard({ card }: { card: (typeof RESOURCE_CARDS)[number] }) {
   );
 }
 
-function Resources() {
+function Resources({
+  sectionRef,
+}: {
+  sectionRef: React.RefObject<HTMLElement | null>;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -15% 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [sectionRef]);
+
   return (
-    <section style={{ background: "var(--surface-default)" }}>
+    <section ref={sectionRef} style={{ background: "var(--surface-default)", position: "relative", overflow: "hidden" }}>
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .resource-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
-          .resource-card:hover { transform: translateY(-4px); box-shadow: 0px 6px 20px rgba(0,0,0,0.13) !important; }
+        .resource-card:hover { transform: translateY(-4px); box-shadow: 0px 6px 20px rgba(0,0,0,0.13) !important; }
           .res-cta { transition: transform 0.25s ease, background-color 0.2s ease; }
           .res-cta:hover { transform: skewX(-8deg); background: var(--action-primary-hover) !important; }
+        }
+        .resource-card.reveal-from-bottom {
+          opacity: 0;
+          transform: translateY(42px);
+          transition: opacity 0.7s ease, transform 0.7s ease;
+          will-change: opacity, transform;
+        }
+        .resource-card.reveal-from-bottom.is-visible {
+          opacity: 1;
+          transform: translateY(0);
         }
         .resource-card:focus-visible { outline: 2px solid var(--action-primary-default); outline-offset: 3px; }
         @media (prefers-reduced-motion: reduce) {
@@ -1286,8 +1688,13 @@ function Resources() {
 
         {/* Three cards — row on desktop, stacked on mobile */}
         <div className="flex flex-col @md:flex-row" style={{ gap: "24px" }}>
-          {RESOURCE_CARDS.map((card) => (
-            <ResourceCard key={card.title} card={card} />
+          {RESOURCE_CARDS.map((card, index) => (
+            <ResourceCard
+              key={card.title}
+              card={card}
+              className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
+              style={{ transitionDelay: `${index * 140}ms` }}
+            />
           ))}
         </div>
 
@@ -1298,9 +1705,88 @@ function Resources() {
 
 // ─── Page CTA ─────────────────────────────────────────────────────────────────
 
-function PageCTA() {
+function PageCTA({
+  sectionRef,
+}: {
+  sectionRef: React.RefObject<HTMLElement | null>;
+}) {
+  const confettiFiredRef = useRef(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node || confettiFiredRef.current) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    let rafId = 0;
+    let cancelled = false;
+
+    const runConfetti = async () => {
+      const { default: confetti } = await import("canvas-confetti");
+      if (cancelled) return;
+
+      confettiFiredRef.current = true;
+      const end = Date.now() + 3 * 1e3;
+      const colors = ["#D96220", "#FCF3ED", "#232943", "#006C67", "#B0521F", "#F5D6C4"];
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors,
+          ticks: 180,
+          gravity: 1.05,
+          scalar: 0.95,
+          zIndex: 15,
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors,
+          ticks: 180,
+          gravity: 1.05,
+          scalar: 0.95,
+          zIndex: 15,
+        });
+
+        if (Date.now() < end && !cancelled) {
+          rafId = window.requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !confettiFiredRef.current) {
+          void runConfetti();
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.25,
+        rootMargin: "0px 0px -25% 0px",
+      },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
+  }, [sectionRef]);
+
   return (
-    <section style={{ background: "var(--surface-default)", padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)" }}>
+    <section ref={sectionRef} style={{ background: "var(--surface-default)", padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", overflow: "hidden" }}>
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .cta-btn { transition: transform 0.25s ease, background-color 0.2s ease; }
@@ -1394,33 +1880,51 @@ function PageCTA() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const heroRef = useRef<HTMLElement | null>(null);
+  const servicesRef = useRef<HTMLElement | null>(null);
+  const racesRef = useRef<HTMLElement | null>(null);
+  const builtRef = useRef<HTMLElement | null>(null);
+  const resourcesRef = useRef<HTMLElement | null>(null);
+  const ctaRef = useRef<HTMLElement | null>(null);
+
+  const trackReveals = useTrackReveal([
+    heroRef,
+    servicesRef,
+    racesRef,
+    builtRef,
+    resourcesRef,
+    ctaRef,
+  ], 0.761);
+  const trackScale = useTrackScale();
+
   return (
-    <main>
-      <Hero />
+    <main style={{ ["--track-scale" as any]: trackScale }}>
+      <Hero sectionRef={heroRef} trackReveal={trackReveals[0]} />
 
-      <Services />
-      <FeaturedRaces />
+      <Services sectionRef={servicesRef} trackReveal={trackReveals[1]} />
+      <FeaturedRaces sectionRef={racesRef} trackReveal={trackReveals[2]} />
 
-      <BuiltForRaceDay />
+      <BuiltForRaceDay sectionRef={builtRef} trackReveal={trackReveals[3]} />
 
       <div style={{ position: "relative", overflow: "hidden" }}>
         <img
           src={trackBottom2Svg}
           alt=""
           aria-hidden="true"
-          className="hidden @lg:block"
+          className="hidden min-[1280px]:block"
           style={{
             position: "absolute",
-            top: -317,
-            left: 0,
-            width: "100%",
+            top: scalePx(-317),
+            left: scalePx(-27),
+            width: scalePercent(100),
             height: "auto",
             pointerEvents: "none",
             zIndex: 1,
+            ...getTrackRevealStyle("ttb", trackReveals[4]),
           }}
         />
-        <Resources />
-        <PageCTA />
+        <Resources sectionRef={resourcesRef} />
+        <PageCTA sectionRef={ctaRef} />
       </div>
     </main>
   );
