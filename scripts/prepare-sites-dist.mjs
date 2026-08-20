@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
 import path from 'node:path';
+import { join } from 'node:path';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
@@ -29,7 +30,7 @@ import { createReadStream, existsSync, readFileSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 
 const distDir = resolve(process.cwd(), 'dist');
-const indexHtml = readFileSync(join(distDir, 'index.html'), 'utf8');
+const indexHtml = ${JSON.stringify(await readFile(join(distDir, 'index.html'), 'utf8'))};
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
