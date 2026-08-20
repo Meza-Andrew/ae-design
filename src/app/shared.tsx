@@ -1,6 +1,6 @@
 import { ArrowRight, Menu, X, Phone, Mail } from "lucide-react";
 import { Link, useLocation } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import svgPaths from "@/imports/Group5/svg-55iplnspeh";
 import footerSvgPaths from "@/imports/Footer/svg-8tle3sonb4";
 
@@ -212,12 +212,16 @@ function RequestTimingBtn({ onClick }: { onClick?: () => void }) {
     <Link
       to="/for-race-directors"
       onClick={onClick}
-      className="req-timing-btn inline-flex items-center self-center shrink-0 px-8 font-semibold text-lg whitespace-nowrap"
+      className="req-timing-btn inline-flex items-center justify-center shrink-0 whitespace-nowrap"
       style={{
         background: "var(--action-primary-default)",
         color: "var(--action-primary-text)",
         borderRadius: "10px",
-        minHeight: "52px",
+        width: "247px",
+        height: "61px",
+        padding: "0 36px",
+        fontSize: "18px",
+        fontWeight: 600,
         transition: "transform 0.25s ease, background-color 0.2s ease",
       }}
     >
@@ -251,10 +255,71 @@ export function Nav() {
     { label: "Resources", to: "/resources" },
   ];
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const media = window.matchMedia("(min-width: 1280px)");
+    const update = () => {
+      if (media.matches) setOpen(false);
+    };
+
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
   return (
     <header className="sticky top-0 z-20 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
+      <style>{`
+        .nav-desktop {
+          display: flex;
+        }
+        .nav-compact {
+          display: none;
+        }
+        .nav-mobile-row {
+          display: none;
+        }
+        .nav-drawer {
+          display: none;
+        }
+        .nav-logo-scale {
+          transform-origin: left center;
+        }
+        @media (max-width: 1279px) {
+          .nav-desktop {
+            display: none !important;
+          }
+          .nav-compact {
+            display: flex !important;
+          }
+          .nav-drawer {
+            display: block !important;
+          }
+          .nav-logo-scale {
+            transform: scale(0.82);
+          }
+        }
+        @media (max-width: 750px) {
+          .nav-compact {
+            display: none !important;
+          }
+          .nav-compact-cta {
+            display: none !important;
+          }
+          .nav-logo-scale {
+            transform: scale(0.72);
+          }
+          .nav-mobile-row {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+          }
+        }
+      `}</style>
       {/* ── Utility bar ── cream background, right-aligned phone + email */}
-      <div style={{ background: "var(--surface-subtle)" }}>
+      <div className="nav-desktop" style={{ background: "var(--surface-subtle)" }}>
         <div className="max-w-[1440px] mx-auto px-5 @sm:px-8 h-[50px] flex items-center justify-end gap-6">
           <Link
             to="/contact#contact-form"
@@ -283,18 +348,22 @@ export function Nav() {
 
       {/* ── Main nav bar ── dark navy */}
       <div style={{ background: "var(--surface-dark)" }}>
-        <div className="max-w-[1440px] mx-auto flex items-center px-5 @sm:px-8" style={{ minHeight: "100px" }}>
-          {/* Desktop: logo + links + CTA all in one justify-between row */}
+        <div
+          className="max-w-[1440px] mx-auto flex items-center px-5 @sm:px-8 nav-desktop"
+          style={{ minHeight: "100px" }}
+        >
           <Link
             to="/"
-            className="hidden [@container(min-width:860px)]:flex items-center shrink-0"
+            className="flex items-center shrink-0"
             onClick={() => setOpen(false)}
             aria-label="Arsenal Events — home"
           >
-            <ArsenalWordmark />
+            <div className="nav-logo-scale">
+              <ArsenalWordmark />
+            </div>
           </Link>
 
-          <nav className="hidden [@container(min-width:860px)]:flex items-center justify-center gap-10 flex-1 px-8">
+          <nav className="flex items-center justify-center gap-10 flex-1 px-8">
             {navLinks.map((l) => (
               <Link
                 key={l.to}
@@ -309,22 +378,56 @@ export function Nav() {
             ))}
           </nav>
 
-          <div className="hidden [@container(min-width:860px)]:block shrink-0">
+          <div className="block shrink-0">
             <RequestTimingBtn />
           </div>
+        </div>
 
-          {/* Mobile: logo left, hamburger right */}
+        <div
+          className="max-w-[1440px] mx-auto flex items-center justify-between gap-4 px-5 @sm:px-8 nav-compact"
+          style={{ minHeight: "84px" }}
+        >
           <Link
             to="/"
-            className="flex [@container(min-width:860px)]:hidden items-center"
+            className="flex items-center shrink-0"
             onClick={() => setOpen(false)}
             aria-label="Arsenal Events — home"
           >
-            <ArsenalWordmark />
+            <div className="nav-logo-scale">
+              <ArsenalWordmark />
+            </div>
           </Link>
 
-          {/* Mobile: hamburger */}
-          <div className="flex [@container(min-width:860px)]:hidden items-center ml-auto pr-4">
+          <div className="flex flex-1 items-center justify-center">
+            <div className="nav-compact-cta">
+              <RequestTimingBtn />
+            </div>
+          </div>
+
+          <div className="flex items-center shrink-0">
+            <button
+              className="p-2 text-[var(--text-inverse)]"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? "Close menu" : "Open menu"}
+            >
+              {open ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        <div className="max-w-[1440px] mx-auto flex items-center px-5 @sm:px-8 nav-mobile-row" style={{ minHeight: "72px" }}>
+          <Link
+            to="/"
+            className="flex items-center shrink-0"
+            onClick={() => setOpen(false)}
+            aria-label="Arsenal Events — home"
+          >
+            <div className="nav-logo-scale">
+              <ArsenalWordmark />
+            </div>
+          </Link>
+
+          <div className="ml-auto">
             <button
               className="p-2"
               style={{ color: "var(--text-inverse)" }}
@@ -339,7 +442,7 @@ export function Nav() {
 
       {/* ── Mobile drawer ── */}
       {open && (
-        <div className="[@container(min-width:860px)]:hidden" style={{ background: "var(--surface-dark)" }}>
+        <div className="nav-drawer" style={{ background: "var(--surface-dark)" }}>
           {/* Nav links */}
           {navLinks.map((l) => (
             <Link

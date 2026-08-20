@@ -27,9 +27,9 @@ import imgResourceGear from "@/imports/image_1.png";
 import personRunSvg from "@/imports/PersonSimpleRun.svg";
 import raceDirectorIconSvg from "@/imports/for_race_directors_icon.svg";
 
-// ─── Responsive N-up slider ───────────────────────────────────────────────────
-// Mobile (@md:hidden)  → Slider unchanged.
-// Desktop (hidden @md:block) → continuous N-up, slides 1 card at a time.
+// â”€â”€â”€ Responsive N-up slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Mobile (md:hidden)  â†’ Slider unchanged.
+// Desktop (hidden md:block) â†’ continuous N-up, slides 1 card at a time.
 
 const DESKTOP_GAP = 24;
 const TRACK_SCALE_BASE_WIDTH = 1550;
@@ -218,10 +218,10 @@ function ResponsiveSlider({
 
   return (
     <>
-      <div className="@md:hidden">
+      <div className="md:hidden">
         <Slider>{children}</Slider>
       </div>
-      <div className="hidden @md:block">
+      <div className="hidden md:block">
         <div ref={wrapRef} className="overflow-hidden">
           <div
             className="flex gap-6 transition-transform duration-300 ease-in-out"
@@ -269,19 +269,23 @@ function ResponsiveSlider({
   );
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 function HeroBtn({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <Link
       to={to}
-      className="hero-btn inline-flex items-center shrink-0 px-9 font-semibold text-2xl whitespace-nowrap"
+      className="hero-btn inline-flex items-center justify-center shrink-0 whitespace-nowrap"
       style={{
         background: "var(--action-primary-default)",
         color: "var(--action-primary-text)",
         borderRadius: "10px",
-        minHeight: "76px",
+        width: "272px",
+        height: "68px",
+        padding: "0 40px",
+        fontSize: "20px",
+        fontWeight: 600,
         transition: "transform 0.25s ease, background-color 0.2s ease",
       }}
     >
@@ -339,19 +343,29 @@ function Hero({
 
   return (
     <section ref={sectionRef} className="relative overflow-hidden" style={{ background: "var(--surface-dark)" }}>
-      {/* ── Photo ── */}
+      <style>{`
+        .hero-photo {
+          object-position: center 75%;
+        }
+        @media (max-width: 750px) {
+          .hero-photo {
+            object-position: 72% center;
+          }
+        }
+      `}</style>
+      {/* â”€â”€ Photo â”€â”€ */}
       <img
         src={imgHero}
         alt="Runner crossing the finish line at an Arsenal Events race"
-        className="absolute inset-0 w-full h-full object-cover object-[center_75%]"
+        className="hero-photo absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* ── Gradient overlay (left-to-right navy fade) ── */}
+      {/* â”€â”€ Gradient overlay (left-to-right navy fade) â”€â”€ */}
       <div className="absolute inset-0">
         <HeroImageOverlay />
       </div>
 
-      {/* ── Race course track line — aspect-ratio locks 1808×546 proportions, no stretch ── */}
+      {/* â”€â”€ Race course track line â€” aspect-ratio locks 1808Ã—546 proportions, no stretch â”€â”€ */}
       <div
         className="absolute pointer-events-none hidden min-[1280px]:block"
         style={{
@@ -365,9 +379,9 @@ function Hero({
         <RaceCourseTrackLine />
       </div>
 
-      {/* ── Hero copy — bottom-left, inside max-width container ── */}
+      {/* â”€â”€ Hero copy â€” bottom-left, inside max-width container â”€â”€ */}
       <div
-        className="relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 @md:pb-20"
+        className="relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 md:pb-20"
         style={{
           paddingTop: "clamp(200px, 28vw, 420px)",
           opacity: isVisible ? 1 : 0,
@@ -389,7 +403,7 @@ function Hero({
           className="text-[clamp(18px,2.1vw,30px)] font-semibold leading-snug mb-10 max-w-[60ch]"
           style={{ textShadow: "0px 4px 4px rgba(0,0,0,0.25)", color: "var(--text-inverse)" }}
         >
-          Placeholder supporting headline copy — one or two sentences describing both race director and runner-facing value propositions.
+          Placeholder supporting headline copy â€” one or two sentences describing both race director and runner-facing value propositions.
         </p>
 
         {/* CTA buttons */}
@@ -405,7 +419,7 @@ function Hero({
   );
 }
 
-// ─── Services ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const DIRECTORS_SERVICES = [
   { label: "Registration", accent: true, to: "/for-race-directors#registration" },
@@ -499,7 +513,7 @@ function Services({
       className="relative overflow-hidden pt-16 @sm:pt-24 pb-11 @sm:pb-16"
       style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
     >
-      {/* Decorative route — desktop only, behind all section content */}
+      {/* Decorative route â€” desktop only, behind all section content */}
         <img
           src={trackTopSvg}
           alt=""
@@ -541,12 +555,12 @@ function Services({
           className="mx-auto mb-10 max-w-[885px]"
           style={{ fontSize: "24px", lineHeight: "32px", color: "var(--text-default)" }}
         >
-          Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+          Placeholder supporting headline copy â€” one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy â€” one or two sentences describing the runner-facing value proposition.
         </p>
 
-        {/* ── Desktop: horizontal overlapping cards ── */}
+        {/* â”€â”€ Desktop: horizontal overlapping cards â”€â”€ */}
         {/* Active card fills left at scale(1). Inactive peeks right at scale(0.7), vertically centred. */}
-        <div className="hidden @md:block pb-10">
+        <div className="hidden md:block pb-10">
           <div
             className="relative mx-auto overflow-hidden"
             style={{ width: "840px", height: "444px" }}
@@ -642,9 +656,9 @@ function Services({
                   </div>
                 </div>
                 <div className="flex-1 relative overflow-hidden">
-                  {/* Blurred edge-fill — stretches the photo edges to fill the sides */}
+                  {/* Blurred edge-fill â€” stretches the photo edges to fill the sides */}
                   <img src={imgRunner} aria-hidden className="absolute inset-0 w-full h-full" style={{ objectFit: "cover", filter: "blur(18px) brightness(0.85) saturate(0.7)", transform: "scale(1.12)" }} />
-                  {/* Sharp foreground — full runner visible, medal included */}
+                  {/* Sharp foreground â€” full runner visible, medal included */}
                   <img src={imgRunner} alt="Runner with finisher medal" className="absolute inset-0 w-full h-full object-contain" style={{ position: "relative", zIndex: 1 }} />
                 </div>
               </div>
@@ -652,8 +666,8 @@ function Services({
           </div>
         </div>
 
-        {/* ── Mobile: stacked cards ── */}
-        <div className="@md:hidden flex flex-col gap-5 text-left">
+      {/* â”€â”€ Mobile: stacked cards â”€â”€ */}
+        <div className="md:hidden flex flex-col gap-5 text-left">
           <div className="overflow-hidden" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
             <Link to="/for-race-directors" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
               <RaceDirectorsIcon size={20} />
@@ -709,7 +723,7 @@ function Services({
   );
 }
 
-// ─── 1-up Slider ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ 1-up Slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Slider({ children }: { children: React.ReactNode }) {
   const items = React.Children.toArray(children);
@@ -773,7 +787,7 @@ function Slider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Featured Races ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Featured Races â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const races = [
   {
@@ -883,7 +897,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
         >
           {race.name}
         </h3>
-        {/* Card is the link — Register is a visual CTA div with its own hover skew */}
+        {/* Card is the link â€” Register is a visual CTA div with its own hover skew */}
         <div
           className="ae-btn-register upcoming-race-register flex items-center justify-center mt-auto"
           style={{
@@ -891,9 +905,9 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
             color: "var(--action-secondary-text)",
             fontSize: "20px",
             fontWeight: 600,
-            width: "263.668px",
-            height: "42.581px",
-            padding: "0 20px",
+            width: "274.894px",
+            height: "68.318px",
+            padding: "0 40px",
             borderRadius: "10px",
             alignSelf: "center",
           }}
@@ -913,6 +927,8 @@ function FeaturedRaces({
   trackReveal: number;
 }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<"wide" | "stacked">("wide");
+  const [activeRaceIndex, setActiveRaceIndex] = useState(0);
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -940,6 +956,25 @@ function FeaturedRaces({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const update = () => {
+      if (window.innerWidth <= 1000) {
+        setLayoutMode("stacked");
+      } else {
+        setLayoutMode("wide");
+      }
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const prevRace = () => setActiveRaceIndex((index) => (index - 1 + races.length) % races.length);
+  const nextRace = () => setActiveRaceIndex((index) => (index + 1) % races.length);
+
   return (
     <section
       ref={sectionRef}
@@ -952,6 +987,67 @@ function FeaturedRaces({
         }
         .upcoming-race-register {
           flex: 0 0 auto;
+        }
+        .upcoming-races-shell {
+          display: flex;
+          align-items: flex-start;
+          gap: 32px;
+        }
+        .upcoming-races-copy {
+          width: 480px;
+          min-width: 480px;
+          flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          padding-left: 60px;
+          padding-right: 0;
+        }
+        .upcoming-races-cards-wrap {
+          flex: 1;
+          overflow: hidden;
+          display: flex;
+          align-items: flex-start;
+          padding-left: 32px;
+          padding-top: 8px;
+          margin-top: -8px;
+          position: relative;
+          z-index: 2;
+        }
+        .upcoming-races-cards-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 390px));
+          gap: 24px;
+          align-items: start;
+        }
+        .upcoming-races-single-rail {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+        .upcoming-races-single-card {
+          width: 390px;
+          min-width: 390px;
+        }
+        .upcoming-races-carousel-controls {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          flex-shrink: 0;
+        }
+        .upcoming-races-carousel-dots {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .upcoming-races-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .upcoming-races-mobile-slider {
+          display: none;
+          width: 100%;
         }
         .upcoming-races-reveal {
           opacity: 0;
@@ -972,6 +1068,10 @@ function FeaturedRaces({
         .upcoming-races-card-reveal.is-visible {
           opacity: 1;
           transform: translateY(0);
+        }
+        .upcoming-races-cta {
+          width: min(274.894px, 100%);
+          min-height: 68.318px;
         }
         @media (hover: hover) and (pointer: fine) {
           .ae-btn {
@@ -1014,10 +1114,91 @@ function FeaturedRaces({
             height: 367.177px !important;
           }
         }
+        @media (max-width: 1420px) {
+          .upcoming-races-copy {
+            width: 440px;
+            min-width: 440px;
+          }
+          .upcoming-races-cards-wrap {
+            padding-left: 20px;
+          }
+          .upcoming-races-single-rail {
+            justify-content: flex-start;
+          }
+          .upcoming-races-single-card {
+            width: clamp(240px, calc(100vw - 560px), 350px);
+            min-width: 0;
+          }
+          .upcoming-races-carousel-controls {
+            align-items: flex-start;
+          }
+        }
+        @media (max-width: 1000px) {
+          .upcoming-races-stack {
+            width: 100%;
+            gap: 20px;
+          }
+          .upcoming-races-copy {
+            width: 100%;
+            min-width: 0;
+            padding-left: 0;
+            padding-right: 0;
+          }
+          .upcoming-races-single-rail {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+          }
+          .upcoming-races-single-card {
+            width: min(390px, 100%);
+            min-width: 0;
+            align-self: flex-start;
+          }
+          .upcoming-races-carousel-controls {
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+          }
+          .upcoming-races-carousel-dots {
+            flex-direction: row;
+            align-items: center;
+          }
+          .upcoming-races-support-copy {
+            padding-right: 0 !important;
+          }
+          .upcoming-races-copy p {
+            font-size: 20px !important;
+            line-height: 28px !important;
+          }
+          .upcoming-races-copy h2 {
+            font-size: 36px !important;
+            line-height: 40px !important;
+          }
+          .upcoming-races-copy a {
+            font-size: 18px !important;
+            width: auto !important;
+            min-width: 0 !important;
+            height: auto !important;
+          }
+        }
+        @media (max-width: 749px) {
+          .upcoming-races-single-card {
+            width: 100%;
+            min-width: 0;
+          }
+          .upcoming-races-mobile-slider {
+            padding: 0 20px;
+          }
+          .upcoming-races-cta {
+            width: 100%;
+            max-width: 274.894px;
+          }
+        }
       `}</style>
 
       <div className="relative mx-auto max-w-[1440px] px-8 @sm:px-12">
-        {/* Decorative route — desktop only, static backdrop */}
+        {/* Decorative route â€” desktop only, static backdrop */}
         <div
           className="hidden min-[1280px]:block"
           style={{
@@ -1044,149 +1225,121 @@ function FeaturedRaces({
         </div>
 
         <div className={`upcoming-races-reveal ${isVisible ? "is-visible" : ""}`} style={{ position: "relative", zIndex: 2 }}>
-          {/* ── Desktop: left content column + right cards overflow ── */}
-          <div className="hidden @md:flex" style={{ width: "100%" }}>
+          <div className="upcoming-races-shell">
+            {layoutMode === "wide" ? (
+              <>
+                <div className="upcoming-races-copy">
+                  <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                    />
+                    <h2
+                      className="relative font-bold italic"
+                      style={{ fontSize: "48px", lineHeight: "48px", color: "var(--text-inverse)", padding: "20px 40px 20px 0" }}
+                    >
+                      Upcoming Races
+                    </h2>
+                  </div>
 
-        {/* Left column — 60px left section padding, navy block bleeds to edge */}
-        <div
-          style={{
-            width: "480px",
-            minWidth: "480px",
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            paddingLeft: "60px",
-            paddingRight: "0",
-          }}
-        >
-          {/* Navy heading: negative margin cancels section padding, bleeds to left edge */}
-          <div
-            className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]"
-            style={{
-              marginBottom: "32px",
-            }}
-          >
-            <div
-              aria-hidden="true"
-              className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-              style={{
-                left: "-400px",
-                right: "0",
-                background: "var(--surface-dark)",
-              }}
-            />
-            <h2
-              className="relative font-bold italic"
-              style={{
-                fontSize: "48px",
-                lineHeight: "48px",
-                color: "var(--text-inverse)",
-                padding: "20px 40px 20px 0",
-              }}
-            >
-              Upcoming Races
-            </h2>
-          </div>
+                  <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
+                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
+                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                    </p>
+                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
+                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                    </p>
 
-          {/* Copy — padded away from right; lifted above decorative route */}
-          <div style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
-            <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
-              Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
-            </p>
-            <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
-              Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
-            </p>
+                    <Link
+                      to="/races"
+                      className="upcoming-races-cta ae-btn ae-btn-primary"
+                      style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
+                    >
+                      See All Races
+                    </Link>
+                  </div>
+                </div>
 
-            {/* Primary button: orange, kit hover skew */}
-            <Link
-              to="/races"
-              className="ae-btn ae-btn-primary"
-              style={{
-                background: "var(--action-primary-default)",
-                color: "var(--action-primary-text)",
-                fontSize: "20px",
-                fontWeight: 600,
-                width: "274.894px",
-                height: "68.318px",
-                padding: "0 40px",
-                borderRadius: "10px",
-              }}
-            >
-              See All Races
-            </Link>
-          </div>
-        </div>
+                <div className="upcoming-races-cards-wrap">
+                  <div className="upcoming-races-cards-grid">
+                    {races.map((race, index) => (
+                      <div
+                        key={race.name}
+                        className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}
+                        style={{ width: "390px", minWidth: "390px", transitionDelay: `${index * 120}ms` }}
+                      >
+                        <RaceCard race={race} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="upcoming-races-stack">
+                <div className="upcoming-races-copy">
+                  <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                    />
+                    <h2
+                      className="relative font-bold italic"
+                      style={{ fontSize: "48px", lineHeight: "48px", color: "var(--text-inverse)", padding: "20px 40px 20px 0" }}
+                    >
+                      Upcoming Races
+                    </h2>
+                  </div>
+                </div>
 
-        {/* Right: cards — tops aligned with heading bar, clips second card */}
-        <div
-          className="flex-1 overflow-hidden flex items-start"
-          style={{ paddingLeft: "32px", paddingTop: "8px", marginTop: "-8px", position: "relative", zIndex: 2 }}
-        >
-          <div className="flex" style={{ gap: "24px" }}>
-            {races.map((race, index) => (
-              <div
-                key={race.name}
-                className={`upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}
-                style={{
-                  width: "390px",
-                  minWidth: "390px",
-                  transitionDelay: `${index * 120}ms`,
-                }}
-              >
-                <RaceCard race={race} />
+                <div className="upcoming-races-single-rail">
+                  <div className="upcoming-races-single-card">
+                    <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
+                      <RaceCard race={races[activeRaceIndex]} />
+                    </div>
+                  </div>
+
+                  <div className="upcoming-races-carousel-controls">
+                    <button onClick={prevRace} aria-label="Previous race" className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40">
+                      <ChevronLeft size={16} />
+                    </button>
+                    <div className="upcoming-races-carousel-dots">
+                      {races.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setActiveRaceIndex(index)}
+                          aria-label={`Go to race ${index + 1}`}
+                          className={`transition-all duration-200 ${index === activeRaceIndex ? "h-5 w-1.5 bg-foreground" : "h-1.5 w-1.5 bg-border"}`}
+                        />
+                      ))}
+                    </div>
+                    <button onClick={nextRace} aria-label="Next race" className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40">
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="upcoming-races-copy">
+                  <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
+                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
+                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                    </p>
+                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
+                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                    </p>
+
+                    <Link
+                      to="/races"
+                      className="upcoming-races-cta ae-btn ae-btn-primary"
+                      style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
+                    >
+                      See All Races
+                    </Link>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Mobile: stacked ── */}
-      <div className="@md:hidden">
-        {/* Navy heading — full bleed */}
-        <div
-          style={{
-            background: "var(--surface-dark)",
-            padding: "20px 24px",
-            marginBottom: "24px",
-          }}
-        >
-          <h2
-            className="font-bold italic"
-            style={{ fontSize: "36px", lineHeight: "40px", color: "var(--text-inverse)" }}
-          >
-            Upcoming Races
-          </h2>
-        </div>
-
-        <div style={{ padding: "0 20px" }}>
-          <p style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", marginBottom: "16px" }}>
-            Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
-          </p>
-          <p style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", marginBottom: "28px" }}>
-            Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
-          </p>
-          <Slider>
-            {races.map((race) => (
-              <RaceCard key={race.name} race={race} />
-            ))}
-          </Slider>
-          <div className="flex justify-center" style={{ marginTop: "32px" }}>
-            <Link
-              to="/races"
-              className="ae-btn ae-btn-primary"
-              style={{
-                background: "var(--action-primary-default)",
-                color: "var(--action-primary-text)",
-                fontSize: "18px",
-                fontWeight: 600,
-                padding: "16px 28px",
-                borderRadius: "10px",
-              }}
-            >
-              See All Races
-            </Link>
+            )}
           </div>
         </div>
       </div>
@@ -1194,7 +1347,7 @@ function FeaturedRaces({
   );
 }
 
-// ─── Built for Race Day ───────────────────────────────────────────────────────
+// â”€â”€â”€ Built for Race Day â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // 4 testimonials grouped as 2 pairs; each pair shows 2 stacked quotes simultaneously
 const BUILT_TESTIMONIALS = [
@@ -1254,7 +1407,7 @@ function BuiltTestimonialItem({
       />
       {/* Text column */}
       <div style={{ maxWidth: "360px" }}>
-        {/* Quote/Lead — Bold Italic — highlight color */}
+        {/* Quote/Lead â€” Bold Italic â€” highlight color */}
         <p
           className="font-bold italic"
           style={{
@@ -1266,7 +1419,7 @@ function BuiltTestimonialItem({
         >
           {t.label}
         </p>
-        {/* Quote/Body — Semibold Italic */}
+        {/* Quote/Body â€” Semibold Italic */}
         <p
           style={{
             fontWeight: 600,
@@ -1279,7 +1432,7 @@ function BuiltTestimonialItem({
         >
           &ldquo;{t.quote}&rdquo;
         </p>
-        {/* Quote/Attribution — Book Italic */}
+        {/* Quote/Attribution â€” Book Italic */}
         <p
           style={{
             fontWeight: 400,
@@ -1317,7 +1470,7 @@ function BuiltForRaceDay({
 
   return (
     <section ref={sectionRef} style={{ background: "var(--surface-dark)", position: "relative"}}>
-      {/* Decorative route — desktop only, behind all section content */}
+      {/* Decorative route â€” desktop only, behind all section content */}
       {(() => {
         const builtTrackStyles = getBuiltTrackRevealStyles(trackReveal);
         return (
@@ -1378,7 +1531,7 @@ function BuiltForRaceDay({
         className="max-w-[1550px] mx-auto"
         style={{ padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", zIndex: 2 }}
       >
-        {/* ── Centered content block ── */}
+        {/* â”€â”€ Centered content block â”€â”€ */}
         <div style={{ width: "fit-content", margin: "0 auto" }}>
 
           {/* Intro: heading left, CTA right, aligned to the same width as columns below */}
@@ -1407,7 +1560,7 @@ function BuiltForRaceDay({
                   maxWidth: "672px",
                 }}
               >
-                Placeholder about copy — one or two sentences about Arsenal Events, its
+                Placeholder about copy â€” one or two sentences about Arsenal Events, its
                 mission, and what differentiates the service for both race directors and runners.
               </p>
             </div>
@@ -1417,9 +1570,11 @@ function BuiltForRaceDay({
               style={{
                 background: "var(--action-primary-default)",
                 color: "var(--action-primary-text)",
-                fontSize: "18px",
+                fontSize: "20px",
                 fontWeight: 600,
-                padding: "12px 28px",
+                width: "274.894px",
+                height: "68.318px",
+                padding: "0 40px",
                 borderRadius: "10px",
                 textDecoration: "none",
                 whiteSpace: "nowrap",
@@ -1431,12 +1586,12 @@ function BuiltForRaceDay({
 
           {/* Two-column: quotes + stats, stats vertically centered with quotes */}
           <div
-            className="flex flex-col @md:flex-row items-center"
+            className="flex flex-col md:flex-row items-center"
             style={{ gap: "64px" }}
           >
-          {/* ── Left: testimonial rotator — 2 quotes stacked, pairs crossfade ── */}
+          {/* â”€â”€ Left: testimonial rotator â€” 2 quotes stacked, pairs crossfade â”€â”€ */}
           <div style={{ minWidth: 0 }}>
-            {/* Stable-height crossfade container — ghost pair holds layout height */}
+            {/* Stable-height crossfade container â€” ghost pair holds layout height */}
             <div style={{ position: "relative" }}>
               {/* Ghost: pair 0 always in flow (invisible) to anchor the container height */}
               <div aria-hidden="true" style={{ visibility: "hidden", pointerEvents: "none" }}>
@@ -1444,7 +1599,7 @@ function BuiltForRaceDay({
                 <BuiltTestimonialItem t={BUILT_TESTIMONIALS[1]} />
               </div>
 
-              {/* Rotating pairs — staggered fade per item */}
+              {/* Rotating pairs â€” staggered fade per item */}
               {Array.from({ length: NUM_PAIRS }).map((_, pairIdx) => {
                 const active = pairIdx === activePair;
                 return (
@@ -1475,7 +1630,7 @@ function BuiltForRaceDay({
             </div>
           </div>
 
-          {/* ── Right: stats ── */}
+          {/* â”€â”€ Right: stats â”€â”€ */}
           <div style={{ flexShrink: 0 }}>
             <div className="flex flex-col" style={{ gap: "32px" }}>
               {BUILT_STATS.map((stat) => (
@@ -1503,7 +1658,7 @@ function BuiltForRaceDay({
   );
 }
 
-// ─── Resources ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Resources â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const RESOURCE_CARDS = [
   {
@@ -1560,12 +1715,12 @@ function ResourceCard({
         aria-hidden="true"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
       />
-      {/* Scrim — top-left readable, fades toward bottom-right */}
+      {/* Scrim â€” top-left readable, fades toward bottom-right */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(14,16,27,0.58) 0%, rgba(14,16,27,0.08) 100%)" }} />
-      {/* Triangle — orange for Runners, navy for Race Directors */}
+      {/* Triangle â€” orange for Runners, navy for Race Directors */}
       <div style={{ position: "absolute", inset: 0, background: isRunners ? "var(--action-primary-default)" : "var(--surface-dark)", clipPath: "polygon(64% 100%, 100% 63%, 100% 100%)" }} />
 
-      {/* Title — vertically centered in left portion */}
+      {/* Title â€” vertically centered in left portion */}
       <p
         className="font-bold italic"
         style={{
@@ -1583,7 +1738,7 @@ function ResourceCard({
         {card.title}
       </p>
 
-      {/* Category badge — inside the orange triangle */}
+      {/* Category badge â€” inside the orange triangle */}
       <div style={{ position: "absolute", bottom: 14, right: 14, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
         <img
           src={isRunners ? personRunSvg : raceDirectorIconSvg}
@@ -1680,14 +1835,14 @@ function Resources({
           <Link
             to="/resources"
             className="res-cta inline-flex items-center justify-center"
-            style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "18px", fontWeight: 600, padding: "12px 28px", borderRadius: "10px", textDecoration: "none", whiteSpace: "nowrap" }}
+            style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, width: "274.894px", height: "68.318px", padding: "0 40px", borderRadius: "10px", textDecoration: "none", whiteSpace: "nowrap" }}
           >
             Learn Something New
           </Link>
         </div>
 
-        {/* Three cards — row on desktop, stacked on mobile */}
-        <div className="flex flex-col @md:flex-row" style={{ gap: "24px" }}>
+        {/* Three cards â€” row on desktop, stacked on mobile */}
+        <div className="flex flex-col md:flex-row" style={{ gap: "24px" }}>
           {RESOURCE_CARDS.map((card, index) => (
             <ResourceCard
               key={card.title}
@@ -1703,7 +1858,7 @@ function Resources({
   );
 }
 
-// ─── Page CTA ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function PageCTA({
   sectionRef,
@@ -1715,6 +1870,10 @@ function PageCTA({
   useEffect(() => {
     const node = sectionRef.current;
     if (!node || confettiFiredRef.current) return;
+
+    if (!window.matchMedia("(min-width: 1280px)").matches) {
+      return;
+    }
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
@@ -1834,21 +1993,25 @@ function PageCTA({
             margin: 0,
           }}
         >
-          Placeholder about copy — one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
+          Placeholder about copy â€” one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center", marginTop: "8px" }}>
           <Link
             to="/for-race-directors#form"
             className="cta-btn"
             style={{
-              display: "inline-block",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               background: "var(--action-primary-default)",
               color: "var(--text-inverse)",
               fontWeight: 600,
               fontSize: "20px",
               lineHeight: "28px",
-              padding: "14px 32px",
-              borderRadius: "6px",
+              width: "274.894px",
+              height: "68.318px",
+              padding: "0 40px",
+              borderRadius: "10px",
               textDecoration: "none",
             }}
           >
@@ -1858,14 +2021,18 @@ function PageCTA({
             to="/races"
             className="cta-btn"
             style={{
-              display: "inline-block",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               background: "var(--action-primary-default)",
               color: "var(--text-inverse)",
               fontWeight: 600,
               fontSize: "20px",
               lineHeight: "28px",
-              padding: "14px 32px",
-              borderRadius: "6px",
+              width: "274.894px",
+              height: "68.318px",
+              padding: "0 40px",
+              borderRadius: "10px",
               textDecoration: "none",
             }}
           >
@@ -1877,7 +2044,7 @@ function PageCTA({
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null);
