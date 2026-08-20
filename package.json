@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build --configLoader native",
+    "postbuild": "node scripts/prepare-sites-dist.mjs",
     "dev": "vite"
   },
   "dependencies": {
