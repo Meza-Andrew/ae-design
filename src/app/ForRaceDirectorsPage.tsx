@@ -1,519 +1,691 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { Link } from "react-router";
-import { WireLabel, SectionTag, BtnGhost, ImageBox } from "./shared";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import imgHero from "@/imports/race-directors-hero.png";
+import imgGalleryCrew from "@/imports/race-day-gallery-crew.jpg";
+import imgGalleryEquipment from "@/imports/race-day-gallery-equipment.jpg";
+import imgGalleryResults from "@/imports/race-day-gallery-results.jpg";
+import imgGalleryTrophies from "@/imports/race-day-gallery-trophies.jpg";
+import raceDayChevron from "@/imports/race-day-chevron.svg";
+import topographyBg from "@/imports/topography-bg-1.svg";
+import imgServiceRegistration from "@/imports/service-race-registration.png";
+import imgServiceTiming from "@/imports/service-race-timing.jpg";
+import imgServiceRaceDirecting from "@/imports/service-race-directing.jpg";
+import imgServiceCourseManagement from "@/imports/service-course-management.jpg";
+import imgServicePacketPickup from "@/imports/service-packet-pickup.jpg";
+import iconRegistration from "@/imports/service-registration.svg";
+import iconTiming from "@/imports/service-timing-results.svg";
+import iconRaceDirecting from "@/imports/service-race-directing.svg";
+import iconCourseManagement from "@/imports/service-course-management.svg";
+import iconPacketPickup from "@/imports/service-packet-pickup.svg";
+import whatWeOfferAccent from "@/imports/what-we-offer-accent.svg";
+import {
+  AeButton,
+  FormWithFAQ,
+  PageBand,
+  PageCTA,
+  RACE_DIRECTOR_STATS_QUOTES,
+  ResourceSection,
+  SectionIntro,
+  SITE_BODY_COPY_STYLE,
+  StatsBand,
+  useSwipeNavigation,
+} from "./sitePatterns";
 
-// ─── 1-up Slider ──────────────────────────────────────────────────────────────
-
-function Slider({ children }: { children: React.ReactNode }) {
-  const items = React.Children.toArray(children);
-  const [index, setIndex] = useState(0);
-  const prev = () => setIndex((i) => (i - 1 + items.length) % items.length);
-  const next = () => setIndex((i) => (i + 1) % items.length);
-  return (
-    <div className="relative">
-      <div className="overflow-hidden">
-        <div className="flex transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}>
-          {items.map((child, i) => <div key={i} className="min-w-full">{child}</div>)}
-        </div>
-      </div>
-      {items.length > 1 && (
-        <>
-          <button onClick={prev} aria-label="Previous"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 bg-card border border-border p-1.5 hover:bg-accent transition-colors">
-            <ChevronLeft size={16} />
-          </button>
-          <button onClick={next} aria-label="Next"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 bg-card border border-border p-1.5 hover:bg-accent transition-colors">
-            <ChevronRight size={16} />
-          </button>
-          <div className="flex justify-center gap-1.5 mt-4">
-            {items.map((_, i) => (
-              <button key={i} onClick={() => setIndex(i)} aria-label={`Go to slide ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-200 ${i === index ? "w-5 bg-foreground" : "w-1.5 bg-border"}`} />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ─── Responsive N-up Slider ───────────────────────────────────────────────────
-// Mobile (@md:hidden) → Slider. Desktop (hidden @md:block) → continuous N-up.
-
-const DESKTOP_GAP = 24;
-
-function ResponsiveSlider({ children, desktopCols }: { children: React.ReactNode; desktopCols: 3 | 4 }) {
-  const items = React.Children.toArray(children);
-  const [idx, setIdx] = useState(0);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [slideUnit, setSlideUnit] = useState(0);
-  const maxIdx = Math.max(0, items.length - desktopCols);
-  const cssW = `calc((100% - ${(desktopCols - 1) * DESKTOP_GAP}px) / ${desktopCols})`;
-
-  useEffect(() => {
-    const measure = () => {
-      if (!wrapRef.current) return;
-      const card = (wrapRef.current.clientWidth - (desktopCols - 1) * DESKTOP_GAP) / desktopCols;
-      setSlideUnit(card + DESKTOP_GAP);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (wrapRef.current) ro.observe(wrapRef.current);
-    return () => ro.disconnect();
-  }, [desktopCols]);
-
-  return (
-    <>
-      <div className="@md:hidden"><Slider>{children}</Slider></div>
-      <div className="hidden @md:block">
-        <div ref={wrapRef} className="overflow-hidden">
-          <div className="flex gap-6 transition-transform duration-300 ease-in-out"
-            style={{ transform: `translateX(-${idx * slideUnit}px)` }}>
-            {items.map((child, i) => (
-              <div key={i} className="shrink-0" style={{ width: cssW }}>{child}</div>
-            ))}
-          </div>
-        </div>
-        {maxIdx > 0 && (
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
-              aria-label="Previous"
-              className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40">
-              <ChevronLeft size={16} />
-            </button>
-            <div className="flex gap-1.5">
-              {Array.from({ length: maxIdx + 1 }).map((_, i) => (
-                <button key={i} onClick={() => setIdx(i)} aria-label={`Go to position ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all duration-200 ${i === idx ? "w-5 bg-foreground" : "w-1.5 bg-border"}`} />
-              ))}
-            </div>
-            <button onClick={() => setIdx((i) => Math.min(maxIdx, i + 1))} disabled={idx === maxIdx}
-              aria-label="Next"
-              className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-
+const services = [
+  {
+    title: "Race Registration",
+    body: "Race registration should be easy for the race director, and we handle the RunSignup setup details that make your event work.",
+    image: imgServiceRegistration,
+    icon: iconRegistration,
+  },
+  {
+    title: "Timing & Results",
+    body: "We combine proven timing technology, experienced people, and live result monitoring so race directors can trust every finish.",
+    image: imgServiceTiming,
+    icon: iconTiming,
+  },
+  {
+    title: "Race Directing",
+    body: "With RRCA-certified race directors and hands-on event experience, we help plan smoother races from permitting through race day.",
+    image: imgServiceRaceDirecting,
+    icon: iconRaceDirecting,
+  },
+  {
+    title: "Course Management",
+    body: "We help make sure your course is safe, clearly marked, organized, and ready when the first runner arrives.",
+    image: imgServiceCourseManagement,
+    icon: iconCourseManagement,
+  },
+  {
+    title: "Packet Pickup",
+    body: "Our RunSignup-integrated packet pickup process keeps check-in moving quickly and gets runners to the starting line on time.",
+    image: imgServicePacketPickup,
+    icon: iconPacketPickup,
+  },
+];
 function Hero() {
   return (
-    <section className="bg-card border-b border-border">
-      {/* Full-width banner image on top */}
-      <ImageBox label="Hero image / race day banner" aspect="aspect-[21/7] @md:aspect-[21/5]" />
-      {/* Compact copy band below */}
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-8 @sm:py-10 flex flex-col @md:flex-row @md:items-center @md:justify-between gap-6">
-        <div>
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-3">For Race Directors — Hero</p>
-          <h1 className="text-2xl @sm:text-3xl @md:text-4xl font-bold leading-tight tracking-tight">
-            Race Day, Handled.
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 max-w-md leading-relaxed">
-            Placeholder hero copy — two sentences positioning Arsenal as the
-            trusted timing and race management partner for event directors.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3 shrink-0">
-          <a
-            href="#services"
-            className="inline-flex items-center gap-2 bg-foreground text-background px-4 py-2 text-sm font-medium hover:bg-muted-foreground transition-colors"
-          >
-            See What We Offer
-            <span className="text-[10px] opacity-60">(↓ anchor: #services)</span>
-          </a>
-          <a
-            href="#form"
-            className="inline-flex items-center gap-2 border border-foreground px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
-          >
-            Request Timing Services
-            <span className="text-[10px] opacity-60">(↓ anchor: #form)</span>
-          </a>
+    <section className="relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
+      <style>{`
+        .race-directors-hero-photo {
+          object-position: 38% top;
+        }
+        .race-directors-hero-content {
+          min-height: clamp(420px, 42vw, 620px);
+        }
+        @media (max-width: 1200px) {
+          .race-directors-hero-photo {
+            object-position: 30% top;
+          }
+        }
+        @media (max-width: 900px) {
+          .race-directors-hero-photo {
+            object-position: 22% top;
+          }
+        }
+        @media (max-width: 640px) {
+          .race-directors-hero-photo {
+            object-position: 16% top;
+          }
+        }
+        @media (max-width: 767px) {
+          .race-directors-hero-actions {
+            margin-left: 0 !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+            width: 100%;
+          }
+        }
+        .race-directors-hero-overlay {
+          width: 100%;
+          height: 72%;
+          background: linear-gradient(
+            0deg,
+            rgba(35,41,67,0.92) 0%,
+            rgba(35,41,67,0.84) 34%,
+            rgba(35,41,67,0.58) 58%,
+            rgba(35,41,67,0.24) 80%,
+            rgba(35,41,67,0) 100%
+          );
+        }
+        @media (max-width: 900px) {
+          @media (max-width: 767px) {
+          .race-directors-hero-actions {
+            margin-left: 0 !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+            width: 100%;
+          }
+        }
+        .race-directors-hero-overlay {
+            height: 78%;
+          }
+        }
+      `}</style>
+      <img
+        src={imgHero}
+        alt="Race director reviewing a clipboard before runners start a race"
+        className="race-directors-hero-photo absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="race-directors-hero-overlay absolute bottom-0 left-0 pointer-events-none" />
+      <div className="homepage-built-mobile-padding race-directors-hero-content relative z-10 mx-auto flex max-w-[1440px] flex-col justify-end px-5 pb-8 @sm:px-10 @md:pb-10">
+        <div className="grid gap-7 @lg:grid-cols-[minmax(0,760px)_auto] @lg:items-end @lg:justify-between">
+          <div>
+            <h1 className="mb-5 text-[clamp(46px,5.5vw,72px)] font-bold italic leading-none" style={{ color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
+              Race Day, Handled.
+            </h1>
+            <p className="max-w-[650px]" style={{ ...SITE_BODY_COPY_STYLE, color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
+              Placeholder supporting headline copy - one or two sentences describing both race director and runner-facing value propositions.
+            </p>
+          </div>
+          <div className="race-directors-hero-actions ml-auto flex flex-col items-end gap-5 @sm:flex-row @sm:justify-end @lg:flex-col @lg:pb-2">
+            <AeButton href="#services" className="min-w-[260px]">See What We Offer</AeButton>
+            <AeButton href="#form" className="min-w-[302px]">Request Timing Services</AeButton>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-// ─── Services ─────────────────────────────────────────────────────────────────
-
-const services = [
-  {
-    name: "Registration",
-    description:
-      "Online and on-site participant registration with custom fields, wave assignments, and confirmation emails.",
-    icon: "📋",
-  },
-  {
-    name: "Timing & Results",
-    description:
-      "Chip timing, live results posting, age-group splits, and official finish-line certificate generation.",
-    icon: "⏱",
-  },
-  {
-    name: "Race Management",
-    description:
-      "End-to-end event coordination including course setup, volunteer management, and day-of logistics support.",
-    icon: "🗂",
-  },
-];
-
-function ServiceCard({ service }: { service: (typeof services)[number] }) {
+function ServiceCard({
+  service,
+  active = false,
+  mobile = false,
+}: {
+  service: (typeof services)[number];
+  active?: boolean;
+  mobile?: boolean;
+}) {
   return (
-    <div className="bg-card border border-border p-6 flex flex-col gap-4">
-      <div className="w-10 h-10 bg-muted border border-border flex items-center justify-center text-lg">
-        {service.icon}
+    <article
+      className={`rd-service-card ${active ? "is-active" : ""} ${mobile ? "is-mobile" : ""}`}
+      aria-hidden={!active && !mobile}
+    >
+      <header className="rd-service-card-header">
+        <img src={service.icon} alt="" className="rd-service-icon" />
+        <h3>{service.title}</h3>
+      </header>
+      <div className="rd-service-card-body">
+        <div className="rd-service-copy">
+          <p>{service.body}</p>
+          <a href="#form" className="rd-service-link"><ChevronRight size={16} className="rd-service-chevron" /><span>Request This Service</span></a>
+          <a href="#faqs" className="rd-service-link"><ChevronRight size={16} className="rd-service-chevron" /><span>Browse FAQs</span></a>
+        </div>
+        <img src={service.image} alt="" className="rd-service-image" />
       </div>
-      <div>
-        <h3 className="text-base font-semibold mb-1">{service.name}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {service.description}
-        </p>
-      </div>
-      <div className="mt-auto pt-2 flex flex-col gap-2">
-        <a
-          href="#form"
-          className="inline-flex items-center gap-2 bg-foreground text-background px-4 py-2 text-sm font-medium hover:bg-muted-foreground transition-colors"
-        >
-          Request This Service
-          <span className="text-[10px] opacity-60">(↓ anchor: #form)</span>
-        </a>
-        <a
-          href="#faqs"
-          className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-        >
-          Browse FAQs <ArrowRight size={13} />
-          <span className="text-[10px] opacity-50 font-normal no-underline">(↓ anchor: #faqs)</span>
-        </a>
-      </div>
-    </div>
+    </article>
   );
 }
 
 function Services() {
+  const [activeIndex, setActiveIndex] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
+  const interactionPauseTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const id = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % services.length);
+    }, 2000);
+    return () => window.clearInterval(id);
+  }, [isPaused]);
+
+  useEffect(() => {
+    return () => {
+      if (interactionPauseTimerRef.current !== null) {
+        window.clearTimeout(interactionPauseTimerRef.current);
+      }
+    };
+  }, []);
+
+  const pauseForInteraction = () => {
+    setIsPaused(true);
+    if (interactionPauseTimerRef.current !== null) {
+      window.clearTimeout(interactionPauseTimerRef.current);
+    }
+    interactionPauseTimerRef.current = window.setTimeout(() => {
+      setIsPaused(false);
+      interactionPauseTimerRef.current = null;
+    }, 5000);
+  };
+
+  const goTo = (index: number) => setActiveIndex((index + services.length) % services.length);
+  const prev = () => goTo(activeIndex - 1);
+  const next = () => goTo(activeIndex + 1);
+  const prevManual = () => {
+    pauseForInteraction();
+    prev();
+  };
+  const nextManual = () => {
+    pauseForInteraction();
+    next();
+  };
+  const goToManual = (index: number) => {
+    pauseForInteraction();
+    goTo(index);
+  };
+  const serviceSwipeHandlers = useSwipeNavigation(prevManual, nextManual);
+  const activeService = services[activeIndex];
+  const previousService = services[(activeIndex - 1 + services.length) % services.length];
+  const followingService = services[(activeIndex + 1) % services.length];
+
   return (
-    <section id="services" className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16 scroll-mt-16">
-      <h2 className="text-2xl font-bold mb-6 @sm:mb-8">What We Offer</h2>
-      <ResponsiveSlider desktopCols={3}>
-        {services.map((s) => (
-          <ServiceCard key={s.name} service={s} />
-        ))}
-      </ResponsiveSlider>
+    <section
+      id="services"
+      className="rd-services-section homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:py-24 scroll-mt-20"
+      style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
+    >
+      <style>{`
+        .rd-services-accent {
+          position: absolute;
+          top: clamp(10px, 3.42vw, 55px);
+          left: calc(50% + 210px);
+          width: min(33.12vw, 446.4px);
+          max-width: none;
+          pointer-events: none;
+          z-index: 1;
+          transform: translateY(-15%);
+        }
+        @media (min-width: 1550px) {
+          .rd-services-accent {
+            -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 78%, transparent 100%);
+            mask-image: linear-gradient(90deg, #000 0%, #000 78%, transparent 100%);
+          }
+        }
+        .rd-services-inner {
+          position: relative;
+          z-index: 2;
+          max-width: 1440px;
+          margin: 0 auto;
+        }
+        .rd-services-stage {
+          position: relative;
+          height: 360px;
+          margin: 54px auto 0;
+          display: none;
+          align-items: center;
+          justify-content: center;
+        }
+        .rd-service-card-shell {
+          position: absolute;
+          width: 668px;
+          transform: translateX(calc(var(--x) + var(--swipe-drag-x, 0px))) scale(var(--scale));
+          opacity: var(--opacity);
+          z-index: var(--z);
+          transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease, filter 320ms ease;
+          filter: grayscale(var(--gray));
+          pointer-events: var(--events);
+        }
+        .rd-service-card {
+          width: 100%;
+          overflow: hidden;
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(35,41,67,0.22);
+          color: var(--text-default);
+        }
+        .rd-service-card-header {
+          min-height: 74px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 13px;
+          padding: 14px 22px;
+          background: #262626;
+          color: var(--text-inverse);
+        }
+        .rd-service-card.is-active .rd-service-card-header,
+        .rd-service-card.is-mobile .rd-service-card-header {
+          background: var(--surface-dark);
+        }
+        .rd-service-icon {
+          width: 34px;
+          height: 34px;
+          flex: 0 0 auto;
+          object-fit: contain;
+        }
+        .rd-service-card-header h3 {
+          margin: 0;
+          font-size: 32px;
+          line-height: 1;
+          font-weight: 700;
+          font-style: italic;
+        }
+        .rd-service-card-body {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 318px;
+          min-height: 218px;
+        }
+        .rd-service-copy {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 30px 40px;
+        }
+        .rd-service-copy p {
+          margin: 0 0 22px;
+          font-size: 19px;
+          line-height: 1.2;
+          font-weight: 500;
+        }
+        .rd-service-link {
+          display: grid;
+          grid-template-columns: 16px minmax(0, 1fr);
+          align-items: center;
+          column-gap: 4px;
+          min-height: 30px;
+          text-decoration: none;
+          font-size: 20px;
+          line-height: 1.35;
+          font-weight: 700;
+          color: var(--action-tertiary-default);
+          transition: color 0.15s ease;
+        }
+        .rd-service-chevron {
+          opacity: 0;
+          justify-self: center;
+          transition: opacity 0.15s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .rd-service-link:hover {
+            color: var(--text-accent);
+          }
+          .rd-service-link:hover .rd-service-chevron {
+            opacity: 1;
+          }
+        }
+        .rd-service-image {
+          width: 100%;
+          height: 100%;
+          min-height: 218px;
+          object-fit: cover;
+        }
+        .rd-services-mobile-card {
+          margin: 44px auto 0;
+          width: min(680px, 100%);
+          overflow: hidden;
+          touch-action: pan-y;
+        }
+        .swipe-peek-track {
+          display: grid;
+          grid-template-columns: repeat(3, 100%);
+          gap: 16px;
+          transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
+          transition: var(--swipe-transition, transform 180ms ease);
+        }
+        .swipe-peek-item {
+          min-width: 0;
+        }
+        .rd-services-controls {
+          margin-top: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
+        }
+        .rd-services-control-btn {
+          display: flex;
+          width: 40px;
+          height: 40px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          border: 0;
+          background: #F5D6C4;
+          color: var(--surface-dark);
+        }
+        .rd-services-control-btn.next {
+          background: var(--color-orange-brand);
+        }
+        .rd-services-dots {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .rd-services-dot {
+          height: 8px;
+          width: 8px;
+          border: 0;
+          border-radius: 999px;
+          background: rgba(35,41,67,0.24);
+          transition: width 200ms ease, background 200ms ease;
+        }
+        .rd-services-dot.is-active {
+          width: 34px;
+          background: var(--surface-dark);
+        }
+        @media (min-width: 1161px) {
+          .rd-services-stage {
+            display: flex;
+          }
+          .rd-services-mobile-card {
+            display: none;
+          }
+          .rd-services-stage + .rd-services-controls {
+            margin-top: 16px;
+          }
+        }
+        @media (max-width: 1160px) {
+          .rd-services-accent {
+            display: none;
+          }
+          .rd-service-card-body {
+            grid-template-columns: 1fr;
+          }
+          .rd-service-image {
+            min-height: 260px;
+            order: -1;
+          }
+          .rd-service-copy {
+            padding: 28px;
+          }
+          .rd-service-card-header h3 {
+            font-size: clamp(24px, 5.6vw, 32px);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .rd-service-card-shell {
+            transition: none;
+          }
+        }
+      `}</style>
+      <img src={whatWeOfferAccent} alt="" className="rd-services-accent" />
+      <div className="rd-services-inner">
+        <SectionIntro
+          title="What We Offer"
+          copy="Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition."
+        />
+
+        <div className="rd-services-stage" {...serviceSwipeHandlers} aria-live="polite" onPointerDownCapture={pauseForInteraction} onMouseEnter={() => setIsPaused(true)} onMouseLeave={pauseForInteraction} onFocus={() => setIsPaused(true)} onBlur={pauseForInteraction}>
+          {services.map((service, index) => {
+            const offset = ((index - activeIndex + services.length + 2) % services.length) - 2;
+            const active = offset === 0;
+            const abs = Math.abs(offset);
+            const style = {
+              "--x": `${offset * 205}px`,
+              "--scale": active ? 1 : abs === 1 ? 0.93 : 0.84,
+              "--opacity": active ? 1 : abs === 1 ? 0.92 : 0.62,
+              "--z": active ? 5 : abs === 1 ? 3 : 1,
+              "--gray": active ? 0 : 1,
+              "--events": active ? "auto" : "none",
+            } as React.CSSProperties & Record<`--${string}`, string | number>;
+
+            return (
+              <div key={service.title} className="rd-service-card-shell" style={style}>
+                <ServiceCard service={service} active={active} />
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="rd-services-mobile-card" {...serviceSwipeHandlers} onPointerDownCapture={pauseForInteraction} onTouchStartCapture={pauseForInteraction} onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} onFocus={() => setIsPaused(true)} onBlur={() => setIsPaused(false)}>
+          <div className="swipe-peek-track" aria-live="polite">
+            {[previousService, activeService, followingService].map((service, index) => (
+              <div key={`${service.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+                <ServiceCard service={service} mobile />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rd-services-controls" aria-label="Service carousel controls" onPointerDownCapture={pauseForInteraction} onMouseEnter={() => setIsPaused(true)} onMouseLeave={pauseForInteraction} onFocus={() => setIsPaused(true)} onBlur={pauseForInteraction}>
+          <button type="button" className="rd-services-control-btn" onClick={prevManual} aria-label="Previous service">
+            <ChevronLeft size={22} />
+          </button>
+          <div className="rd-services-dots">
+            {services.map((service, index) => (
+              <button
+                key={service.title}
+                type="button"
+                className={`rd-services-dot ${index === activeIndex ? "is-active" : ""}`}
+                onClick={() => goToManual(index)}
+                aria-label={`Show ${service.title}`}
+                aria-current={index === activeIndex}
+              />
+            ))}
+          </div>
+          <button type="button" className="rd-services-control-btn next" onClick={nextManual} aria-label="Next service">
+            <ChevronRight size={22} />
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
-
-// ─── Gallery ──────────────────────────────────────────────────────────────────
-
 function Gallery() {
-  const images = [
-    { label: "Finish line timing setup", span: "@md:col-span-2 @md:row-span-2" },
-    { label: "Results board" },
-    { label: "Registration tent" },
-    { label: "Chip timing mat" },
-    { label: "Race morning crew" },
-  ];
   return (
-    <section className="bg-secondary/40 border-y border-border">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-        <h2 className="text-2xl font-bold mb-6 @sm:mb-8">Arsenal at Race Day</h2>
-        <div className="grid grid-cols-2 @md:grid-cols-3 gap-2 @sm:gap-3 auto-rows-[140px] @sm:auto-rows-[180px]">
-          {images.map((img) => (
-            <div
-              key={img.label}
-              className={`bg-muted border border-border flex flex-col items-center justify-center gap-1 ${img.span ?? ""}`}
-            >
-              <div className="w-8 h-8 border-2 border-muted-foreground/40 rounded-sm flex items-center justify-center">
-                <div className="w-4 h-3 border border-muted-foreground/40" />
-              </div>
-              <WireLabel>{img.label}</WireLabel>
-            </div>
-          ))}
+    <section className="rd-gallery-section homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:py-24">
+      <style>{`
+        .rd-gallery-topography {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0.7;
+          mix-blend-mode: multiply;
+          pointer-events: none;
+          z-index: 0;
+          -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 9%, #000 24%);
+          mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 9%, #000 24%);
+        }
+        .rd-gallery-inner {
+          position: relative;
+          z-index: 1;
+          max-width: 1120px;
+          margin: 0 auto;
+        }
+        .rd-gallery-heading {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          margin-bottom: 28px;
+        }
+        .rd-gallery-heading h2 {
+          margin: 0;
+          color: var(--text-headlines);
+          font-size: clamp(34px, 4vw, 52px);
+          font-weight: 700;
+          font-style: italic;
+          line-height: 1;
+        }
+        .rd-gallery-chevron {
+          width: clamp(62px, 7vw, 96px);
+          height: auto;
+          flex: 0 0 auto;
+        }
+        .rd-gallery-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: 232px 232px 250px;
+          gap: 16px;
+        }
+        .rd-gallery-item {
+          overflow: hidden;
+          background: var(--surface-dark);
+        }
+        .rd-gallery-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .rd-gallery-equipment {
+          grid-column: 2;
+          grid-row: 1 / span 2;
+        }
+        .rd-gallery-trophies {
+          grid-column: 1 / -1;
+        }
+        .rd-gallery-crew img {
+          object-position: center center;
+        }
+        .rd-gallery-equipment img {
+          object-position: center center;
+        }
+        .rd-gallery-results img {
+          object-position: center center;
+        }
+        .rd-gallery-trophies img {
+          object-position: center center;
+        }
+        @media (max-width: 900px) {
+          .rd-gallery-heading {
+            justify-content: center;
+            text-align: center;
+          }
+          .rd-gallery-grid {
+            grid-template-columns: 1fr;
+            grid-template-rows: none;
+          }
+          .rd-gallery-item,
+          .rd-gallery-equipment,
+          .rd-gallery-trophies {
+            grid-column: auto;
+            grid-row: auto;
+            aspect-ratio: 16 / 9;
+          }
+          .rd-gallery-equipment {
+            aspect-ratio: 4 / 5;
+          }
+        }
+      `}</style>
+      <img src={topographyBg} alt="" className="rd-gallery-topography" />
+      <div className="rd-gallery-inner">
+        <div className="rd-gallery-heading">
+          <h2>Arsenal on Race Day</h2>
+          <img src={raceDayChevron} alt="" className="rd-gallery-chevron" />
+        </div>
+        <div className="rd-gallery-grid">
+          <figure className="rd-gallery-item rd-gallery-crew">
+            <img src={imgGalleryCrew} alt="Arsenal Events crew working at a race timing station" />
+          </figure>
+          <figure className="rd-gallery-item rd-gallery-equipment">
+            <img src={imgGalleryEquipment} alt="Race timing equipment in an orange case" />
+          </figure>
+          <figure className="rd-gallery-item rd-gallery-results">
+            <img src={imgGalleryResults} alt="Race results displayed on a monitor" />
+          </figure>
+          <figure className="rd-gallery-item rd-gallery-trophies">
+            <img src={imgGalleryTrophies} alt="Race awards lined up on a table" />
+          </figure>
         </div>
       </div>
     </section>
   );
 }
-
-// ─── Why Arsenal / About ──────────────────────────────────────────────────────
-
-const stats = [
-  { value: "200+", label: "Races Timed" },
-  { value: "50K+", label: "Finishers Tracked" },
-  { value: "12", label: "Years Experience" },
-  { value: "98%", label: "Director Satisfaction" },
-];
-
-function WhyArsenal() {
-  return (
-    <section className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-      <div className="grid @md:grid-cols-2 gap-8 @md:gap-12 items-start">
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Why Race Directors Choose Arsenal</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-            Placeholder about copy — three to four sentences speaking directly
-            to race directors about reliability, experience, and the Arsenal
-            team's hands-on approach to every event.
-          </p>
-          <div className="flex flex-col gap-3">
-            <a
-              href="#tech"
-              className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-            >
-              See Our Race Day Tech <ArrowRight size={13} />
-              <span className="text-[10px] opacity-50 font-normal no-underline">(↓ anchor: #tech)</span>
-            </a>
-            <Link
-              to="/about"
-              className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-            >
-              Meet the Team <ArrowRight size={13} />
-              <span className="text-[10px] opacity-50 font-normal no-underline">(→ About Us)</span>
-            </Link>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-px bg-border">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-card px-5 py-4">
-              <div className="text-2xl font-bold tabular-nums">{s.value}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tech placeholder */}
-      <div id="tech" className="mt-8 @sm:mt-12 scroll-mt-16">
-        <h3 className="text-lg font-semibold mb-4">Race Day Technology</h3>
-        <div className="grid grid-cols-2 @md:grid-cols-4 gap-3 @sm:gap-4">
-          {["RFID Chip Timing", "Live Results Portal", "Registration Platform", "Director Dashboard"].map(
-            (item) => (
-              <div
-                key={item}
-                className="bg-card border border-border p-4 flex flex-col gap-2"
-              >
-                <div className="w-8 h-8 bg-muted border border-border flex items-center justify-center">
-                  <div className="w-3.5 h-3.5 border border-muted-foreground/50" />
-                </div>
-                <p className="text-xs font-medium leading-snug">{item}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  Placeholder tech description for this product or feature.
-                </p>
-              </div>
-            )
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Form + FAQs ──────────────────────────────────────────────────────────────
-
-const faqs = [
-  {
-    q: "How far in advance should I book Arsenal for timing?",
-    a: "We recommend reaching out at least 6–8 weeks before your event date to ensure availability and proper setup time.",
-  },
-  {
-    q: "What race sizes do you support?",
-    a: "Arsenal has successfully timed events ranging from 50 participants to over 5,000. We scale our equipment accordingly.",
-  },
-  {
-    q: "Do you provide on-site support on race day?",
-    a: "Yes — a certified Arsenal timing technician will be on-site from setup through final results publication.",
-  },
-  {
-    q: "Can you integrate with my existing registration platform?",
-    a: "We work with most major registration platforms. Reach out and we'll confirm compatibility during your inquiry.",
-  },
-];
-
-function FormAndFAQs() {
-  return (
-    <section id="form" className="bg-secondary/40 border-y border-border scroll-mt-16">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-        <div className="grid @md:grid-cols-2 gap-8 @md:gap-12">
-          {/* Form */}
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Request Timing Services</h2>
-            <div className="bg-card border border-border p-6 space-y-4">
-              {[
-                { label: "Race / Event Name", type: "text", placeholder: "e.g. Greenway 5K & 10K" },
-                { label: "Event Date", type: "date", placeholder: "" },
-                { label: "Expected Participants", type: "number", placeholder: "e.g. 500" },
-                { label: "Location / City", type: "text", placeholder: "e.g. Columbus, OH" },
-                { label: "Your Name", type: "text", placeholder: "Race director full name" },
-                { label: "Email Address", type: "email", placeholder: "director@yourevent.com" },
-              ].map((field) => (
-                <div key={field.label} className="flex flex-col gap-1">
-                  <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {field.label}
-                  </label>
-                  <div className="h-9 bg-input-background border border-border flex items-center px-3">
-                    <span className="text-xs text-muted-foreground/60 italic">
-                      {field.placeholder || field.type}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Additional Notes
-                </label>
-                <div className="h-20 bg-input-background border border-border" />
-              </div>
-              <button className="w-full bg-foreground text-background py-2.5 text-sm font-medium hover:bg-muted-foreground transition-colors">
-                Submit Request
-                <span className="text-[10px] opacity-60 ml-1.5">(form submission)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* FAQs */}
-          <div id="faqs" className="scroll-mt-16">
-            <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
-            <div className="space-y-px">
-              {faqs.map((faq, i) => (
-                <details
-                  key={i}
-                  className="bg-card border border-border group"
-                >
-                  <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-medium list-none">
-                    {faq.q}
-                    <ArrowRight
-                      size={14}
-                      className="shrink-0 ml-3 text-muted-foreground transition-transform group-open:rotate-90"
-                    />
-                  </summary>
-                  <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed border-t border-border pt-3">
-                    {faq.a}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Resources ────────────────────────────────────────────────────────────────
-
-const resources = [
-  {
-    category: "Race Directors",
-    title: "How to Choose a Timing Partner for Your First Event",
-    date: "June 2025",
-  },
-  {
-    category: "Race Directors",
-    title: "Registration Best Practices for Small to Mid-Size Races",
-    date: "April 2025",
-  },
-  {
-    category: "Race Directors",
-    title: "What to Expect on Race Day: A Director's Timeline",
-    date: "March 2025",
-  },
-  {
-    category: "Race Directors",
-    title: "Post-Race Wrap-Up: Communicating Results to Participants",
-    date: "February 2025",
-  },
-  {
-    category: "Race Directors",
-    title: "Volunteer Coordination Tips for Race Morning",
-    date: "January 2025",
-  },
-];
-
-function Resources() {
-  return (
-    <section className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-      <h2 className="text-2xl font-bold mb-6 @sm:mb-8">For Race Directors</h2>
-      <ResponsiveSlider desktopCols={4}>
-        {resources.map((r) => (
-          <div key={r.title} className="bg-card border border-border p-5 flex flex-col gap-3">
-            <div>
-              <WireLabel>{r.category}</WireLabel>
-              <h3 className="text-sm font-semibold mt-1 leading-snug">{r.title}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{r.date}</p>
-            </div>
-            <div className="mt-auto">
-              <BtnGhost note="→ Individual post">Read This</BtnGhost>
-            </div>
-          </div>
-        ))}
-      </ResponsiveSlider>
-      <div className="mt-8 flex justify-center">
-        <Link
-          to="/resources"
-          className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-        >
-          See All Resources <ArrowRight size={13} />
-          <span className="text-[10px] opacity-50 font-normal no-underline">(→ Resources)</span>
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-// ─── Page CTA ─────────────────────────────────────────────────────────────────
-
-function PageCTA() {
-  return (
-    <section className="bg-foreground text-background">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-        <div className="grid @md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Let's Make Your Race a Success</h2>
-            <p className="text-sm opacity-70 leading-relaxed">
-              Ready to partner with Arsenal? Review our services or reach out to start planning your event.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 @md:justify-end">
-            <a
-              href="#services"
-              className="inline-flex items-center gap-2 bg-background text-foreground px-5 py-2.5 text-sm font-medium hover:bg-muted transition-colors"
-            >
-              See What We Offer
-              <span className="text-[10px] opacity-60">(↓ anchor: #services)</span>
-            </a>
-            <a
-              href="#form"
-              className="inline-flex items-center gap-2 border border-background/40 text-background px-5 py-2.5 text-sm font-medium hover:border-background transition-colors"
-            >
-              Request Timing Services
-              <span className="text-[10px] opacity-60">(↓ anchor: #form)</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function ForRaceDirectorsPage() {
   return (
-    <main>
+    <main style={{ background: "var(--surface-default)" }}>
       <Hero />
       <Services />
       <Gallery />
-      <WhyArsenal />
-      <FormAndFAQs />
-      <Resources />
+      <StatsBand quotes={RACE_DIRECTOR_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 />
+      <div id="form" className="scroll-mt-20">
+        <FormWithFAQ />
+      </div>
+      <ResourceSection />
       <PageCTA />
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

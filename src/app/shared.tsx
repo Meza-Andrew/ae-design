@@ -269,7 +269,7 @@ export function Nav() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
+    <header className="sticky top-0 z-50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
       <style>{`
         .nav-desktop {
           display: flex;
@@ -784,3 +784,4 @@ export function AnnotationKey() {
     null
   );
 }
+

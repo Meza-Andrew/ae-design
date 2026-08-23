@@ -1,331 +1,143 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { Link } from "react-router";
-import { WireLabel, SectionTag, ImageBox } from "./shared";
+﻿import imgHero from "@/imports/image-2.png";
+import imgStory from "@/imports/image-3.png";
+import imgTeam1 from "@/imports/image-4.png";
+import imgTeam2 from "@/imports/image-5.png";
+import imgTeam3 from "@/imports/image-6.png";
+import imgTeam4 from "@/imports/image-8.png";
+import imgTeam5 from "@/imports/image-9.png";
+import imgTeam6 from "@/imports/image-10.png";
+import {
+  AeButton,
+  PageBand,
+  PageCTA,
+  RaceCard,
+  SectionIntro,
+  SHARED_RACES,
+  SITE_BODY_COPY_STYLE,
+  StatsBand,
+} from "./sitePatterns";
 
-// ─── 1-up Slider ──────────────────────────────────────────────────────────────
-
-function Slider({ children }: { children: React.ReactNode }) {
-  const items = React.Children.toArray(children);
-  const [index, setIndex] = useState(0);
-  const prev = () => setIndex((i) => (i - 1 + items.length) % items.length);
-  const next = () => setIndex((i) => (i + 1) % items.length);
-  return (
-    <div className="relative">
-      <div className="overflow-hidden">
-        <div
-          className="flex transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
-        >
-          {items.map((child, i) => (
-            <div key={i} className="min-w-full">{child}</div>
-          ))}
-        </div>
-      </div>
-      {items.length > 1 && (
-        <>
-          <button onClick={prev} aria-label="Previous"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 bg-card border border-border p-1.5 hover:bg-accent transition-colors">
-            <ChevronLeft size={16} />
-          </button>
-          <button onClick={next} aria-label="Next"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 bg-card border border-border p-1.5 hover:bg-accent transition-colors">
-            <ChevronRight size={16} />
-          </button>
-          <div className="flex justify-center gap-1.5 mt-4">
-            {items.map((_, i) => (
-              <button key={i} onClick={() => setIndex(i)} aria-label={`Go to slide ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-200 ${i === index ? "w-5 bg-foreground" : "w-1.5 bg-border"}`} />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+const team = [
+  { bib: "001", role: "Owners/Running Nerds", name: "Ken & Kristen", image: imgTeam1 },
+  { bib: "002", role: "Timing Crew / Ultra Runner", name: "Tammy", image: imgTeam2 },
+  { bib: "041", role: "Timing Crew / Ultra Runner", name: "Gabi", image: imgTeam3 },
+  { bib: "026", role: "Timing Crew / Ultra Runner", name: "Lynne", image: imgTeam4 },
+  { bib: "035", role: "Timing Crew / Triathlete", name: "Kristen", image: imgTeam5 },
+  { bib: "101", role: "Timing Crew", name: "Aideen", image: imgTeam6 },
+];
 
 function Hero() {
   return (
-    <section className="bg-card border-b border-border">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-12 @sm:py-20 grid @md:grid-cols-[3fr_2fr] gap-8 @md:gap-0 items-stretch">
-        {/* Copy left */}
-        <div className="flex flex-col justify-center @md:pr-12 @md:border-r @md:border-border">
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-3">About Us — Hero</p>
-          <h1 className="text-3xl @sm:text-4xl @md:text-5xl font-bold leading-tight mb-4 tracking-tight">
-            Get to Know Arsenal Events
-          </h1>
-          <p className="text-muted-foreground text-base mb-8 max-w-sm leading-relaxed">
-            Placeholder supporting copy — two sentences about who Arsenal
-            Events is and what drives the team to show up on race day.
+    <section className="grid overflow-hidden @lg:grid-cols-[0.78fr_1.22fr]" style={{ background: "var(--surface-dark)" }}>
+      <div className="homepage-built-mobile-padding flex items-center px-5 py-16 @sm:px-10 @lg:min-h-[620px]" style={{ color: "var(--text-inverse)" }}>
+        <div className="max-w-[560px]">
+          <h1 className="mb-7 text-[clamp(52px,7vw,92px)] font-bold italic leading-none">Get to Know Arsenal Events</h1>
+          <p className="mb-9" style={SITE_BODY_COPY_STYLE}>
+            Placeholder supporting copy - two sentences about who Arsenal Events is and what drives the team to show up on race day.
           </p>
-          <a
-            href="#community"
-            className="inline-flex items-center gap-2 bg-foreground text-background px-4 py-2 text-sm font-medium hover:bg-muted-foreground transition-colors self-start"
-          >
-            See Our Upcoming Races
-            <span className="text-[10px] opacity-60 font-normal">(↓ #community)</span>
-          </a>
+          <AeButton href="#community">See Our Community Impact</AeButton>
         </div>
-        {/* Tall portrait image right */}
-        <div className="@md:pl-12">
-          <ImageBox label="Hero image / team photo" aspect="aspect-[3/4]" />
-        </div>
+      </div>
+      <div className="relative min-h-[420px] @lg:min-h-[620px]">
+        <img src={imgHero} alt="Arsenal Events team" className="absolute inset-0 h-full w-full object-cover" />
       </div>
     </section>
   );
 }
 
-// ─── Community Impact ─────────────────────────────────────────────────────────
-
-const impactStats = [
-  { value: "200+", label: "Races Timed" },
-  { value: "50K+", label: "Finishers Tracked" },
-  { value: "12", label: "Years in the Community" },
-  { value: "30+", label: "Cities Served" },
-];
-
-const upcomingRaces = [
-  { name: "Greenway 5K & 10K", date: "August 10, 2025", location: "Riverside Park, Columbus, OH" },
-  { name: "Harbor Half Marathon", date: "September 6, 2025", location: "Lakefront Trail, Chicago, IL" },
-  { name: "Summit Trail Challenge", date: "September 27, 2025", location: "Blue Ridge Trailhead, Asheville, NC" },
-];
+function Mission() {
+  return (
+    <PageBand tone="subtle">
+      <div className="mx-auto grid max-w-[1120px] gap-8 @lg:grid-cols-[0.9fr_1.1fr] @lg:items-center">
+        <h2 className="text-[clamp(34px,4vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>Our Mission</h2>
+        <div className="grid grid-cols-[110px_1fr] items-center gap-7">
+          <div className="text-[150px] font-bold leading-none" style={{ color: "var(--action-tertiary-default)" }}>“</div>
+          <p style={SITE_BODY_COPY_STYLE}>To meet and exceed every race director's and athlete's expectations by providing outstanding customer service and excellent product delivery.</p>
+        </div>
+      </div>
+    </PageBand>
+  );
+}
 
 function CommunityImpact() {
   return (
-    <section id="community" className="bg-secondary/40 border-y border-border">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-        <h2 className="text-2xl font-bold mb-2">Community Impact</h2>
-        <p className="text-muted-foreground text-sm mb-8 max-w-xl leading-relaxed">
-          Placeholder — a sentence or two about Arsenal's footprint in the
-          running community and what these numbers represent.
-        </p>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 @md:grid-cols-4 gap-px bg-border mb-10">
-          {impactStats.map((s) => (
-            <div key={s.label} className="bg-card px-5 py-6">
-              <div className="text-3xl font-bold tabular-nums mb-0.5">{s.value}</div>
-              <div className="text-xs text-muted-foreground">{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Upcoming races — desktop 3-up grid, mobile 1-up slider */}
-        <h3 className="text-base font-semibold mb-4">Upcoming Races</h3>
-
-        {/* Mobile */}
-        <div className="@md:hidden">
-          <Slider>
-            {upcomingRaces.map((race) => (
-              <div key={race.name} className="bg-card border border-border p-5 flex flex-col gap-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-0.5">{race.date} · {race.location}</p>
-                  <p className="text-base font-semibold leading-snug">{race.name}</p>
-                </div>
-                <div className="mt-auto pt-2">
-                  <Link
-                    to="/races"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-                  >
-                    Register <ArrowRight size={13} />
-                    <span className="text-[10px] opacity-50 font-normal no-underline">(→ Races & Results)</span>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </Slider>
-        </div>
-
-        {/* Desktop */}
-        <div className="hidden @md:grid grid-cols-3 gap-6">
-          {upcomingRaces.map((race) => (
-            <div key={race.name} className="bg-card border border-border p-5 flex flex-col gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground mb-0.5">{race.date} · {race.location}</p>
-                <p className="text-base font-semibold leading-snug">{race.name}</p>
-              </div>
-              <div className="mt-auto pt-2">
-                <Link
-                  to="/races"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-                >
-                  Register <ArrowRight size={13} />
-                  <span className="text-[10px] opacity-50 font-normal no-underline">(→ Races & Results)</span>
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 flex justify-center">
-          <Link
-            to="/races"
-            className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-2 hover:text-muted-foreground transition-colors"
-          >
-            See All Upcoming Races <ArrowRight size={13} />
-            <span className="text-[10px] opacity-50 font-normal no-underline">(→ Races & Results)</span>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Mission / Vision / Values ────────────────────────────────────────────────
-
-const mvv = [
-  {
-    label: "Mission",
-    body: "Placeholder mission statement — one or two sentences describing why Arsenal Events exists and the problem it solves for the running community.",
-  },
-  {
-    label: "Vision",
-    body: "Placeholder vision statement — one sentence describing the future Arsenal Events is working toward for race directors and runners alike.",
-  },
-  {
-    label: "Values",
-    body: "Placeholder values copy — two or three bullet-style phrases or a short paragraph capturing what the team believes in (reliability, community, precision, etc.).",
-  },
-];
-
-function MissionVisionValues() {
-  return (
-    <section className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-      <h2 className="text-2xl font-bold mb-8">Mission, Vision & Values</h2>
-      <div className="grid @md:grid-cols-3 gap-6">
-        {mvv.map((item) => (
-          <div key={item.label} className="border border-border bg-card p-6 flex flex-col gap-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
-              {item.label}
-            </p>
-            <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+    <section id="community" className="homepage-built-mobile-padding scroll-mt-20 px-5 py-16 @sm:px-10 @sm:py-24" style={{ background: "var(--surface-dark)", color: "var(--text-inverse)" }}>
+      <div className="mx-auto max-w-[1245px]">
+        <div className="mb-14 grid gap-8 @lg:grid-cols-[1fr_auto] @lg:items-start">
+          <div>
+            <h2 className="mb-4 text-[clamp(34px,4vw,52px)] font-bold italic leading-none">Community Impact</h2>
+            <p className="max-w-[760px]" style={SITE_BODY_COPY_STYLE}>Placeholder - a sentence or two about Arsenal's footprint in the running community and what these numbers represent.</p>
           </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ─── Team ─────────────────────────────────────────────────────────────────────
-
-const teamMembers = [
-  { name: "Team Member Name", title: "Founder & Race Director" },
-  { name: "Team Member Name", title: "Lead Timing Technician" },
-  { name: "Team Member Name", title: "Registration & Logistics" },
-  { name: "Team Member Name", title: "Community & Partnerships" },
-];
-
-function Team() {
-  return (
-    <section id="team" className="bg-secondary/40 border-y border-border">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-        <h2 className="text-2xl font-bold mb-8">Meet the Team</h2>
-
-        {/* Mobile: 1-up slider */}
-        <div className="@md:hidden">
-          <Slider>
-            {teamMembers.map((member, i) => (
-              <div key={i} className="bg-card border border-border flex flex-col">
-                <ImageBox label="Team member photo" aspect="aspect-square" />
-                <div className="p-5">
-                  <p className="text-sm font-semibold">{member.name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{member.title}</p>
-                </div>
-              </div>
-            ))}
-          </Slider>
+          <AeButton to="/contact">See Our Full Service Area</AeButton>
         </div>
-
-        {/* Desktop: 4-up grid */}
-        <div className="hidden @md:grid grid-cols-4 gap-6">
-          {teamMembers.map((member, i) => (
-            <div key={i} className="bg-card border border-border flex flex-col">
-              <ImageBox label="Team member photo" aspect="aspect-square" />
-              <div className="p-5">
-                <p className="text-sm font-semibold">{member.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{member.title}</p>
-              </div>
-            </div>
+        <div className="mb-16 grid gap-8 @md:grid-cols-3">
+          {["200+ Timed Races", "50k+ Finishers Tracked", "100% Race Director Satisfaction"].map((stat) => (
+            <p key={stat} className="text-[20px] font-bold italic" style={{ color: "var(--decorative-highlight)" }}>{stat}</p>
           ))}
         </div>
+        <h3 className="mb-8 text-[30px] font-bold italic" style={{ color: "var(--decorative-highlight)" }}>Upcoming Arsenal Races</h3>
+        <div className="grid gap-8 @md:grid-cols-3">
+          {SHARED_RACES.map((race, index) => <RaceCard key={`${race.title}-${index}`} race={race} />)}
+        </div>
+        <div className="mt-10 flex justify-center"><AeButton to="/races">See All Upcoming Races</AeButton></div>
       </div>
     </section>
   );
 }
-
-// ─── Story ────────────────────────────────────────────────────────────────────
 
 function Story() {
   return (
-    <section className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-      <div className="grid @md:grid-cols-2 gap-8 @md:gap-16 items-start">
+    <PageBand>
+      <div className="mx-auto grid max-w-[1160px] gap-12 @lg:grid-cols-[0.9fr_1fr] @lg:items-center">
         <div>
-          <h2 className="text-2xl font-bold mb-4">Our Story</h2>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Placeholder paragraph one — origin story of Arsenal Events. How
-              it started, who founded it, and what gap in the market it was
-              built to fill.
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Placeholder paragraph two — growth story. Key milestones, races
-              timed, communities served, and how the team has evolved over the
-              years.
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Placeholder paragraph three — where Arsenal Events is headed.
-              Commitment to the running community going forward.
-            </p>
+          <h2 className="mb-5 text-[clamp(34px,4vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>Our Story</h2>
+          <div className="grid gap-5" style={{ ...SITE_BODY_COPY_STYLE, color: "var(--text-default)" }}>
+            <p>Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.</p>
+            <p>Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.</p>
+            <p>Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.</p>
           </div>
         </div>
-        <ImageBox label="Story image / race day photo" aspect="aspect-[4/3]" />
+        <img src={imgStory} alt="Arsenal Events team members" className="aspect-[1.25/1] w-full rounded-[4px] object-cover" />
       </div>
-    </section>
+    </PageBand>
   );
 }
 
-// ─── Page CTA ─────────────────────────────────────────────────────────────────
-
-function PageCTA() {
+function TeamCard({ member }: { member: (typeof team)[number] }) {
   return (
-    <section className="bg-foreground text-background">
-      <div className="max-w-[1440px] mx-auto px-5 @sm:px-6 py-10 @sm:py-16">
-        <div className="grid @md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Have a Question for Our Team?</h2>
-            <p className="text-sm opacity-70 leading-relaxed">
-              We'd love to hear from you — whether you're a runner, a race
-              director, or just curious about what we do.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 @md:justify-end">
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 bg-background text-foreground px-5 py-2.5 text-sm font-medium hover:bg-muted transition-colors"
-            >
-              Contact Us
-              <span className="text-[10px] opacity-60">(→ Contact Form)</span>
-            </Link>
-          </div>
+    <article className="relative rounded-[4px] bg-white p-4 shadow-[0_4px_12px_rgba(35,41,67,0.16)]">
+      <div className="mb-4 rounded-[4px] px-4 py-2 text-center text-[14px] font-bold italic" style={{ background: "var(--action-tertiary-default)", color: "var(--text-inverse)" }}>{member.role}</div>
+      <div className="grid grid-cols-[0.85fr_1fr] items-center gap-4">
+        <div>
+          <p className="text-[52px] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>{member.bib}</p>
+          <p className="mt-3 text-[18px] font-bold italic" style={{ color: "var(--action-tertiary-default)" }}>{member.name}</p>
         </div>
+        <img src={member.image} alt={member.name} className="aspect-square w-full rounded-[4px] object-cover" />
       </div>
-    </section>
+    </article>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+function Team() {
+  return (
+    <PageBand>
+      <SectionIntro title="Meet the Team" copy="Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition." align="left" />
+      <div className="mx-auto grid max-w-[1180px] gap-6 @md:grid-cols-2 @xl:grid-cols-3">
+        {team.map((member) => <TeamCard key={member.bib} member={member} />)}
+      </div>
+    </PageBand>
+  );
+}
 
 export default function AboutPage() {
   return (
-    <main>
+    <main style={{ background: "var(--surface-default)" }}>
       <Hero />
+      <Mission />
       <CommunityImpact />
-      <MissionVisionValues />
-      <Team />
       <Story />
-      <PageCTA />
+      <Team />
+      <PageCTA title="Have a Question for Our Team?" primaryLabel="Message Us" secondaryLabel="Call Us" />
     </main>
   );
 }

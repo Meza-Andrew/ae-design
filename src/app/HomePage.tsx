@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { WireLabel, BtnGhost } from "./shared";
+import { useSwipeNavigation } from "./sitePatterns";
 import imgHero from "@/imports/image-7.png";
 import HeroImageOverlay from "@/imports/HeroImageOverlay/index";
 import RaceCourseTrackLine from "@/imports/RaceCourseTrackLine/index";
@@ -158,6 +159,14 @@ const COURSE_LINE_CSS = `
     .homepage-built-mobile-padding {
       padding-left: clamp(20px, 4vw, 60px) !important;
       padding-right: clamp(20px, 4vw, 60px) !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .homepage-hero-actions {
+      flex-direction: column;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
     }
   }
 
@@ -533,6 +542,28 @@ function HeroBtn({ to, children }: { to: string; children: React.ReactNode }) {
       }}
     >
       <style>{`
+        .cta-button-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        @media (min-width: 1150px) {
+          .cta-button-group {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+        }
+        @media (max-width: 767px) {
+          .hero-btn {
+            width: 236px !important;
+            height: 56px !important;
+            padding: 0 24px !important;
+            font-size: 17px !important;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .hero-btn:hover {
             background-color: var(--action-primary-hover) !important;
@@ -729,7 +760,7 @@ function Hero({
         </p>
 
         {/* CTA buttons */}
-        <div className="flex flex-wrap gap-5 items-center">
+        <div className="homepage-hero-actions flex flex-wrap gap-5 items-center">
           {/* Plan Your Event */}
           <HeroBtn to="/for-race-directors">Plan Your Event</HeroBtn>
 
@@ -912,7 +943,21 @@ function Services({
         style={{ textAlign: servicesIntroLeftAlign ? "left" : "center" }}
       >
         <style>{`
-          @media (hover: hover) and (pointer: fine) {
+          .cta-button-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        @media (min-width: 1150px) {
+          .cta-button-group {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+        }
+        @media (hover: hover) and (pointer: fine) {
             .svc-link-item:hover { color: var(--text-accent) !important; }
             .svc-link-item:hover .svc-chevron { opacity: 1 !important; }
           }
@@ -1398,6 +1443,10 @@ function FeaturedRaces({
 
   const prevRace = () => setActiveRaceIndex((index) => (index - 1 + races.length) % races.length);
   const nextRace = () => setActiveRaceIndex((index) => (index + 1) % races.length);
+  const raceSwipeHandlers = useSwipeNavigation(prevRace, nextRace);
+  const activeRace = races[activeRaceIndex];
+  const previousRace = races[(activeRaceIndex - 1 + races.length) % races.length];
+  const followingRace = races[(activeRaceIndex + 1) % races.length];
 
   return (
     <section
@@ -1451,6 +1500,18 @@ function FeaturedRaces({
         .upcoming-races-single-card {
           width: 390px;
           min-width: 390px;
+          overflow: hidden;
+          touch-action: pan-y;
+        }
+        .swipe-peek-track {
+          display: grid;
+          grid-template-columns: repeat(3, 100%);
+          gap: 16px;
+          transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
+          transition: var(--swipe-transition, transform 180ms ease);
+        }
+        .swipe-peek-item {
+          min-width: 0;
         }
         .upcoming-races-carousel-controls {
           display: flex;
@@ -1493,9 +1554,18 @@ function FeaturedRaces({
           opacity: 1;
           transform: translateY(0);
         }
+        .ae-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          text-decoration: none;
+        }
         .upcoming-races-cta {
           width: min(274.894px, 100%);
           min-height: 68.318px;
+          padding-block: 14px !important;
+          line-height: 1.1;
         }
         .upcoming-races-heading-bg {
           left: clamp(-400px, calc(-400px + (100vw - 1440px) * 0.54), -76px);
@@ -1506,11 +1576,23 @@ function FeaturedRaces({
             border-bottom-left-radius: 10px;
           }
         }
+        .cta-button-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        @media (min-width: 1150px) {
+          .cta-button-group {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .ae-btn {
             transition: transform 0.25s ease, background-color 0.25s ease;
-            display: inline-flex; align-items: center; justify-content: center;
-            text-decoration: none;
           }
           .ae-btn:hover { transform: skewX(-8deg); }
           .ae-btn-primary:hover { background: var(--action-primary-hover) !important; }
@@ -1735,9 +1817,15 @@ function FeaturedRaces({
                 </div>
 
                 <div className="upcoming-races-single-rail">
-                  <div className="upcoming-races-single-card">
-                    <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
-                      <RaceCard race={races[activeRaceIndex]} />
+                  <div className="upcoming-races-single-card" {...raceSwipeHandlers}>
+                    <div className="swipe-peek-track" aria-live="polite">
+                      {[previousRace, activeRace, followingRace].map((race, index) => (
+                        <div key={`${race.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+                          <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
+                            <RaceCard race={race} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -1786,9 +1874,15 @@ function FeaturedRaces({
                 </div>
 
                 <div className="upcoming-races-single-rail">
-                  <div className="upcoming-races-single-card">
-                    <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
-                      <RaceCard race={races[activeRaceIndex]} />
+                  <div className="upcoming-races-single-card" {...raceSwipeHandlers}>
+                    <div className="swipe-peek-track" aria-live="polite">
+                      {[previousRace, activeRace, followingRace].map((race, index) => (
+                        <div key={`${race.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+                          <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
+                            <RaceCard race={race} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -1862,29 +1956,117 @@ function FeaturedRaces({
 
 // ─── Built for Race Day ───────────────────────────────────────────────────────
 
-// 4 testimonials grouped as 2 pairs; each pair shows 2 stacked quotes simultaneously
+// Testimonials are grouped as race-director/runner pairs; each pair shows 2 stacked quotes simultaneously.
 const BUILT_TESTIMONIALS = [
-  // Pair 0
   {
     label: "Race Directors say:",
-    quote: "Arsenal made our race day seamless from start to finish. We had real-time results posted instantly.",
-    attribution: "Jim C., Nonprofit Director",
+    quote: "We use Arsenal Events for every single race! Kristen, Ken and their crew are kind, helpful, and ready to roll. Once you partner with them, consider the job done.",
+    attribution: "Angela W.",
   },
   {
     label: "Runners say:",
-    quote: "Registered, ran, and got my results within minutes. Exactly what a well-run event looks like.",
-    attribution: "Taylor B., Runner",
+    quote: "Everyone was really friendly and helpful. People went out of their way for you. It speaks to the camaraderie of running.",
+    attribution: "Kristen H.",
   },
-  // Pair 1
   {
     label: "Race Directors say:",
-    quote: "We've worked with several timing companies over the years. Arsenal is the only one we keep coming back to.",
-    attribution: "Dana R., Race Director",
+    quote: "Kristen and her team were wonderful partners. They were responsive, set up on time, timed our race accurately, and gave participants live results they really enjoyed.",
+    attribution: "Prince Georges Running Club",
   },
   {
     label: "Runners say:",
-    quote: "The results were up before I even made it back to my car. Super impressive operation.",
-    attribution: "Alex P., Runner",
+    quote: "This was my first 50K and an awesome experience. Organization, staff, aid stations, and road crews were professional and friendly.",
+    attribution: "Cory S.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "Arsenal was great to work with. Responsive, helpful, friendly, and professional. Their race setup was fast, well laid out, and a great value.",
+    attribution: "Brian L.",
+  },
+  {
+    label: "Runners say:",
+    quote: "From seamless organization to breathtaking scenery, every aspect was top-notch. Participating in the DHRT50K Ultra was an absolute delight.",
+    attribution: "Rodrigo C.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "From start to a fantastic finish, Arsenal Events provided a quality fun run experience. Their support, flexibility, and communication made sure we were ready to go.",
+    attribution: "SpotsyParks",
+  },
+  {
+    label: "Runners say:",
+    quote: "It was the perfect first 50K. I loved the atmosphere, the friendly people, and the volunteers who supported us.",
+    attribution: "Robert R.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "We had a wonderful experience working with Arsenal Events. Communication was excellent, setup was easy, and the race day team was professional, timely, and efficient.",
+    attribution: "Leah S.",
+  },
+  {
+    label: "Runners say:",
+    quote: "Volunteers were lovely and kind, the aid stations were great, everything was well-organized, and the course was beautiful.",
+    attribution: "Elizabeth B.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "We use Arsenal Events for every single race! Kristen, Ken and their crew are kind, helpful, and ready to roll. Once you partner with them, consider the job done.",
+    attribution: "Angela W.",
+  },
+  {
+    label: "Runners say:",
+    quote: "A great first-time trail ultra. The flat, well-marked course, well-spaced aid stations, and volunteers all went above and beyond.",
+    attribution: "Deanna S.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "Kristen and her team were wonderful partners. They were responsive, set up on time, timed our race accurately, and gave participants live results they really enjoyed.",
+    attribution: "Prince Georges Running Club",
+  },
+  {
+    label: "Runners say:",
+    quote: "A great race to kick off Spring. Fun for all ages, whether competing against other runners or yourself. Highly recommended.",
+    attribution: "Jose R.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "Arsenal was great to work with. Responsive, helpful, friendly, and professional. Their race setup was fast, well laid out, and a great value.",
+    attribution: "Brian L.",
+  },
+  {
+    label: "Runners say:",
+    quote: "It was well organized, and the shirts and medals were awesome. I'm not fast, and I still felt supported and cheered on.",
+    attribution: "Linda R.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "From start to a fantastic finish, Arsenal Events provided a quality fun run experience. Their support, flexibility, and communication made sure we were ready to go.",
+    attribution: "SpotsyParks",
+  },
+  {
+    label: "Runners say:",
+    quote: "One of my favorites. Great course, nice medals, nice shirts, fun stadium finish, easy parking, and a great job all around.",
+    attribution: "Joyce W.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "We had a wonderful experience working with Arsenal Events. Communication was excellent, setup was easy, and the race day team was professional, timely, and efficient.",
+    attribution: "Leah S.",
+  },
+  {
+    label: "Runners say:",
+    quote: "I've run this race several times. It's a friendly small-town event, simpler and more fun than the mega-races. Always a great time.",
+    attribution: "Kevin B.",
+  },
+  {
+    label: "Race Directors say:",
+    quote: "We use Arsenal Events for every single race! Kristen, Ken and their crew are kind, helpful, and ready to roll. Once you partner with them, consider the job done.",
+    attribution: "Angela W.",
+  },
+  {
+    label: "Runners say:",
+    quote: "Thank you for a wonderful event. It was well supported, everyone was helpful and pleasant, and the trail was beautiful.",
+    attribution: "Mary H.",
   },
 ];
 
@@ -2099,6 +2281,20 @@ function BuiltForRaceDay({
       } as CourseLineStyle}
     >
       <style>{`
+        .cta-button-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        @media (min-width: 1150px) {
+          .cta-button-group {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .bfrd-btn {
             transition: transform 0.25s ease, background-color 0.2s ease;
@@ -2387,10 +2583,28 @@ function Resources({
     setActiveResourceIndex((index) => (index - 1 + RESOURCE_CARDS.length) % RESOURCE_CARDS.length);
   const nextResource = () =>
     setActiveResourceIndex((index) => (index + 1) % RESOURCE_CARDS.length);
+  const resourceSwipeHandlers = useSwipeNavigation(prevResource, nextResource);
+  const activeResourceCard = RESOURCE_CARDS[activeResourceIndex];
+  const previousResourceCard = RESOURCE_CARDS[(activeResourceIndex - 1 + RESOURCE_CARDS.length) % RESOURCE_CARDS.length];
+  const followingResourceCard = RESOURCE_CARDS[(activeResourceIndex + 1) % RESOURCE_CARDS.length];
 
   return (
     <section ref={sectionRef} style={{ background: "transparent", position: "relative", overflow: "visible" }}>
       <style>{`
+        .cta-button-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        @media (min-width: 1150px) {
+          .cta-button-group {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .resource-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
         .resource-card:hover { transform: translateY(-4px); box-shadow: 0px 6px 20px rgba(0,0,0,0.13) !important; }
@@ -2417,6 +2631,18 @@ function Resources({
         }
         .resources-carousel-card {
           width: min(390px, 100%);
+          overflow: hidden;
+          touch-action: pan-y;
+        }
+        .swipe-peek-track {
+          display: grid;
+          grid-template-columns: repeat(3, 100%);
+          gap: 16px;
+          transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
+          transition: var(--swipe-transition, transform 180ms ease);
+        }
+        .swipe-peek-item {
+          min-width: 0;
         }
         .resources-carousel-controls {
           display: flex;
@@ -2519,11 +2745,17 @@ function Resources({
         </div>
 
         <div className="resources-card-carousel">
-          <div className="resources-carousel-card">
-            <ResourceCard
-              card={RESOURCE_CARDS[activeResourceIndex]}
-              className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
-            />
+          <div className="resources-carousel-card" {...resourceSwipeHandlers}>
+            <div className="swipe-peek-track" aria-live="polite">
+              {[previousResourceCard, activeResourceCard, followingResourceCard].map((card, index) => (
+                <div key={`${card.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+                  <ResourceCard
+                    card={card}
+                    className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="resources-carousel-controls">
@@ -2652,6 +2884,37 @@ function PageCTA({
   return (
     <section ref={sectionRef} style={{ background: "transparent", padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", overflow: "hidden", zIndex: 2 }}>
       <style>{`
+        .home-cta-button-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 8px;
+          width: 100%;
+        }
+        @media (min-width: 1150px) {
+          .home-cta-button-group {
+            flex-direction: row;
+            flex-wrap: nowrap;
+          }
+        }
+        @media (max-width: 767px) {
+          .cta-btn {
+            width: min(236px, 100%) !important;
+            min-height: 54px !important;
+            padding: 12px 24px !important;
+            font-size: 16px !important;
+            line-height: 1.12 !important;
+          }
+          .upcoming-races-cta {
+            width: min(236px, 100%) !important;
+            min-height: 54px !important;
+            padding: 12px 24px !important;
+            font-size: 16px !important;
+            line-height: 1.12 !important;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .cta-btn { transition: transform 0.25s ease, background-color 0.2s ease; }
           .cta-btn:hover { transform: skewX(-8deg); background: var(--action-primary-hover) !important; }
@@ -2701,7 +2964,7 @@ function PageCTA({
         >
           Placeholder about copy — one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center", marginTop: "8px" }}>
+        <div className="home-cta-button-group">
           <Link
             to="/for-race-directors#form"
             className="cta-btn"
@@ -2802,3 +3065,11 @@ export default function HomePage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
