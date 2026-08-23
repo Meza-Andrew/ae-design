@@ -320,11 +320,11 @@ export function Nav() {
       `}</style>
       {/* ── Utility bar ── cream background, right-aligned phone + email */}
       <div className="nav-desktop" style={{ background: "var(--surface-subtle)" }}>
-        <div className="max-w-[1440px] mx-auto px-5 @sm:px-8 h-[50px] flex items-center justify-end gap-6">
+        <div className="max-w-[1440px] mx-auto w-full px-5 @sm:px-8 h-[50px] flex items-center justify-end gap-6">
           <Link
             to="/contact#contact-form"
             className="inline-flex items-center gap-2 text-sm hover:opacity-70 transition-opacity"
-            style={{ color: "var(--text-default)" }}
+            style={{ color: "var(--text-default)", fontWeight: 500 }}
           >
             {/* Mail icon matching Figma */}
             <svg width="22" height="18" viewBox="0 0 26.6667 21.3333" fill="none" aria-hidden>
@@ -335,7 +335,7 @@ export function Nav() {
           <a
             href="tel:+15400000000"
             className="inline-flex items-center gap-2 text-sm hover:opacity-70 transition-opacity"
-            style={{ color: "var(--text-default)" }}
+            style={{ color: "var(--text-default)", fontWeight: 500 }}
           >
             {/* Phone icon matching Figma */}
             <svg width="20" height="20" viewBox="0 0 29.0183 29.071" fill="none" aria-hidden>
@@ -483,7 +483,7 @@ export function Nav() {
               to="/contact#contact-form"
               onClick={() => setOpen(false)}
               className="inline-flex items-center gap-2 text-sm"
-              style={{ color: "var(--text-default)" }}
+              style={{ color: "var(--text-default)", fontWeight: 500 }}
             >
               <Mail size={14} />
               Email Us
@@ -491,7 +491,7 @@ export function Nav() {
             <a
               href="tel:+15400000000"
               className="inline-flex items-center gap-2 text-sm"
-              style={{ color: "var(--text-default)" }}
+              style={{ color: "var(--text-default)", fontWeight: 500 }}
             >
               <Phone size={14} />
               540-XXX-XXXX

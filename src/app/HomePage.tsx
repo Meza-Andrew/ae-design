@@ -89,6 +89,22 @@ const TRACK3_DOT_FADE_RANGE = 0.025;
 const TRACK2_REVEAL_START = 0.12;
 const TRACK2_REVEAL_END = 0.7;
 const HERO_TRACK_REVEAL_SCROLL_DISTANCE = 100;
+const BODY_COPY_STYLE = {
+  fontSize: "24px",
+  lineHeight: "32px",
+  fontWeight: 500,
+} as const;
+const SERVICE_CARD_BODY_STYLE = {
+  fontSize: "clamp(16px, 1.35vw, 20px)",
+  lineHeight: "clamp(23px, 1.9vw, 28px)",
+  fontWeight: 500,
+} as const;
+const SERVICE_CARD_LINK_STYLE = {
+  fontSize: "clamp(16px, 1.35vw, 20px)",
+} as const;
+const SERVICE_CARD_MOBILE_LINK_STYLE = {
+  fontSize: "clamp(15px, 4.2vw, 18px)",
+} as const;
 
 const getTrackDotOpacity = (reveal: number, dotProgress: number) =>
   clamp01((clamp01(reveal) - dotProgress) / TRACK3_DOT_FADE_RANGE);
@@ -134,6 +150,13 @@ const COURSE_LINE_CSS = `
     transform-origin: top center;
     pointer-events: none;
     overflow: visible;
+  }
+
+  @media (max-width: 1279px) {
+    .homepage-built-mobile-padding {
+      padding-left: clamp(20px, 4vw, 60px) !important;
+      padding-right: clamp(20px, 4vw, 60px) !important;
+    }
   }
 
   .course-line-section::before {
@@ -191,6 +214,17 @@ const COURSE_LINE_CSS = `
     }
   }
 
+  @media (min-width: 1360px) {
+    .homepage-hero-track {
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    }
+
+    .course-line-2-svg {
+      --course-line-2-end-opacity: 0;
+    }
+  }
+
 `;
 
 function useHomepageTrackOffsets(
@@ -242,6 +276,59 @@ function useHomepageTrackOffsets(
   }, [mainRef, servicesRef]);
 
   return offsets;
+}
+
+function useLeftAlignWhenCopyExceedsLines<T extends HTMLElement>(
+  maxLines = 3,
+  maxViewportWidth = 1024,
+) {
+  const copyRef = useRef<T | null>(null);
+  const [shouldLeftAlign, setShouldLeftAlign] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia(`(max-width: ${maxViewportWidth}px)`);
+    let rafId = 0;
+
+    const measure = () => {
+      cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        const node = copyRef.current;
+        if (!node || !mediaQuery.matches) {
+          setShouldLeftAlign(false);
+          return;
+        }
+
+        const styles = window.getComputedStyle(node);
+        const lineHeight = Number.parseFloat(styles.lineHeight);
+        const fontSize = Number.parseFloat(styles.fontSize);
+        const resolvedLineHeight = Number.isFinite(lineHeight) ? lineHeight : fontSize * 1.2;
+        const renderedLines = Math.round(node.getBoundingClientRect().height / resolvedLineHeight);
+
+        setShouldLeftAlign(renderedLines > maxLines);
+      });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    mediaQuery.addEventListener("change", measure);
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (copyRef.current) resizeObserver?.observe(copyRef.current);
+
+    document.fonts?.ready.then(measure).catch(() => undefined);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", measure);
+      mediaQuery.removeEventListener("change", measure);
+      resizeObserver?.disconnect();
+    };
+  }, [maxLines, maxViewportWidth]);
+
+  return [copyRef, shouldLeftAlign] as const;
 }
 
 function useTrackReveal(
@@ -564,11 +651,38 @@ function Hero({
     <section ref={sectionRef} className="relative overflow-hidden" style={{ background: "var(--surface-dark)" }}>
       <style>{`
         .hero-photo {
-          object-position: center 75%;
+          object-position: 72% center;
+          transform: scale(1.01);
+          transform-origin: center center;
+        }
+        @media (min-width: 751px) {
+          .hero-photo {
+            object-position: 76% center;
+            transform: scale(1.02);
+          }
+        }
+        @media (min-width: 1280px) {
+          .hero-photo {
+            object-position: 80% center;
+            transform: scale(1.04);
+          }
+        }
+        @media (min-width: 1600px) {
+          .hero-photo {
+            object-position: 83% center;
+            transform: scale(1.06);
+          }
+        }
+        @media (min-width: 2000px) {
+          .hero-photo {
+            object-position: 85% center;
+            transform: scale(1.08);
+          }
         }
         @media (max-width: 750px) {
           .hero-photo {
             object-position: 72% center;
+            transform: scale(1.01);
           }
         }
       `}</style>
@@ -586,7 +700,7 @@ function Hero({
 
       {/* ── Hero copy — bottom-left, inside max-width container ── */}
       <div
-        className="relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 md:pb-20"
+        className="homepage-built-mobile-padding relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 md:pb-20"
         style={{
           paddingTop: "clamp(200px, 28vw, 420px)",
           zIndex: 2,
@@ -678,7 +792,7 @@ function CourseLine2Background({
 
   return (
     <svg
-      className="course-line-svg"
+      className="course-line-svg course-line-2-svg"
       style={style}
       viewBox="0 0 1550 2098"
       fill="none"
@@ -706,10 +820,27 @@ function CourseLine2Background({
             strokeDashoffset={(1 - clampedReveal).toFixed(4)}
           />
         </mask>
+        <linearGradient
+          id="track-line-2-stroke-gradient"
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1="0"
+          x2="1550"
+          y2="0"
+        >
+          <stop offset="0%" stopColor="#F5D6C4" />
+          <stop offset="92%" stopColor="#F5D6C4" />
+          <stop
+            offset="100%"
+            stopColor="#F5D6C4"
+            style={{ stopOpacity: "var(--course-line-2-end-opacity, 1)" }}
+          />
+        </linearGradient>
       </defs>
       <path
+        className="course-line-2-route"
         d={TRACK2_ROUTE_PATH}
-        stroke="#F5D6C4"
+        stroke="url(#track-line-2-stroke-gradient)"
         strokeWidth="7"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -735,6 +866,8 @@ function Services({
 }) {
   const [activeCard, setActiveCard] = useState<"directors" | "runners">("directors");
   const [isPaused, setIsPaused] = useState(false);
+  const [servicesIntroCopyRef, servicesIntroLeftAlign] =
+    useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cycleTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -782,7 +915,10 @@ function Services({
         background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))",
       } as CourseLineStyle}
     >
-      <div className="relative max-w-[1440px] mx-auto px-5 @sm:px-10 text-center">
+      <div
+        className="homepage-built-mobile-padding relative max-w-[1440px] mx-auto px-5 @sm:px-10"
+        style={{ textAlign: servicesIntroLeftAlign ? "left" : "center" }}
+      >
         <style>{`
           @media (hover: hover) and (pointer: fine) {
             .svc-link-item:hover { color: var(--text-accent) !important; }
@@ -804,15 +940,21 @@ function Services({
         </h2>
 
         <p
+          ref={servicesIntroCopyRef}
           className="mx-auto mb-10 max-w-[885px]"
-          style={{ fontSize: "24px", lineHeight: "32px", color: "var(--text-default)" }}
+          style={{
+            ...BODY_COPY_STYLE,
+            color: "var(--text-default)",
+            marginLeft: servicesIntroLeftAlign ? 0 : undefined,
+            marginRight: servicesIntroLeftAlign ? 0 : undefined,
+          }}
         >
           Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
         </p>
 
         {/* ── Desktop: horizontal overlapping cards ── */}
         {/* Active card fills left at scale(1). Inactive peeks right at scale(0.7), vertically centred. */}
-        <div className="hidden md:block pb-10">
+        <div className="hidden min-[1001px]:block pb-10">
           <div
             className="relative mx-auto overflow-hidden"
             style={{ width: "840px", height: "444px" }}
@@ -848,12 +990,12 @@ function Services({
               </Link>
               <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
                 <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
-                  <p className="mb-4 text-left" style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", paddingLeft: "20px" }}>
+                  <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)", paddingLeft: "20px" }}>
                     Everything you need to plan, register, and time your event from start to finish.
                   </p>
                   <div className="flex flex-col">
                     {DIRECTORS_SERVICES.map(({ label, to }) => (
-                      <Link key={label} to={to} className="svc-link-item" style={{ fontSize: "20px" }}>
+                      <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_LINK_STYLE}>
                         <ChevronRight size={16} className="svc-chevron" />
                         {label}
                       </Link>
@@ -895,12 +1037,12 @@ function Services({
               </Link>
               <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
                 <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
-                  <p className="mb-4 text-left" style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", paddingLeft: "20px" }}>
+                  <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)", paddingLeft: "20px" }}>
                     Find your next race, check your results, and relive race day with photos.
                   </p>
                   <div className="flex flex-col">
                     {RUNNERS_SERVICES.map(({ label, to }) => (
-                      <Link key={label} to={to} className="svc-link-item" style={{ fontSize: "20px" }}>
+                      <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_LINK_STYLE}>
                         <ChevronRight size={16} className="svc-chevron" />
                         {label}
                       </Link>
@@ -919,8 +1061,8 @@ function Services({
         </div>
 
       {/* ── Mobile: stacked cards ── */}
-        <div className="md:hidden flex flex-col gap-5 text-left">
-          <div className="overflow-hidden" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
+        <div className="min-[1001px]:hidden flex flex-col items-center gap-5 text-left">
+          <div className="overflow-hidden w-full max-w-[390px]" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
             <Link to="/for-race-directors" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
               <RaceDirectorsIcon size={20} />
               <h3 className="font-bold italic" style={{ fontSize: "22px", lineHeight: "32px", color: "var(--text-inverse)" }}>
@@ -929,12 +1071,12 @@ function Services({
             </Link>
             <img src={imgEquipment} alt="Arsenal Events timing equipment" className="w-full h-44 object-cover" />
             <div className="p-5">
-              <p className="mb-3" style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)" }}>
+              <p className="mb-3" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
                 Everything you need to plan, register, and time your event from start to finish.
               </p>
               <div className="flex flex-col">
                 {DIRECTORS_SERVICES.map(({ label, to }) => (
-                  <Link key={label} to={to} className="svc-link-item" style={{ fontSize: "18px" }}>
+                  <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_MOBILE_LINK_STYLE}>
                     <ChevronRight size={14} className="svc-chevron" />
                     {label}
                   </Link>
@@ -943,7 +1085,7 @@ function Services({
             </div>
           </div>
 
-          <div className="overflow-hidden" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
+          <div className="overflow-hidden w-full max-w-[390px]" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
             <Link to="/races" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
               <RunnersIcon size={25} />
               <h3 className="font-bold italic" style={{ fontSize: "22px", lineHeight: "32px", color: "var(--text-inverse)" }}>
@@ -955,12 +1097,12 @@ function Services({
               <img src={imgRunner} alt="Runner with finisher medal" className="absolute inset-0 w-full h-full object-contain" style={{ zIndex: 1 }} />
             </div>
             <div className="p-5">
-              <p className="mb-3" style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)" }}>
+              <p className="mb-3" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
                 Find your next race, check your results, and relive race day with photos.
               </p>
               <div className="flex flex-col">
                 {RUNNERS_SERVICES.map(({ label, to }) => (
-                  <Link key={label} to={to} className="svc-link-item" style={{ fontSize: "18px" }}>
+                  <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_MOBILE_LINK_STYLE}>
                     <ChevronRight size={14} className="svc-chevron" />
                     {label}
                   </Link>
@@ -1179,8 +1321,10 @@ function FeaturedRaces({
   trackReveal: number;
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const [layoutMode, setLayoutMode] = useState<"wide" | "stacked">("wide");
+  const [layoutMode, setLayoutMode] = useState<"wide" | "compact" | "stacked">("wide");
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
+  const [upcomingCopyRef, upcomingLeftAlign] =
+    useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>(3, 1000);
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -1214,6 +1358,8 @@ function FeaturedRaces({
     const update = () => {
       if (window.innerWidth <= 1000) {
         setLayoutMode("stacked");
+      } else if (window.innerWidth <= 1420) {
+        setLayoutMode("compact");
       } else {
         setLayoutMode("wide");
       }
@@ -1375,26 +1521,39 @@ function FeaturedRaces({
             padding-left: 20px;
           }
           .upcoming-races-single-rail {
+            flex: 1;
+            flex-direction: column;
             justify-content: flex-start;
+            align-items: center;
           }
           .upcoming-races-single-card {
-            width: clamp(240px, calc(100vw - 560px), 350px);
+            width: min(390px, 100%);
             min-width: 0;
           }
           .upcoming-races-carousel-controls {
-            align-items: flex-start;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-top: 16px;
+          }
+          .upcoming-races-carousel-dots {
+            flex-direction: row;
+            align-items: center;
           }
         }
         @media (max-width: 1000px) {
           .upcoming-races-stack {
             width: 100%;
             gap: 20px;
+            align-items: center;
           }
           .upcoming-races-copy {
             width: 100%;
             min-width: 0;
             padding-left: 0;
             padding-right: 0;
+            align-items: center;
+            text-align: center;
           }
           .upcoming-races-single-rail {
             width: 100%;
@@ -1405,7 +1564,7 @@ function FeaturedRaces({
           .upcoming-races-single-card {
             width: min(390px, 100%);
             min-width: 0;
-            align-self: flex-start;
+            align-self: center;
           }
           .upcoming-races-carousel-controls {
             flex-direction: row;
@@ -1418,6 +1577,10 @@ function FeaturedRaces({
           }
           .upcoming-races-support-copy {
             padding-right: 0 !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
           }
           .upcoming-races-copy p {
             font-size: 20px !important;
@@ -1449,7 +1612,7 @@ function FeaturedRaces({
         }
       `}</style>
 
-      <div className="relative mx-auto max-w-[1440px] px-8 @sm:px-12">
+      <div className="homepage-built-mobile-padding relative mx-auto max-w-[1440px] px-8 @sm:px-12">
         <div className={`upcoming-races-reveal ${isVisible ? "is-visible" : ""}`} style={{ position: "relative", zIndex: 2 }}>
           <div className="upcoming-races-shell">
             {layoutMode === "wide" ? (
@@ -1470,10 +1633,10 @@ function FeaturedRaces({
                   </div>
 
                   <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
-                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
+                    <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
                       Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
                     </p>
-                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
+                    <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
                       Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
                     </p>
 
@@ -1501,10 +1664,78 @@ function FeaturedRaces({
                   </div>
                 </div>
               </>
+            ) : layoutMode === "compact" ? (
+              <>
+                <div className="upcoming-races-copy">
+                  <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                    />
+                    <h2
+                      className="relative font-bold italic"
+                      style={{ fontSize: "48px", lineHeight: "48px", color: "var(--text-inverse)", padding: "20px 40px 20px 0" }}
+                    >
+                      Upcoming Races
+                    </h2>
+                  </div>
+
+                  <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
+                    <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
+                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                    </p>
+                    <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
+                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                    </p>
+
+                    <Link
+                      to="/races"
+                      className="upcoming-races-cta ae-btn ae-btn-primary"
+                      style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
+                    >
+                      See All Races
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="upcoming-races-single-rail">
+                  <div className="upcoming-races-single-card">
+                    <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
+                      <RaceCard race={races[activeRaceIndex]} />
+                    </div>
+                  </div>
+
+                  <div className="upcoming-races-carousel-controls">
+                    <button onClick={prevRace} aria-label="Previous race" className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40">
+                      <ChevronLeft size={16} />
+                    </button>
+                    <div className="upcoming-races-carousel-dots">
+                      {races.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setActiveRaceIndex(index)}
+                          aria-label={`Go to race ${index + 1}`}
+                          className={`transition-all duration-200 ${index === activeRaceIndex ? "h-5 w-1.5 bg-foreground" : "h-1.5 w-1.5 bg-border"}`}
+                        />
+                      ))}
+                    </div>
+                    <button onClick={nextRace} aria-label="Next race" className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40">
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="upcoming-races-stack">
                 <div className="upcoming-races-copy">
-                  <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
+                  <div
+                    className="relative inline-flex rounded-l-[0px] rounded-r-[10px]"
+                    style={{
+                      alignSelf: upcomingLeftAlign ? "flex-start" : "center",
+                      marginBottom: "32px",
+                    }}
+                  >
                     <div
                       aria-hidden="true"
                       className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
@@ -1547,8 +1778,20 @@ function FeaturedRaces({
                 </div>
 
                 <div className="upcoming-races-copy">
-                  <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
-                    <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
+                  <div
+                    className="upcoming-races-support-copy"
+                    style={{
+                      paddingRight: "80px",
+                      position: "relative",
+                      zIndex: 2,
+                      alignItems: upcomingLeftAlign ? "flex-start" : "center",
+                      textAlign: upcomingLeftAlign ? "left" : "center",
+                    }}
+                  >
+                    <p
+                      ref={upcomingCopyRef}
+                      style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}
+                    >
                       Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
                     </p>
                     <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
@@ -1558,7 +1801,16 @@ function FeaturedRaces({
                     <Link
                       to="/races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
-                      style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
+                      style={{
+                        background: "var(--action-primary-default)",
+                        color: "var(--action-primary-text)",
+                        fontSize: "20px",
+                        fontWeight: 600,
+                        justifyContent: "center",
+                        padding: "0 40px",
+                        borderRadius: "10px",
+                        alignSelf: "center",
+                      }}
                     >
                       See All Races
                     </Link>
@@ -1606,6 +1858,22 @@ const BUILT_STATS = [
   { icon: medalSvg, value: "50k+", label: "Finishers Tracked" },
   { icon: smileSvg, value: "100%", label: "Race Director Satisfaction" },
 ];
+
+const getBuiltQuoteAnimationStyle = (active: boolean, index: 0 | 1): React.CSSProperties => {
+  const enterDelay = index === 0 ? 420 : 920;
+  const exitDelay = index === 0 ? 0 : 360;
+  const delay = active ? enterDelay : exitDelay;
+
+  return {
+    opacity: active ? 1 : 0,
+    transform: active ? "translateY(0) scale(1)" : "translateY(30px) scale(0.96)",
+    transformOrigin: "left center",
+    transition: active
+      ? `opacity 0.65s ease ${delay}ms, transform 0.95s cubic-bezier(0.18, 0.9, 0.24, 1.32) ${delay}ms`
+      : `opacity 0.45s ease-in ${delay}ms, transform 0.55s cubic-bezier(0.55, 0, 1, 0.45) ${delay}ms`,
+    willChange: "opacity, transform",
+  };
+};
 
 // Renders a single testimonial's label / quote / attribution
 function BuiltTestimonialItem({
@@ -1746,15 +2014,44 @@ function BuiltForRaceDay({
 }) {
   const NUM_PAIRS = Math.floor(BUILT_TESTIMONIALS.length / 2);
   const [activePair, setActivePair] = useState(0);
+  const [quotesHaveEntered, setQuotesHaveEntered] = useState(false);
+  const quotesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const node = quotesRef.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setQuotesHaveEntered(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setQuotesHaveEntered(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.35,
+        rootMargin: "0px 0px -12% 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!quotesHaveEntered) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(
       () => setActivePair((p) => (p + 1) % NUM_PAIRS),
       4000
     );
     return () => clearInterval(id);
-  }, [NUM_PAIRS]);
+  }, [NUM_PAIRS, quotesHaveEntered]);
 
   return (
     <section
@@ -1778,8 +2075,12 @@ function BuiltForRaceDay({
         }
         @media (prefers-reduced-motion: reduce) {
           .bfrd-btn { transition: background-color 0.2s ease !important; }
-          .bfrd-btn:hover { transform: none !important; }
-          .bfrd-slide { transition: none !important; }
+                      .bfrd-btn:hover { transform: none !important; }
+          .bfrd-slide,
+          .bfrd-quote-row {
+            transition: none !important;
+            transform: none !important;
+          }
         }
       `}</style>
 
@@ -1793,7 +2094,7 @@ function BuiltForRaceDay({
           {/* Intro: heading left, CTA right, aligned to the same width as columns below */}
           <div
             className="flex flex-wrap items-center justify-between"
-            style={{ gap: "24px", marginBottom: "32px", width: "100%" }}
+            style={{ gap: "24px", marginBottom: "57px", width: "100%" }}
           >
             <div style={{ minWidth: 0 }}>
               <h2
@@ -1809,9 +2110,7 @@ function BuiltForRaceDay({
               </h2>
               <p
                 style={{
-                  fontSize: "20px",
-                  lineHeight: "28px",
-                  fontWeight: 500,
+                  ...BODY_COPY_STYLE,
                   color: "var(--text-inverse)",
                   maxWidth: "672px",
                 }}
@@ -1846,7 +2145,7 @@ function BuiltForRaceDay({
             style={{ gap: "64px" }}
           >
           {/* ── Left: testimonial rotator — 2 quotes stacked, pairs crossfade ── */}
-          <div style={{ minWidth: 0 }}>
+          <div ref={quotesRef} style={{ minWidth: 0 }}>
             {/* Stable-height crossfade container — ghost pair holds layout height */}
             <div style={{ position: "relative" }}>
               {/* Ghost: pair 0 always in flow (invisible) to anchor the container height */}
@@ -1857,25 +2156,25 @@ function BuiltForRaceDay({
 
               {/* Rotating pairs — staggered fade per item */}
               {Array.from({ length: NUM_PAIRS }).map((_, pairIdx) => {
-                const active = pairIdx === activePair;
+                const active = quotesHaveEntered && pairIdx === activePair;
                 return (
                   <div
                     key={pairIdx}
                     style={{ position: "absolute", top: 0, left: 0, right: 0 }}
                   >
-                    <div style={{
-                      opacity: active ? 1 : 0,
-                      transition: "opacity 0.5s ease 0s",
-                    }}>
+                    <div
+                      className="bfrd-quote-row"
+                      style={getBuiltQuoteAnimationStyle(active, 0)}
+                    >
                       <BuiltTestimonialItem
                         t={BUILT_TESTIMONIALS[pairIdx * 2]}
                         withBottomGap
                       />
                     </div>
-                    <div style={{
-                      opacity: active ? 1 : 0,
-                      transition: "opacity 0.5s ease 0.5s",
-                    }}>
+                    <div
+                      className="bfrd-quote-row"
+                      style={getBuiltQuoteAnimationStyle(active, 1)}
+                    >
                       <BuiltTestimonialItem
                         t={BUILT_TESTIMONIALS[pairIdx * 2 + 1]}
                       />
@@ -2019,6 +2318,9 @@ function Resources({
   sectionRef: React.RefObject<HTMLElement | null>;
 }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [activeResourceIndex, setActiveResourceIndex] = useState(0);
+  const [resourcesIntroCopyRef, resourcesIntroLeftAlign] =
+    useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -2046,6 +2348,11 @@ function Resources({
     return () => observer.disconnect();
   }, [sectionRef]);
 
+  const prevResource = () =>
+    setActiveResourceIndex((index) => (index - 1 + RESOURCE_CARDS.length) % RESOURCE_CARDS.length);
+  const nextResource = () =>
+    setActiveResourceIndex((index) => (index + 1) % RESOURCE_CARDS.length);
+
   return (
     <section ref={sectionRef} style={{ background: "transparent", position: "relative", overflow: "visible" }}>
       <style>{`
@@ -2065,7 +2372,39 @@ function Resources({
           opacity: 1;
           transform: translateY(0);
         }
+        .resources-card-row {
+          display: flex;
+          gap: 24px;
+        }
+        .resources-card-carousel {
+          display: none;
+        }
+        .resources-carousel-card {
+          width: min(390px, 100%);
+        }
+        .resources-carousel-controls {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 12px;
+          margin-top: 18px;
+        }
+        .resources-carousel-dots {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
         .resource-card:focus-visible { outline: 2px solid var(--action-primary-default); outline-offset: 3px; }
+        @media (max-width: 1279px) {
+          .resources-card-row {
+            display: none;
+          }
+          .resources-card-carousel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+        }
         @media (prefers-reduced-motion: reduce) {
           .resource-card, .res-cta { transition: none !important; }
           .resource-card:hover, .res-cta:hover { transform: none !important; }
@@ -2075,15 +2414,34 @@ function Resources({
       <div className="max-w-[1440px] mx-auto" style={{ padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", zIndex: 2 }}>
 
         {/* Centered intro */}
-        <div className="flex flex-col items-center" style={{ textAlign: "center", marginBottom: "clamp(40px, 5vw, 56px)" }}>
+        <div
+          className="flex flex-col items-center"
+          style={{
+            textAlign: resourcesIntroLeftAlign ? "left" : "center",
+            marginBottom: "clamp(40px, 5vw, 56px)",
+          }}
+        >
           <h2
             className="font-bold italic"
-            style={{ fontSize: "clamp(32px, 4vw, 56px)", lineHeight: 1.05, color: "var(--text-headlines)", marginBottom: "16px" }}
+            style={{
+              fontSize: "clamp(32px, 4vw, 56px)",
+              lineHeight: 1.05,
+              color: "var(--text-headlines)",
+              marginBottom: "16px",
+              alignSelf: resourcesIntroLeftAlign ? "stretch" : undefined,
+            }}
           >
             Resources
           </h2>
           <p
-            style={{ fontSize: "20px", lineHeight: "28px", fontWeight: 500, color: "var(--text-default)", maxWidth: "520px", marginBottom: "28px" }}
+            ref={resourcesIntroCopyRef}
+            style={{
+              ...BODY_COPY_STYLE,
+              color: "var(--text-default)",
+              maxWidth: "680px",
+              marginBottom: "28px",
+              alignSelf: resourcesIntroLeftAlign ? "stretch" : undefined,
+            }}
           >
             Placeholder supporting headline copy with a sentence or two leading into
             the Runner&apos;s Arsenal blog and its benefits.
@@ -2097,8 +2455,8 @@ function Resources({
           </Link>
         </div>
 
-        {/* Three cards — row on desktop, stacked on mobile */}
-        <div className="flex flex-col md:flex-row" style={{ gap: "24px" }}>
+        {/* Three cards on desktop, single-card carousel on mobile/tablet */}
+        <div className="resources-card-row">
           {RESOURCE_CARDS.map((card, index) => (
             <ResourceCard
               key={card.title}
@@ -2107,6 +2465,44 @@ function Resources({
               style={{ transitionDelay: `${index * 140}ms` }}
             />
           ))}
+        </div>
+
+        <div className="resources-card-carousel">
+          <div className="resources-carousel-card">
+            <ResourceCard
+              card={RESOURCE_CARDS[activeResourceIndex]}
+              className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
+            />
+          </div>
+
+          <div className="resources-carousel-controls">
+            <button
+              onClick={prevResource}
+              aria-label="Previous resource"
+              className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <div className="resources-carousel-dots">
+              {RESOURCE_CARDS.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveResourceIndex(index)}
+                  aria-label={`Go to resource ${index + 1}`}
+                  className={`transition-all duration-200 ${
+                    index === activeResourceIndex ? "w-5 h-1.5 bg-foreground" : "w-1.5 h-1.5 bg-border"
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={nextResource}
+              aria-label="Next resource"
+              className="bg-card border border-border p-1.5 hover:bg-accent transition-colors disabled:opacity-40"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
 
       </div>
@@ -2122,6 +2518,8 @@ function PageCTA({
   sectionRef: React.RefObject<HTMLElement | null>;
 }) {
   const confettiFiredRef = useRef(false);
+  const [ctaCopyRef, ctaLeftAlign] =
+    useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -2223,7 +2621,7 @@ function PageCTA({
           flexDirection: "column",
           alignItems: "center",
           gap: "24px",
-          textAlign: "center",
+          textAlign: ctaLeftAlign ? "left" : "center",
           position: "relative",
           zIndex: 2,
         }}
@@ -2235,18 +2633,19 @@ function PageCTA({
             lineHeight: "1.08",
             color: "var(--text-inverse)",
             margin: 0,
+            alignSelf: ctaLeftAlign ? "stretch" : undefined,
           }}
         >
           Ready To Work With Us?
         </h2>
         <p
+          ref={ctaCopyRef}
           style={{
-            fontSize: "20px",
-            lineHeight: "28px",
-            fontWeight: 500,
+            ...BODY_COPY_STYLE,
             color: "var(--text-inverse)",
-            maxWidth: "560px",
+            maxWidth: "616px",
             margin: 0,
+            alignSelf: ctaLeftAlign ? "stretch" : undefined,
           }}
         >
           Placeholder about copy — one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
@@ -2262,13 +2661,16 @@ function PageCTA({
               background: "var(--action-primary-default)",
               color: "var(--text-inverse)",
               fontWeight: 600,
-              fontSize: "20px",
+              fontSize: "clamp(16px, 4vw, 20px)",
               lineHeight: "28px",
-              width: "274.894px",
+              width: "min(274.894px, 100%)",
+              minWidth: 0,
               height: "68.318px",
-              padding: "0 40px",
+              padding: "0 clamp(20px, 6vw, 40px)",
               borderRadius: "10px",
               textDecoration: "none",
+              textAlign: "center",
+              whiteSpace: "normal",
             }}
           >
             Request Timing Services
@@ -2283,13 +2685,16 @@ function PageCTA({
               background: "var(--action-primary-default)",
               color: "var(--text-inverse)",
               fontWeight: 600,
-              fontSize: "20px",
+              fontSize: "clamp(16px, 4vw, 20px)",
               lineHeight: "28px",
-              width: "274.894px",
+              width: "min(274.894px, 100%)",
+              minWidth: 0,
               height: "68.318px",
-              padding: "0 40px",
+              padding: "0 clamp(20px, 6vw, 40px)",
               borderRadius: "10px",
               textDecoration: "none",
+              textAlign: "center",
+              whiteSpace: "normal",
             }}
           >
             Find A Race
