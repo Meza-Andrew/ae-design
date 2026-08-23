@@ -21,23 +21,29 @@ import imgResourceGear from "@/imports/image_1.png";
 import personRunSvg from "@/imports/PersonSimpleRun.svg";
 import raceDirectorIconSvg from "@/imports/for_race_directors_icon.svg";
 
-// â”€â”€â”€ Responsive N-up slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Mobile (md:hidden)  â†’ Slider unchanged.
-// Desktop (hidden md:block) â†’ continuous N-up, slides 1 card at a time.
+// ─── Responsive N-up slider ───────────────────────────────────────────────────
+// Mobile (md:hidden)  → Slider unchanged.
+// Desktop (hidden md:block) → continuous N-up, slides 1 card at a time.
 
 const DESKTOP_GAP = 24;
-const TRACK_SCALE_BASE_WIDTH = 1550;
-const TRACK_SCALE_MIN_WIDTH = 1280;
+const TRACK_ARTWORK_BASE_WIDTH = 1350;
+const HERO_TRACK_TOP = -100.17;
+const HERO_TRACK_LEFT = -140.1975;
+const HERO_TRACK_WIDTH = 1509.435;
+const TRACK2_SECTION_TOP_OFFSET = -246.5014;
+const TRACK2_PATH_END_Y = 1779.44;
+const TRACK3_PATH_START_Y = 544.789;
+const TRACK3_VIEWBOX_HEIGHT = 3194;
+const TRACK3_POSITION_ADJUST_Y = TRACK3_VIEWBOX_HEIGHT * -0.045;
+const TRACK3_LOWER_TRACK_TOP_OFFSET =
+  TRACK2_SECTION_TOP_OFFSET + TRACK2_PATH_END_Y - TRACK3_PATH_START_Y + TRACK3_POSITION_ADJUST_Y;
 
 type TrackRevealDirection = "ltr" | "rtl" | "ttb";
 type TrackRevealSet = [number, number, number, number, number, number];
 type CourseLineStyle = React.CSSProperties & Record<`--${string}`, string | number>;
+type HomepageTrackOffsets = { servicesTop: number };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-const getTrackScaleForWidth = (width: number) =>
-  Math.max(TRACK_SCALE_MIN_WIDTH / TRACK_SCALE_BASE_WIDTH, width / TRACK_SCALE_BASE_WIDTH);
-const scalePx = (value: number) => `calc(${value}px * var(--track-scale))`;
-const scalePercent = (value: number) => `calc(${value}% * var(--track-scale))`;
 
 const getTrackRevealClipPath = (direction: TrackRevealDirection, reveal: number) =>
   direction === "ltr"
@@ -88,8 +94,46 @@ const getTrackDotOpacity = (reveal: number, dotProgress: number) =>
   clamp01((clamp01(reveal) - dotProgress) / TRACK3_DOT_FADE_RANGE);
 
 const COURSE_LINE_CSS = `
-  .course-line-section {
-    isolation: isolate;
+  .homepage-track-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+    display: none;
+  }
+
+  .homepage-hero-track {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .homepage-track-coordinate-space {
+    position: absolute;
+    top: 0;
+    left: calc(50% - ${TRACK_ARTWORK_BASE_WIDTH / 2}px);
+    width: ${TRACK_ARTWORK_BASE_WIDTH}px;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .homepage-track-anchor {
+    position: absolute;
+    left: 0;
+    width: ${TRACK_ARTWORK_BASE_WIDTH}px;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .homepage-track-scale-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: ${TRACK_ARTWORK_BASE_WIDTH}px;
+    transform-origin: top center;
+    pointer-events: none;
+    overflow: visible;
   }
 
   .course-line-section::before {
@@ -118,19 +162,19 @@ const COURSE_LINE_CSS = `
   }
 
   @media (min-width: 1280px) {
+    .homepage-track-layer {
+      display: block;
+    }
+
     .course-line-section::before {
       display: block;
     }
   }
 
-  .course-line-section-svg::before {
-    display: none;
-  }
-
   .course-line-svg {
     position: absolute;
-    top: var(--course-line-top, 0%);
-    left: var(--course-line-left, 0%);
+    top: var(--course-line-top, 0px);
+    left: var(--course-line-left, 0px);
     width: var(--course-line-width, 100%);
     aspect-ratio: var(--course-line-aspect-ratio);
     transform: translate(var(--course-line-offset-x, 0%), var(--course-line-offset-y, 0%));
@@ -149,19 +193,55 @@ const COURSE_LINE_CSS = `
 
 `;
 
-function useTrackScale() {
-  const [trackScale, setTrackScale] = useState(1);
+function useHomepageTrackOffsets(
+  mainRef: React.RefObject<HTMLElement | null>,
+  servicesRef: React.RefObject<HTMLElement | null>,
+) {
+  const [offsets, setOffsets] = useState<HomepageTrackOffsets>({ servicesTop: 0 });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const update = () => setTrackScale(getTrackScaleForWidth(window.innerWidth));
+    let rafId = 0;
+    const update = () => {
+      cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        const main = mainRef.current;
+        const services = servicesRef.current;
+        if (!main || !services) return;
+
+        const mainTop = main.getBoundingClientRect().top;
+        const nextOffsets = {
+          servicesTop: services.getBoundingClientRect().top - mainTop,
+        };
+
+        setOffsets((prev) =>
+          Math.abs(prev.servicesTop - nextOffsets.servicesTop) < 0.5
+            ? prev
+            : nextOffsets,
+        );
+      });
+    };
+
     update();
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+    window.addEventListener("load", update);
 
-  return trackScale;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    [mainRef.current, servicesRef.current].forEach((node) => {
+      if (node) resizeObserver?.observe(node);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("load", update);
+      resizeObserver?.disconnect();
+    };
+  }, [mainRef, servicesRef]);
+
+  return offsets;
 }
 
 function useTrackReveal(
@@ -343,7 +423,7 @@ function ResponsiveSlider({
   );
 }
 
-// â”€â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Hero ─────────────────────────────────────────────────────────────────────
 
 
 function HeroBtn({ to, children }: { to: string; children: React.ReactNode }) {
@@ -380,12 +460,77 @@ function HeroBtn({ to, children }: { to: string; children: React.ReactNode }) {
   );
 }
 
+function TrackArtworkFrame({
+  anchorTop = 0,
+  children,
+}: {
+  anchorTop?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="homepage-track-anchor" style={{ top: anchorTop }}>
+      <div className="homepage-track-scale-frame">{children}</div>
+    </div>
+  );
+}
+
+function HomepageTrackLayer({
+  trackReveals,
+  offsets,
+}: {
+  trackReveals: TrackRevealSet;
+  offsets: HomepageTrackOffsets;
+}) {
+  return (
+    <div className="homepage-track-layer" aria-hidden="true">
+      <div className="homepage-track-coordinate-space">
+        <TrackArtworkFrame>
+          <div
+            className="homepage-hero-track"
+            style={{
+              top: HERO_TRACK_TOP,
+              left: HERO_TRACK_LEFT,
+              width: HERO_TRACK_WIDTH,
+              aspectRatio: "1808.2 / 545.562",
+              ...getTrackRevealStyle("ltr", trackReveals[0]),
+            }}
+          >
+            <RaceCourseTrackLine />
+          </div>
+        </TrackArtworkFrame>
+
+        <TrackArtworkFrame anchorTop={offsets.servicesTop}>
+          <CourseLine2Background
+            reveal={trackReveals[1]}
+            style={{
+              "--course-line-top": `${TRACK2_SECTION_TOP_OFFSET}px`,
+              "--course-line-left": "0px",
+              "--course-line-width": `${TRACK_ARTWORK_BASE_WIDTH}px`,
+              "--course-line-aspect-ratio": "1550 / 2098",
+              "--course-line-offset-y": "0px",
+            } as CourseLineStyle}
+          />
+
+          <CourseLine3Background
+            reveal={trackReveals[3]}
+            style={{
+              "--course-line-top": `${TRACK3_LOWER_TRACK_TOP_OFFSET}px`,
+              "--course-line-left": "0px",
+              "--course-line-width": `${TRACK_ARTWORK_BASE_WIDTH}px`,
+              "--course-line-aspect-ratio": "1550 / 3194",
+              "--course-line-offset-y": "0px",
+            } as CourseLineStyle}
+          />
+        </TrackArtworkFrame>
+      </div>
+    </div>
+  );
+}
+
 function Hero({
   sectionRef,
-  trackReveal,
 }: {
   sectionRef: React.RefObject<HTMLElement | null>;
-  trackReveal: number;
 }) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -427,37 +572,24 @@ function Hero({
           }
         }
       `}</style>
-      {/* â”€â”€ Photo â”€â”€ */}
+      {/* ── Photo ── */}
       <img
         src={imgHero}
         alt="Runner crossing the finish line at an Arsenal Events race"
         className="hero-photo absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* â”€â”€ Gradient overlay (left-to-right navy fade) â”€â”€ */}
+      {/* ── Gradient overlay (left-to-right navy fade) ── */}
       <div className="absolute inset-0">
         <HeroImageOverlay />
       </div>
 
-      {/* â”€â”€ Race course track line â€” aspect-ratio locks 1808Ã—546 proportions, no stretch â”€â”€ */}
-      <div
-        className="absolute pointer-events-none hidden min-[1280px]:block"
-        style={{
-          top: scalePercent(-15),
-          left: scalePercent(-11.75),
-          width: scalePercent(126.5),
-          aspectRatio: "1808.2 / 545.562",
-          ...getTrackRevealStyle("ltr", trackReveal),
-        }}
-      >
-        <RaceCourseTrackLine />
-      </div>
-
-      {/* â”€â”€ Hero copy â€” bottom-left, inside max-width container â”€â”€ */}
+      {/* ── Hero copy — bottom-left, inside max-width container ── */}
       <div
         className="relative max-w-[1440px] mx-auto px-6 @sm:px-10 pb-14 md:pb-20"
         style={{
           paddingTop: "clamp(200px, 28vw, 420px)",
+          zIndex: 2,
           opacity: isVisible ? 1 : 0,
           transform: isVisible ? "translateX(0)" : "translateX(-48px)",
           transition: "opacity 0.7s ease, transform 0.7s ease",
@@ -477,7 +609,7 @@ function Hero({
           className="text-[clamp(18px,2.1vw,30px)] font-semibold leading-snug mb-10 max-w-[60ch]"
           style={{ textShadow: "0px 4px 4px rgba(0,0,0,0.25)", color: "var(--text-inverse)" }}
         >
-          Placeholder supporting headline copy â€” one or two sentences describing both race director and runner-facing value propositions.
+          Placeholder supporting headline copy — one or two sentences describing both race director and runner-facing value propositions.
         </p>
 
         {/* CTA buttons */}
@@ -493,7 +625,7 @@ function Hero({
   );
 }
 
-// â”€â”€â”€ Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Services ─────────────────────────────────────────────────────────────────
 
 const DIRECTORS_SERVICES = [
   { label: "Registration", accent: true, to: "/for-race-directors#registration" },
@@ -533,7 +665,13 @@ function RunnersIcon({ size = 28 }: { size?: number }) {
   );
 }
 
-function CourseLine2Background({ reveal }: { reveal: number }) {
+function CourseLine2Background({
+  reveal,
+  style,
+}: {
+  reveal: number;
+  style?: CourseLineStyle;
+}) {
   const clampedReveal = clamp01(reveal);
   const rightDotOpacity = getTrackDotOpacity(clampedReveal, TRACK2_RIGHT_DOT_PROGRESS);
   const leftDotOpacity = getTrackDotOpacity(clampedReveal, TRACK2_LEFT_DOT_PROGRESS);
@@ -541,6 +679,7 @@ function CourseLine2Background({ reveal }: { reveal: number }) {
   return (
     <svg
       className="course-line-svg"
+      style={style}
       viewBox="0 0 1550 2098"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -591,10 +730,8 @@ function CourseLine2Background({ reveal }: { reveal: number }) {
 
 function Services({
   sectionRef,
-  trackReveal,
 }: {
   sectionRef: React.RefObject<HTMLElement | null>;
-  trackReveal: number;
 }) {
   const [activeCard, setActiveCard] = useState<"directors" | "runners">("directors");
   const [isPaused, setIsPaused] = useState(false);
@@ -640,18 +777,11 @@ function Services({
   return (
     <section
       ref={sectionRef}
-      className="course-line-section course-line-section-svg relative overflow-visible pt-16 @sm:pt-24 pb-11 @sm:pb-16"
+      className="course-line-section relative overflow-visible pt-16 @sm:pt-24 pb-11 @sm:pb-16"
       style={{
         background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))",
-        zIndex: 1,
-        "--course-line-top": "0%",
-        "--course-line-left": "0%",
-        "--course-line-width": "100%",
-        "--course-line-aspect-ratio": "1550 / 2098",
-        "--course-line-offset-y": "-13.49%",
       } as CourseLineStyle}
     >
-      <CourseLine2Background reveal={trackReveal} />
       <div className="relative max-w-[1440px] mx-auto px-5 @sm:px-10 text-center">
         <style>{`
           @media (hover: hover) and (pointer: fine) {
@@ -677,10 +807,10 @@ function Services({
           className="mx-auto mb-10 max-w-[885px]"
           style={{ fontSize: "24px", lineHeight: "32px", color: "var(--text-default)" }}
         >
-          Placeholder supporting headline copy â€” one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy â€” one or two sentences describing the runner-facing value proposition.
+          Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
         </p>
 
-        {/* â”€â”€ Desktop: horizontal overlapping cards â”€â”€ */}
+        {/* ── Desktop: horizontal overlapping cards ── */}
         {/* Active card fills left at scale(1). Inactive peeks right at scale(0.7), vertically centred. */}
         <div className="hidden md:block pb-10">
           <div
@@ -778,9 +908,9 @@ function Services({
                   </div>
                 </div>
                 <div className="flex-1 relative overflow-hidden">
-                  {/* Blurred edge-fill â€” stretches the photo edges to fill the sides */}
+                  {/* Blurred edge-fill — stretches the photo edges to fill the sides */}
                   <img src={imgRunner} aria-hidden className="absolute inset-0 w-full h-full" style={{ objectFit: "cover", filter: "blur(18px) brightness(0.85) saturate(0.7)", transform: "scale(1.12)" }} />
-                  {/* Sharp foreground â€” full runner visible, medal included */}
+                  {/* Sharp foreground — full runner visible, medal included */}
                   <img src={imgRunner} alt="Runner with finisher medal" className="absolute inset-0 w-full h-full object-contain" style={{ position: "relative", zIndex: 1 }} />
                 </div>
               </div>
@@ -788,7 +918,7 @@ function Services({
           </div>
         </div>
 
-      {/* â”€â”€ Mobile: stacked cards â”€â”€ */}
+      {/* ── Mobile: stacked cards ── */}
         <div className="md:hidden flex flex-col gap-5 text-left">
           <div className="overflow-hidden" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
             <Link to="/for-race-directors" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
@@ -845,7 +975,7 @@ function Services({
   );
 }
 
-// â”€â”€â”€ 1-up Slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── 1-up Slider ─────────────────────────────────────────────────────────────
 
 function Slider({ children }: { children: React.ReactNode }) {
   const items = React.Children.toArray(children);
@@ -909,7 +1039,7 @@ function Slider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// â”€â”€â”€ Featured Races â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Featured Races ───────────────────────────────────────────────────────────
 
 const races = [
   {
@@ -1019,7 +1149,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
         >
           {race.name}
         </h3>
-        {/* Card is the link â€” Register is a visual CTA div with its own hover skew */}
+        {/* Card is the link — Register is a visual CTA div with its own hover skew */}
         <div
           className="ae-btn-register upcoming-race-register flex items-center justify-center mt-auto"
           style={{
@@ -1443,7 +1573,7 @@ function FeaturedRaces({
   );
 }
 
-// â”€â”€â”€ Built for Race Day â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Built for Race Day ───────────────────────────────────────────────────────
 
 // 4 testimonials grouped as 2 pairs; each pair shows 2 stacked quotes simultaneously
 const BUILT_TESTIMONIALS = [
@@ -1503,7 +1633,7 @@ function BuiltTestimonialItem({
       />
       {/* Text column */}
       <div style={{ maxWidth: "360px" }}>
-        {/* Quote/Lead â€” Bold Italic â€” highlight color */}
+        {/* Quote/Lead — Bold Italic — highlight color */}
         <p
           className="font-bold italic"
           style={{
@@ -1515,7 +1645,7 @@ function BuiltTestimonialItem({
         >
           {t.label}
         </p>
-        {/* Quote/Body â€” Semibold Italic */}
+        {/* Quote/Body — Semibold Italic */}
         <p
           style={{
             fontWeight: 600,
@@ -1528,7 +1658,7 @@ function BuiltTestimonialItem({
         >
           &ldquo;{t.quote}&rdquo;
         </p>
-        {/* Quote/Attribution â€” Book Italic */}
+        {/* Quote/Attribution — Book Italic */}
         <p
           style={{
             fontWeight: 400,
@@ -1545,7 +1675,13 @@ function BuiltTestimonialItem({
   );
 }
 
-function CourseLine3Background({ reveal }: { reveal: number }) {
+function CourseLine3Background({
+  reveal,
+  style,
+}: {
+  reveal: number;
+  style?: CourseLineStyle;
+}) {
   const clampedReveal = clamp01(reveal);
   const leftDotOpacity = getTrackDotOpacity(clampedReveal, TRACK3_LEFT_DOT_PROGRESS);
   const rightDotOpacity = getTrackDotOpacity(clampedReveal, TRACK3_RIGHT_DOT_PROGRESS);
@@ -1553,6 +1689,7 @@ function CourseLine3Background({ reveal }: { reveal: number }) {
   return (
     <svg
       className="course-line-svg"
+      style={style}
       viewBox="0 0 1550 3194"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1604,10 +1741,8 @@ function CourseLine3Background({ reveal }: { reveal: number }) {
 
 function BuiltForRaceDay({
   sectionRef,
-  trackReveal,
 }: {
   sectionRef: React.RefObject<HTMLElement | null>;
-  trackReveal: number;
 }) {
   const NUM_PAIRS = Math.floor(BUILT_TESTIMONIALS.length / 2);
   const [activePair, setActivePair] = useState(0);
@@ -1624,20 +1759,13 @@ function BuiltForRaceDay({
   return (
     <section
       ref={sectionRef}
-      className="course-line-section course-line-section-svg"
+      className="course-line-section"
       style={{
         background: "var(--surface-dark)",
         position: "relative",
         overflow: "visible",
-        zIndex: 1,
-        "--course-line-top": "0%",
-        "--course-line-left": "0%",
-        "--course-line-width": "100%",
-        "--course-line-aspect-ratio": "1550 / 3194",
-        "--course-line-offset-y": "-28.05%",
       } as CourseLineStyle}
     >
-      <CourseLine3Background reveal={trackReveal} />
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .bfrd-btn {
@@ -1659,7 +1787,7 @@ function BuiltForRaceDay({
         className="max-w-[1550px] mx-auto"
         style={{ padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", zIndex: 2 }}
       >
-        {/* â”€â”€ Centered content block â”€â”€ */}
+        {/* ── Centered content block ── */}
         <div style={{ width: "fit-content", margin: "0 auto" }}>
 
           {/* Intro: heading left, CTA right, aligned to the same width as columns below */}
@@ -1688,7 +1816,7 @@ function BuiltForRaceDay({
                   maxWidth: "672px",
                 }}
               >
-                Placeholder about copy â€” one or two sentences about Arsenal Events, its
+                Placeholder about copy — one or two sentences about Arsenal Events, its
                 mission, and what differentiates the service for both race directors and runners.
               </p>
             </div>
@@ -1717,9 +1845,9 @@ function BuiltForRaceDay({
             className="flex flex-col md:flex-row items-center"
             style={{ gap: "64px" }}
           >
-          {/* â”€â”€ Left: testimonial rotator â€” 2 quotes stacked, pairs crossfade â”€â”€ */}
+          {/* ── Left: testimonial rotator — 2 quotes stacked, pairs crossfade ── */}
           <div style={{ minWidth: 0 }}>
-            {/* Stable-height crossfade container â€” ghost pair holds layout height */}
+            {/* Stable-height crossfade container — ghost pair holds layout height */}
             <div style={{ position: "relative" }}>
               {/* Ghost: pair 0 always in flow (invisible) to anchor the container height */}
               <div aria-hidden="true" style={{ visibility: "hidden", pointerEvents: "none" }}>
@@ -1727,7 +1855,7 @@ function BuiltForRaceDay({
                 <BuiltTestimonialItem t={BUILT_TESTIMONIALS[1]} />
               </div>
 
-              {/* Rotating pairs â€” staggered fade per item */}
+              {/* Rotating pairs — staggered fade per item */}
               {Array.from({ length: NUM_PAIRS }).map((_, pairIdx) => {
                 const active = pairIdx === activePair;
                 return (
@@ -1758,7 +1886,7 @@ function BuiltForRaceDay({
             </div>
           </div>
 
-          {/* â”€â”€ Right: stats â”€â”€ */}
+          {/* ── Right: stats ── */}
           <div style={{ flexShrink: 0 }}>
             <div className="flex flex-col" style={{ gap: "32px" }}>
               {BUILT_STATS.map((stat) => (
@@ -1786,7 +1914,7 @@ function BuiltForRaceDay({
   );
 }
 
-// â”€â”€â”€ Resources â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Resources ────────────────────────────────────────────────────────────────
 
 const RESOURCE_CARDS = [
   {
@@ -1843,12 +1971,12 @@ function ResourceCard({
         aria-hidden="true"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
       />
-      {/* Scrim â€” top-left readable, fades toward bottom-right */}
+      {/* Scrim — top-left readable, fades toward bottom-right */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(14,16,27,0.58) 0%, rgba(14,16,27,0.08) 100%)" }} />
-      {/* Triangle â€” orange for Runners, navy for Race Directors */}
+      {/* Triangle — orange for Runners, navy for Race Directors */}
       <div style={{ position: "absolute", inset: 0, background: isRunners ? "var(--action-primary-default)" : "var(--surface-dark)", clipPath: "polygon(64% 100%, 100% 63%, 100% 100%)" }} />
 
-      {/* Title â€” vertically centered in left portion */}
+      {/* Title — vertically centered in left portion */}
       <p
         className="font-bold italic"
         style={{
@@ -1866,7 +1994,7 @@ function ResourceCard({
         {card.title}
       </p>
 
-      {/* Category badge â€” inside the orange triangle */}
+      {/* Category badge — inside the orange triangle */}
       <div style={{ position: "absolute", bottom: 14, right: 14, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
         <img
           src={isRunners ? personRunSvg : raceDirectorIconSvg}
@@ -1969,7 +2097,7 @@ function Resources({
           </Link>
         </div>
 
-        {/* Three cards â€” row on desktop, stacked on mobile */}
+        {/* Three cards — row on desktop, stacked on mobile */}
         <div className="flex flex-col md:flex-row" style={{ gap: "24px" }}>
           {RESOURCE_CARDS.map((card, index) => (
             <ResourceCard
@@ -1986,7 +2114,7 @@ function Resources({
   );
 }
 
-// â”€â”€â”€ Page CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Page CTA ─────────────────────────────────────────────────────────────────
 
 function PageCTA({
   sectionRef,
@@ -2121,7 +2249,7 @@ function PageCTA({
             margin: 0,
           }}
         >
-          Placeholder about copy â€” one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
+          Placeholder about copy — one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center", marginTop: "8px" }}>
           <Link
@@ -2172,9 +2300,10 @@ function PageCTA({
   );
 }
 
-// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const mainRef = useRef<HTMLElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
   const servicesRef = useRef<HTMLElement | null>(null);
   const racesRef = useRef<HTMLElement | null>(null);
@@ -2190,17 +2319,25 @@ export default function HomePage() {
     resourcesRef,
     ctaRef,
   ], 0.761);
-  const trackScale = useTrackScale();
+  const trackOffsets = useHomepageTrackOffsets(mainRef, servicesRef);
 
   return (
-    <main style={{ ["--track-scale" as any]: trackScale, background: "var(--surface-default)" }}>
+    <main
+      ref={mainRef}
+      style={{
+        background: "var(--surface-default)",
+        position: "relative",
+        overflow: "visible",
+      }}
+    >
       <style>{COURSE_LINE_CSS}</style>
-      <Hero sectionRef={heroRef} trackReveal={trackReveals[0]} />
+      <HomepageTrackLayer trackReveals={trackReveals} offsets={trackOffsets} />
+      <Hero sectionRef={heroRef} />
 
-      <Services sectionRef={servicesRef} trackReveal={trackReveals[1]} />
+      <Services sectionRef={servicesRef} />
       <FeaturedRaces sectionRef={racesRef} trackReveal={trackReveals[2]} />
 
-      <BuiltForRaceDay sectionRef={builtRef} trackReveal={trackReveals[3]} />
+      <BuiltForRaceDay sectionRef={builtRef} />
 
       <div style={{ position: "relative", overflow: "visible" }}>
         <Resources sectionRef={resourcesRef} />
