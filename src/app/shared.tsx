@@ -523,6 +523,70 @@ export function Footer() {
         }
         .ftrl { transition: opacity 0.2s ease; }
         .ftsl { transition: opacity 0.2s ease; }
+        .footer-layout {
+          display: grid;
+          grid-template-areas:
+            "brand"
+            "nav"
+            "info";
+          gap: 32px;
+          align-items: start;
+          justify-items: start;
+        }
+        .footer-info {
+          grid-area: info;
+          color: var(--text-inverse);
+          max-width: 360px;
+        }
+        .footer-nav-social {
+          grid-area: nav;
+          display: flex;
+          align-items: flex-start;
+          gap: 32px;
+        }
+        .footer-social {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding-top: 4px;
+        }
+        .footer-brand {
+          grid-area: brand;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          text-decoration: none;
+          flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+          .footer-layout {
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+              "brand nav"
+              "info nav";
+            gap: 32px 48px;
+          }
+          .footer-nav-social {
+            gap: 40px;
+          }
+        }
+        @media (min-width: 1200px) {
+          .footer-layout {
+            grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr);
+            grid-template-areas: "info nav brand";
+            align-items: center;
+            gap: clamp(48px, 6vw, 96px);
+          }
+          .footer-nav-social {
+            gap: 64px;
+          }
+          .footer-social {
+            flex-direction: column;
+          }
+          .footer-brand {
+            justify-self: end;
+          }
+        }
         .ftrl:focus-visible,
         .ftsl:focus-visible { outline: 2px solid var(--text-inverse); outline-offset: 3px; border-radius: 2px; }
         @media (prefers-reduced-motion: reduce) {
@@ -535,15 +599,11 @@ export function Footer() {
         style={{ padding: "clamp(36px, 4vw, 56px) clamp(20px, 4vw, 60px)" }}
       >
         {/* ── Desktop: 3-zone horizontal / Mobile: vertical stack ── */}
-        <div
-          className="flex flex-col @lg:flex-row @lg:items-center @lg:justify-between"
-          style={{ gap: "clamp(32px, 4vw, 48px)" }}
-        >
+        <div className="footer-layout">
 
           {/* Zone 1 — Info text (left on desktop) */}
           <div
-            className="order-3 @lg:order-1"
-            style={{ color: "var(--text-inverse)", maxWidth: "340px" }}
+            className="footer-info"
           >
             <p style={{ fontWeight: 400, fontSize: "20px", lineHeight: "28px", marginBottom: "4px" }}>
               Proudly serving the greater Mid-Atlantic region.
@@ -574,7 +634,7 @@ export function Footer() {
           </div>
 
           {/* Zone 2 — Nav + Social icons (center on desktop) */}
-          <div className="order-2 flex items-start gap-10 @lg:gap-16">
+          <div className="footer-nav-social">
             <nav aria-label="Footer">
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {FOOTER_NAV.map((link) => (
@@ -600,8 +660,7 @@ export function Footer() {
 
             {/* Social icons — vertically centered with nav list */}
             <div
-              className="flex @lg:flex-col items-center gap-5 @lg:gap-4"
-              style={{ paddingTop: "4px" }}
+              className="footer-social"
             >
               <a
                 href="#"
@@ -654,8 +713,7 @@ export function Footer() {
           <Link
             to="/"
             aria-label="Arsenal Events — Home"
-            className="order-1 @lg:order-3"
-            style={{ display: "flex", flexDirection: "column", gap: "10px", textDecoration: "none", flexShrink: 0 }}
+            className="footer-brand"
           >
             {/* ARSENAL EVENTS */}
             <svg

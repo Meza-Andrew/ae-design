@@ -71,7 +71,9 @@ const TRACK2_LEFT_DOT_OUTER_PATH =
 const TRACK2_LEFT_DOT_INNER_PATH =
   "M87.3371 1033.42C91.4237 1034.15 95.3237 1031.44 96.048 1027.38C96.7724 1023.31 94.0467 1019.43 89.96 1018.7C85.8734 1017.97 81.9734 1020.67 81.2491 1024.74C80.5248 1028.8 83.2504 1032.69 87.3371 1033.42Z";
 const TRACK2_RIGHT_DOT_PROGRESS = 0.0256;
-const TRACK2_LEFT_DOT_PROGRESS = 0.7244;
+const TRACK2_LEFT_DOT_PROGRESS = 0.7775;
+const TRACK2_LEFT_DOT_OFFSET_X = -50.38;
+const TRACK2_LEFT_DOT_OFFSET_Y = 140.31;
 
 const TRACK3_ROUTE_PATH =
   "M102.238 544.789C255.217 673.309 -67.7781 998.165 97.8467 1032.14C314.839 1075.69 -68.8236 1563.78 101.86 1662.78C310.234 1785.99 1178.49 1398.91 1375.19 1590.95C1485.2 1698.36 1516.79 1712.53 1409.82 1897.81C1215.4 2234.54 129.826 2064 23.3136 2266.09C-93.7531 2491.22 806.999 2249.11 806.999 2599.96L806.999 2749.14";
@@ -638,8 +640,8 @@ function Hero({
         }
       },
       {
-        threshold: 0.15,
-        rootMargin: "0px 0px -15% 0px",
+        threshold: 0.3,
+        rootMargin: "0px",
       },
     );
 
@@ -851,7 +853,10 @@ function CourseLine2Background({
         <path d={TRACK2_RIGHT_DOT_OUTER_PATH} fill="#D96220" />
         <path d={TRACK2_RIGHT_DOT_INNER_PATH} fill="#FCF3ED" />
       </g>
-      <g style={{ opacity: leftDotOpacity, transition: "opacity 180ms ease" }}>
+      <g
+        transform={`translate(${TRACK2_LEFT_DOT_OFFSET_X} ${TRACK2_LEFT_DOT_OFFSET_Y})`}
+        style={{ opacity: leftDotOpacity, transition: "opacity 180ms ease" }}
+      >
         <path d={TRACK2_LEFT_DOT_OUTER_PATH} fill="#D96220" />
         <path d={TRACK2_LEFT_DOT_INNER_PATH} fill="#FCF3ED" />
       </g>
@@ -864,48 +869,35 @@ function Services({
 }: {
   sectionRef: React.RefObject<HTMLElement | null>;
 }) {
-  const [activeCard, setActiveCard] = useState<"directors" | "runners">("directors");
-  const [isPaused, setIsPaused] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [servicesIntroCopyRef, servicesIntroLeftAlign] =
     useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cycleTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-cycle every 3.5 s, stops while paused
   useEffect(() => {
-    if (isPaused) return;
-    cycleTimer.current = setInterval(() => {
-      setActiveCard(prev => prev === "directors" ? "runners" : "directors");
-    }, 3500);
-    return () => { if (cycleTimer.current) clearInterval(cycleTimer.current); };
-  }, [isPaused]);
+    const node = sectionRef.current;
+    if (!node) return;
 
-  // Cleanup on unmount
-  useEffect(() => () => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    if (cycleTimer.current) clearInterval(cycleTimer.current);
-  }, []);
-
-  const scheduleSwitch = (card: "directors" | "runners") => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => setActiveCard(card), 350);
-  };
-
-  const cancelSwitch = () => {
-    if (hoverTimer.current) {
-      clearTimeout(hoverTimer.current);
-      hoverTimer.current = null;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
     }
-  };
 
-  const handleCompositionEnter = () => {
-    setIsPaused(true);
-  };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -15% 0px",
+      },
+    );
 
-  const handleCompositionLeave = () => {
-    cancelSwitch();
-    setIsPaused(false);
-  };
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [sectionRef]);
 
   return (
     <section
@@ -925,11 +917,74 @@ function Services({
             .svc-link-item:hover .svc-chevron { opacity: 1 !important; }
           }
           .svc-link-item {
-            display: flex; align-items: center; gap: 4px;
+            display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: center; column-gap: 4px;
             color: var(--action-tertiary-default); font-weight: 600;
             text-decoration: none; transition: color 0.15s ease; min-height: 34px;
           }
-          .svc-chevron { opacity: 0; flex-shrink: 0; transition: opacity 0.15s ease; }
+          .svc-chevron { opacity: 0; justify-self: center; transition: opacity 0.15s ease; }
+          .svc-link-label { min-width: 0; text-align: left; }
+          .services-card-grid {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+          }
+          .services-desktop-layout {
+            display: none;
+          }
+          .services-mobile-layout {
+            display: flex;
+          }
+          @media (min-width: 900px) and (max-width: 1160px) {
+            .services-mobile-layout {
+              flex-direction: row;
+              justify-content: center;
+              align-items: stretch;
+            }
+            .services-mobile-layout > div {
+              flex: 0 1 calc(50% - 12px);
+            }
+          }
+          .services-card {
+            flex: 1 1 0;
+            max-width: 680px;
+            min-width: 0;
+            height: 444px;
+          }
+          .services-card.reveal-from-bottom {
+            opacity: 0;
+            transform: translateY(42px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+            will-change: opacity, transform;
+          }
+          .services-card.reveal-from-bottom.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          @media (min-width: 1161px) {
+            .services-desktop-layout {
+              display: block;
+            }
+            .services-mobile-layout {
+              display: none;
+            }
+          }
+          @media (min-width: 1245px) {
+            .services-card-grid {
+              width: 1165px;
+              max-width: 100%;
+            }
+            .services-card {
+              flex: 0 0 570.5px;
+              max-width: 570.5px;
+            }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .services-card.reveal-from-bottom {
+              transition: none !important;
+              transform: none !important;
+              opacity: 1 !important;
+            }
+          }
         `}</style>
 
         <h2
@@ -953,34 +1008,17 @@ function Services({
         </p>
 
         {/* ── Desktop: horizontal overlapping cards ── */}
-        {/* Active card fills left at scale(1). Inactive peeks right at scale(0.7), vertically centred. */}
-        <div className="hidden min-[1001px]:block pb-10">
+        <div className="services-desktop-layout pb-10">
           <div
-            className="relative mx-auto overflow-hidden"
-            style={{ width: "840px", height: "444px" }}
-            onMouseEnter={handleCompositionEnter}
-            onMouseLeave={handleCompositionLeave}
+            className="services-card-grid mx-auto"
           >
             {/* Race Directors card */}
             <div
-              className="absolute overflow-hidden"
+              className={`services-card reveal-from-bottom ${isVisible ? "is-visible" : ""} overflow-hidden`}
               style={{
-                top: 0, left: 0, width: "680px", height: "444px",
                 borderRadius: "10px",
-                zIndex: activeCard === "directors" ? 2 : 1,
-                transition: "transform 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, box-shadow 0.3s ease",
-                transform: activeCard === "directors"
-                  ? "translate(0px, 0px) scale(1)"
-                  : "translate(364px, 67px) scale(0.7)",
-                transformOrigin: "top left",
-                opacity: activeCard === "directors" ? 1 : 0.7,
-                boxShadow: activeCard === "directors"
-                  ? "0 10px 32px rgba(0,0,0,0.18)"
-                  : "0 2px 12px rgba(0,0,0,0.12)",
-                cursor: activeCard === "directors" ? "default" : "pointer",
+                boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
               }}
-              onMouseEnter={() => scheduleSwitch("directors")}
-              onMouseLeave={cancelSwitch}
             >
               <Link to="/for-race-directors" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
                 <RaceDirectorsIcon size={28} />
@@ -997,7 +1035,7 @@ function Services({
                     {DIRECTORS_SERVICES.map(({ label, to }) => (
                       <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_LINK_STYLE}>
                         <ChevronRight size={16} className="svc-chevron" />
-                        {label}
+                        <span className="svc-link-label">{label}</span>
                       </Link>
                     ))}
                   </div>
@@ -1010,24 +1048,12 @@ function Services({
 
             {/* Runners card */}
             <div
-              className="absolute overflow-hidden"
+              className={`services-card reveal-from-bottom ${isVisible ? "is-visible" : ""} overflow-hidden`}
               style={{
-                top: 0, left: 0, width: "680px", height: "444px",
                 borderRadius: "10px",
-                zIndex: activeCard === "runners" ? 2 : 1,
-                transition: "transform 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, box-shadow 0.3s ease",
-                transform: activeCard === "runners"
-                  ? "translate(0px, 0px) scale(1)"
-                  : "translate(364px, 67px) scale(0.7)",
-                transformOrigin: "top left",
-                opacity: activeCard === "runners" ? 1 : 0.7,
-                boxShadow: activeCard === "runners"
-                  ? "0 10px 32px rgba(0,0,0,0.18)"
-                  : "0 2px 12px rgba(0,0,0,0.12)",
-                cursor: activeCard === "runners" ? "default" : "pointer",
+                boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
+                transitionDelay: "140ms",
               }}
-              onMouseEnter={() => scheduleSwitch("runners")}
-              onMouseLeave={cancelSwitch}
             >
               <Link to="/races" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
                 <RunnersIcon size={34} />
@@ -1044,7 +1070,7 @@ function Services({
                     {RUNNERS_SERVICES.map(({ label, to }) => (
                       <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_LINK_STYLE}>
                         <ChevronRight size={16} className="svc-chevron" />
-                        {label}
+                        <span className="svc-link-label">{label}</span>
                       </Link>
                     ))}
                   </div>
@@ -1061,7 +1087,7 @@ function Services({
         </div>
 
       {/* ── Mobile: stacked cards ── */}
-        <div className="min-[1001px]:hidden flex flex-col items-center gap-5 text-left">
+        <div className="services-mobile-layout flex-col items-center gap-5 text-left">
           <div className="overflow-hidden w-full max-w-[390px]" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
             <Link to="/for-race-directors" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
               <RaceDirectorsIcon size={20} />
@@ -1078,7 +1104,7 @@ function Services({
                 {DIRECTORS_SERVICES.map(({ label, to }) => (
                   <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_MOBILE_LINK_STYLE}>
                     <ChevronRight size={14} className="svc-chevron" />
-                    {label}
+                    <span className="svc-link-label">{label}</span>
                   </Link>
                 ))}
               </div>
@@ -1104,7 +1130,7 @@ function Services({
                 {RUNNERS_SERVICES.map(({ label, to }) => (
                   <Link key={label} to={to} className="svc-link-item" style={SERVICE_CARD_MOBILE_LINK_STYLE}>
                     <ChevronRight size={14} className="svc-chevron" />
-                    {label}
+                    <span className="svc-link-label">{label}</span>
                   </Link>
                 ))}
               </div>
@@ -1471,6 +1497,15 @@ function FeaturedRaces({
           width: min(274.894px, 100%);
           min-height: 68.318px;
         }
+        .upcoming-races-heading-bg {
+          left: clamp(-400px, calc(-400px + (100vw - 1440px) * 0.54), -76px);
+        }
+        @media (min-width: 1720px) {
+          .upcoming-races-heading-bg {
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .ae-btn {
             transition: transform 0.25s ease, background-color 0.25s ease;
@@ -1621,8 +1656,8 @@ function FeaturedRaces({
                   <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                      className="upcoming-races-heading-bg absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ right: "0", background: "var(--surface-dark)" }}
                     />
                     <h2
                       className="relative font-bold italic"
@@ -1670,8 +1705,8 @@ function FeaturedRaces({
                   <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                      className="upcoming-races-heading-bg absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ right: "0", background: "var(--surface-dark)" }}
                     />
                     <h2
                       className="relative font-bold italic"
@@ -1738,8 +1773,8 @@ function FeaturedRaces({
                   >
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                      className="upcoming-races-heading-bg absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ right: "0", background: "var(--surface-dark)" }}
                     />
                     <h2
                       className="relative font-bold italic"
@@ -2141,7 +2176,7 @@ function BuiltForRaceDay({
 
           {/* Two-column: quotes + stats, stats vertically centered with quotes */}
           <div
-            className="flex flex-col md:flex-row items-center"
+            className="flex flex-col min-[891px]:flex-row items-center"
             style={{ gap: "64px" }}
           >
           {/* ── Left: testimonial rotator — 2 quotes stacked, pairs crossfade ── */}
@@ -2375,6 +2410,7 @@ function Resources({
         .resources-card-row {
           display: flex;
           gap: 24px;
+          justify-content: center;
         }
         .resources-card-carousel {
           display: none;
@@ -2395,6 +2431,21 @@ function Resources({
           gap: 8px;
         }
         .resource-card:focus-visible { outline: 2px solid var(--action-primary-default); outline-offset: 3px; }
+        @media (min-width: 1280px) {
+          .resources-card-row {
+            width: 1200px;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .resources-card-row .resource-card {
+            flex: 0 0 384px !important;
+            max-width: 384px;
+          }
+          .resources-card-row .resource-card-title {
+            font-size: 33px !important;
+          }
+        }
         @media (max-width: 1279px) {
           .resources-card-row {
             display: none;
@@ -2662,11 +2713,11 @@ function PageCTA({
               color: "var(--text-inverse)",
               fontWeight: 600,
               fontSize: "clamp(16px, 4vw, 20px)",
-              lineHeight: "28px",
+              lineHeight: "20px",
               width: "min(274.894px, 100%)",
               minWidth: 0,
-              height: "68.318px",
-              padding: "0 clamp(20px, 6vw, 40px)",
+              padding: "16px clamp(20px, 6vw, 40px)",
+              boxSizing: "border-box",
               borderRadius: "10px",
               textDecoration: "none",
               textAlign: "center",
@@ -2686,11 +2737,11 @@ function PageCTA({
               color: "var(--text-inverse)",
               fontWeight: 600,
               fontSize: "clamp(16px, 4vw, 20px)",
-              lineHeight: "28px",
+              lineHeight: "20px",
               width: "min(274.894px, 100%)",
               minWidth: 0,
-              height: "68.318px",
-              padding: "0 clamp(20px, 6vw, 40px)",
+              padding: "16px clamp(20px, 6vw, 40px)",
+              boxSizing: "border-box",
               borderRadius: "10px",
               textDecoration: "none",
               textAlign: "center",
