@@ -5,12 +5,6 @@ import { WireLabel, BtnGhost } from "./shared";
 import imgHero from "@/imports/image-7.png";
 import HeroImageOverlay from "@/imports/HeroImageOverlay/index";
 import RaceCourseTrackLine from "@/imports/RaceCourseTrackLine/index";
-import RaceCourseTrackLine2 from "@/imports/RaceCourseTrackLine2/index";
-import Vector from "@/imports/Vector/index";
-import trackTopSvg from "@/imports/track-top-2-1.svg";
-import trackMiddleSvg from "@/imports/track-middle-1.svg";
-import trackBottomSvg from "@/imports/track-bottom-1-1.svg";
-import trackBottom2Svg from "@/imports/track-bottom-2.svg";
 import imgEquipment from "@/imports/image-10.png";
 import imgRunner from "@/imports/image-9.png";
 import imgHalloweenBg from "@/imports/race_86385_294977_e12aa008-9a13-459f-a326-cf9bb249dadd_1.png";
@@ -37,6 +31,7 @@ const TRACK_SCALE_MIN_WIDTH = 1280;
 
 type TrackRevealDirection = "ltr" | "rtl" | "ttb";
 type TrackRevealSet = [number, number, number, number, number, number];
+type CourseLineStyle = React.CSSProperties & Record<`--${string}`, string | number>;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 const getTrackScaleForWidth = (width: number) =>
@@ -44,45 +39,115 @@ const getTrackScaleForWidth = (width: number) =>
 const scalePx = (value: number) => `calc(${value}px * var(--track-scale))`;
 const scalePercent = (value: number) => `calc(${value}% * var(--track-scale))`;
 
+const getTrackRevealClipPath = (direction: TrackRevealDirection, reveal: number) =>
+  direction === "ltr"
+    ? `inset(0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}% 0 0)`
+    : direction === "rtl"
+      ? `inset(0 0 0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}%)`
+      : `inset(0 0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}% 0)`;
+
 const getTrackRevealStyle = (direction: TrackRevealDirection, reveal: number) =>
   ({
     overflow: "hidden",
-    clipPath:
-      direction === "ltr"
-        ? `inset(0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}% 0 0)`
-        : direction === "rtl"
-          ? `inset(0 0 0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}%)`
-          : `inset(0 0 ${((1 - clamp01(reveal)) * 100).toFixed(4)}% 0)`,
+    clipPath: getTrackRevealClipPath(direction, reveal),
     transition: "clip-path 260ms cubic-bezier(0.4, 0, 0.2, 1)",
     willChange: "clip-path",
   }) as const;
 
-const getBuiltTrackRevealStyles = (reveal: number) => {
-  const progress = clamp01(reveal);
-  const handoffPoint = 0.432;
-  const blendStart = 0.36;
-  const blendSpan = 0.2;
-  const verticalProgress = clamp01(progress / handoffPoint);
-  const horizontalProgress = clamp01((progress - handoffPoint) / (1 - handoffPoint));
-  const blend = clamp01((progress - blendStart) / blendSpan);
+const TRACK2_ROUTE_PATH =
+  "M1561.6 440.583C1414.94 525.472 1390.42 594.649 1219.87 603.094C996.322 613.389 456.288 335.892 287.687 395.373C82.1174 469.854 298.173 678.478 190.958 854.225C83.743 1029.97 1.55488 1136.28 51.1997 1284.12C112.182 1457.74 -43.648 1607.15 91.0681 1779.44";
+const TRACK2_RIGHT_DOT_OUTER_PATH =
+  "M1496.36 497.219C1506.07 498.948 1515.33 492.525 1517.05 482.871C1518.77 473.217 1512.3 463.989 1502.59 462.26C1492.89 460.53 1483.62 466.954 1481.9 476.608C1480.18 486.261 1486.66 495.489 1496.36 497.219Z";
+const TRACK2_RIGHT_DOT_INNER_PATH =
+  "M1498.16 487.099C1502.25 487.827 1506.15 485.122 1506.88 481.058C1507.6 476.993 1504.87 473.108 1500.79 472.379C1496.7 471.651 1492.8 474.356 1492.08 478.421C1491.35 482.485 1494.08 486.371 1498.16 487.099Z";
+const TRACK2_LEFT_DOT_OUTER_PATH =
+  "M85.5337 1043.54C95.2394 1045.27 104.502 1038.84 106.222 1029.19C107.942 1019.53 101.469 1010.31 91.7632 1008.58C82.0575 1006.85 72.7949 1013.27 71.0747 1022.93C69.3544 1032.58 75.828 1041.81 85.5337 1043.54Z";
+const TRACK2_LEFT_DOT_INNER_PATH =
+  "M87.3371 1033.42C91.4237 1034.15 95.3237 1031.44 96.048 1027.38C96.7724 1023.31 94.0467 1019.43 89.96 1018.7C85.8734 1017.97 81.9734 1020.67 81.2491 1024.74C80.5248 1028.8 83.2504 1032.69 87.3371 1033.42Z";
+const TRACK2_RIGHT_DOT_PROGRESS = 0.0256;
+const TRACK2_LEFT_DOT_PROGRESS = 0.7244;
 
-  return {
-    vertical: {
-      overflow: "hidden",
-      clipPath: `inset(0 0 ${((1 - verticalProgress) * 100).toFixed(4)}% 0)`,
-      opacity: 1 - blend * 0.9,
-      transition: "clip-path 360ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
-      willChange: "clip-path, opacity",
-    } as const,
-    horizontal: {
-      overflow: "hidden",
-      clipPath: `inset(0 ${((1 - horizontalProgress) * 100).toFixed(4)}% 0 0)`,
-      opacity: blend,
-      transition: "clip-path 360ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
-      willChange: "clip-path, opacity",
-    } as const,
-  };
-};
+const TRACK3_ROUTE_PATH =
+  "M102.238 544.789C255.217 673.309 -67.7781 998.165 97.8467 1032.14C314.839 1075.69 -68.8236 1563.78 101.86 1662.78C310.234 1785.99 1178.49 1398.91 1375.19 1590.95C1485.2 1698.36 1516.79 1712.53 1409.82 1897.81C1215.4 2234.54 129.826 2064 23.3136 2266.09C-93.7531 2491.22 806.999 2249.11 806.999 2599.96L806.999 2749.14";
+const TRACK3_RIGHT_DOT_OUTER_PATH =
+  "M1462.62 1805.23C1472.33 1806.96 1481.59 1800.53 1483.31 1790.88C1485.03 1781.23 1478.56 1772 1468.85 1770.27C1459.15 1768.54 1449.88 1774.96 1448.16 1784.62C1446.44 1794.27 1452.92 1803.5 1462.62 1805.23Z";
+const TRACK3_RIGHT_DOT_INNER_PATH =
+  "M1464.43 1795.11C1468.51 1795.84 1472.41 1793.13 1473.14 1789.07C1473.86 1785 1471.14 1781.12 1467.05 1780.39C1462.96 1779.66 1459.06 1782.36 1458.34 1786.43C1457.61 1790.49 1460.34 1794.38 1464.43 1795.11Z";
+const TRACK3_LEFT_DOT_OUTER_PATH =
+  "M92.9111 1675.91C102.617 1677.64 111.879 1671.21 113.6 1661.56C115.32 1651.91 108.846 1642.68 99.1407 1640.95C89.4349 1639.22 80.1724 1645.64 78.4521 1655.3C76.7319 1664.95 83.2054 1674.18 92.9111 1675.91Z";
+const TRACK3_LEFT_DOT_INNER_PATH =
+  "M94.7145 1665.79C98.8011 1666.52 102.701 1663.81 103.425 1659.75C104.15 1655.68 101.424 1651.8 97.3375 1651.07C93.2509 1650.34 89.3508 1653.04 88.6265 1657.11C87.9022 1661.17 90.6279 1665.06 94.7145 1665.79Z";
+const TRACK3_LEFT_DOT_PROGRESS = 0.2237;
+const TRACK3_RIGHT_DOT_PROGRESS = 0.5057;
+const TRACK3_DOT_FADE_RANGE = 0.025;
+const TRACK2_REVEAL_START = 0.12;
+const TRACK2_REVEAL_END = 0.7;
+const HERO_TRACK_REVEAL_SCROLL_DISTANCE = 100;
+
+const getTrackDotOpacity = (reveal: number, dotProgress: number) =>
+  clamp01((clamp01(reveal) - dotProgress) / TRACK3_DOT_FADE_RANGE);
+
+const COURSE_LINE_CSS = `
+  .course-line-section {
+    isolation: isolate;
+  }
+
+  .course-line-section::before {
+    content: "";
+    position: absolute;
+    top: var(--course-line-top, 0%);
+    left: var(--course-line-left, 0%);
+    width: var(--course-line-width, 100%);
+    aspect-ratio: var(--course-line-aspect-ratio);
+    background-image: var(--course-line-image);
+    background-repeat: no-repeat;
+    background-position: left top;
+    background-size: 100% auto;
+    clip-path: var(--course-line-clip, inset(0));
+    transform: translate(var(--course-line-offset-x, 0%), var(--course-line-offset-y, 0%));
+    pointer-events: none;
+    z-index: 0;
+    display: none;
+    transition: clip-path 360ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 320ms ease;
+    will-change: clip-path, transform;
+  }
+
+  .course-line-section > :not(style):not(.course-line-svg) {
+    position: relative;
+    z-index: 2;
+  }
+
+  @media (min-width: 1280px) {
+    .course-line-section::before {
+      display: block;
+    }
+  }
+
+  .course-line-section-svg::before {
+    display: none;
+  }
+
+  .course-line-svg {
+    position: absolute;
+    top: var(--course-line-top, 0%);
+    left: var(--course-line-left, 0%);
+    width: var(--course-line-width, 100%);
+    aspect-ratio: var(--course-line-aspect-ratio);
+    transform: translate(var(--course-line-offset-x, 0%), var(--course-line-offset-y, 0%));
+    pointer-events: none;
+    z-index: 0;
+    display: none;
+    transition: clip-path 360ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 320ms ease;
+    will-change: clip-path, transform;
+  }
+
+  @media (min-width: 1280px) {
+    .course-line-svg {
+      display: block;
+    }
+  }
+
+`;
 
 function useTrackScale() {
   const [trackScale, setTrackScale] = useState(1);
@@ -133,9 +198,7 @@ function useTrackReveal(
 
         const rect = node.getBoundingClientRect();
         if (index === 0) {
-          const travel = Math.max(1, viewportHeight + rect.height);
-          const span = Math.max(travel * 0.22, 160);
-          const progress = clamp01(scrollY / span);
+          const progress = clamp01(scrollY / HERO_TRACK_REVEAL_SCROLL_DISTANCE);
           return heroInitialReveal + (1 - heroInitialReveal) * progress;
         }
 
@@ -144,14 +207,25 @@ function useTrackReveal(
 
         switch (index) {
           case 1: {
-            const eased = clamp01(entered / 0.7);
-            return 1 - Math.pow(1 - eased, 2.4);
+            return clamp01((entered - TRACK2_REVEAL_START) / (TRACK2_REVEAL_END - TRACK2_REVEAL_START));
           }
           case 2: {
             return clamp01(entered / 0.75);
           }
           case 3: {
-            return clamp01((entered - 0.15) / 0.58);
+            const previousSection = racesRef.current;
+            if (!previousSection) return clamp01((entered - 0.15) / 0.58);
+
+            const previousRect = previousSection.getBoundingClientRect();
+            const previousTravel = Math.max(1, viewportHeight + previousRect.height);
+            const previousSectionStart = previousTravel * 0.35;
+            const progressFromPreviousSection = viewportHeight - previousRect.top - previousSectionStart;
+            const revealDistance =
+              rect.height +
+              (resourcesRef.current?.getBoundingClientRect().height ?? 0) +
+              (ctaRef.current?.getBoundingClientRect().height ?? 0);
+
+            return clamp01(progressFromPreviousSection / Math.max(viewportHeight * 1.25, revealDistance));
           }
           case 4: {
             return clamp01((entered - 0.2) / 0.68);
@@ -370,8 +444,8 @@ function Hero({
         className="absolute pointer-events-none hidden min-[1280px]:block"
         style={{
           top: scalePercent(-15),
-          left: scalePercent(-6),
-          width: scalePercent(115),
+          left: scalePercent(-11.75),
+          width: scalePercent(126.5),
           aspectRatio: "1808.2 / 545.562",
           ...getTrackRevealStyle("ltr", trackReveal),
         }}
@@ -459,6 +533,62 @@ function RunnersIcon({ size = 28 }: { size?: number }) {
   );
 }
 
+function CourseLine2Background({ reveal }: { reveal: number }) {
+  const clampedReveal = clamp01(reveal);
+  const rightDotOpacity = getTrackDotOpacity(clampedReveal, TRACK2_RIGHT_DOT_PROGRESS);
+  const leftDotOpacity = getTrackDotOpacity(clampedReveal, TRACK2_LEFT_DOT_PROGRESS);
+
+  return (
+    <svg
+      className="course-line-svg"
+      viewBox="0 0 1550 2098"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <mask
+          id="track-line-2-reveal-mask"
+          maskUnits="userSpaceOnUse"
+          x="-80"
+          y="-80"
+          width="1710"
+          height="2258"
+        >
+          <path
+            d={TRACK2_ROUTE_PATH}
+            stroke="#fff"
+            strokeWidth="80"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pathLength={1}
+            strokeDasharray="1"
+            strokeDashoffset={(1 - clampedReveal).toFixed(4)}
+          />
+        </mask>
+      </defs>
+      <path
+        d={TRACK2_ROUTE_PATH}
+        stroke="#F5D6C4"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="18 22"
+        mask="url(#track-line-2-reveal-mask)"
+      />
+      <g style={{ opacity: rightDotOpacity, transition: "opacity 180ms ease" }}>
+        <path d={TRACK2_RIGHT_DOT_OUTER_PATH} fill="#D96220" />
+        <path d={TRACK2_RIGHT_DOT_INNER_PATH} fill="#FCF3ED" />
+      </g>
+      <g style={{ opacity: leftDotOpacity, transition: "opacity 180ms ease" }}>
+        <path d={TRACK2_LEFT_DOT_OUTER_PATH} fill="#D96220" />
+        <path d={TRACK2_LEFT_DOT_INNER_PATH} fill="#FCF3ED" />
+      </g>
+    </svg>
+  );
+}
+
 function Services({
   sectionRef,
   trackReveal,
@@ -510,26 +640,18 @@ function Services({
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden pt-16 @sm:pt-24 pb-11 @sm:pb-16"
-      style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
+      className="course-line-section course-line-section-svg relative overflow-visible pt-16 @sm:pt-24 pb-11 @sm:pb-16"
+      style={{
+        background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))",
+        zIndex: 1,
+        "--course-line-top": "0%",
+        "--course-line-left": "0%",
+        "--course-line-width": "100%",
+        "--course-line-aspect-ratio": "1550 / 2098",
+        "--course-line-offset-y": "-13.49%",
+      } as CourseLineStyle}
     >
-      {/* Decorative route â€” desktop only, behind all section content */}
-        <img
-          src={trackTopSvg}
-          alt=""
-          aria-hidden="true"
-          className="hidden min-[1280px]:block"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: scalePercent(100),
-            height: "auto",
-            pointerEvents: "none",
-            zIndex: 0,
-          ...getTrackRevealStyle("rtl", trackReveal),
-          }}
-        />
+      <CourseLine2Background reveal={trackReveal} />
       <div className="relative max-w-[1440px] mx-auto px-5 @sm:px-10 text-center">
         <style>{`
           @media (hover: hover) and (pointer: fine) {
@@ -979,7 +1101,7 @@ function FeaturedRaces({
     <section
       ref={sectionRef}
       className="pt-11 @sm:pt-16 pb-16 @sm:pb-24"
-      style={{ background: "var(--surface-default)", overflow: "hidden", position: "relative" }}
+      style={{ background: "transparent", overflow: "visible", position: "relative", zIndex: 2 }}
     >
       <style>{`
         .upcoming-race-content {
@@ -1198,32 +1320,6 @@ function FeaturedRaces({
       `}</style>
 
       <div className="relative mx-auto max-w-[1440px] px-8 @sm:px-12">
-        {/* Decorative route â€” desktop only, static backdrop */}
-        <div
-          className="hidden min-[1280px]:block"
-          style={{
-            position: "absolute",
-            top: scalePx(-13),
-            left: scalePx(-27),
-            width: scalePercent(100),
-            height: "auto",
-            pointerEvents: "none",
-            zIndex: 4,
-            ...getTrackRevealStyle("ttb", trackReveal),
-          }}
-        >
-            <img
-              src={trackMiddleSvg}
-              alt=""
-              aria-hidden="true"
-              style={{
-                display: "block",
-                width: "100%",
-                height: "auto",
-              }}
-            />
-        </div>
-
         <div className={`upcoming-races-reveal ${isVisible ? "is-visible" : ""}`} style={{ position: "relative", zIndex: 2 }}>
           <div className="upcoming-races-shell">
             {layoutMode === "wide" ? (
@@ -1449,6 +1545,63 @@ function BuiltTestimonialItem({
   );
 }
 
+function CourseLine3Background({ reveal }: { reveal: number }) {
+  const clampedReveal = clamp01(reveal);
+  const leftDotOpacity = getTrackDotOpacity(clampedReveal, TRACK3_LEFT_DOT_PROGRESS);
+  const rightDotOpacity = getTrackDotOpacity(clampedReveal, TRACK3_RIGHT_DOT_PROGRESS);
+
+  return (
+    <svg
+      className="course-line-svg"
+      viewBox="0 0 1550 3194"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <mask
+          id="track-line-3-reveal-mask"
+          maskUnits="userSpaceOnUse"
+          x="-80"
+          y="-80"
+          width="1710"
+          height="3354"
+        >
+          <path
+            d={TRACK3_ROUTE_PATH}
+            stroke="#fff"
+            strokeWidth="80"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pathLength={1}
+            strokeDasharray="1"
+            strokeDashoffset={(1 - clampedReveal).toFixed(4)}
+          />
+        </mask>
+      </defs>
+      <path
+        opacity="0.8"
+        d={TRACK3_ROUTE_PATH}
+        stroke="#F5D6C4"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="18 22"
+        mask="url(#track-line-3-reveal-mask)"
+      />
+      <g style={{ opacity: rightDotOpacity, transition: "opacity 180ms ease" }}>
+        <path d={TRACK3_RIGHT_DOT_OUTER_PATH} fill="#D96220" />
+        <path d={TRACK3_RIGHT_DOT_INNER_PATH} fill="#FCF3ED" />
+      </g>
+      <g style={{ opacity: leftDotOpacity, transition: "opacity 180ms ease" }}>
+        <path d={TRACK3_LEFT_DOT_OUTER_PATH} fill="#D96220" />
+        <path d={TRACK3_LEFT_DOT_INNER_PATH} fill="#FCF3ED" />
+      </g>
+    </svg>
+  );
+}
+
 function BuiltForRaceDay({
   sectionRef,
   trackReveal,
@@ -1469,47 +1622,22 @@ function BuiltForRaceDay({
   }, [NUM_PAIRS]);
 
   return (
-    <section ref={sectionRef} style={{ background: "var(--surface-dark)", position: "relative"}}>
-      {/* Decorative route â€” desktop only, behind all section content */}
-      {(() => {
-        const builtTrackStyles = getBuiltTrackRevealStyles(trackReveal);
-        return (
-          <>
-            <img
-              src={trackBottomSvg}
-              alt=""
-              aria-hidden="true"
-              className="hidden min-[1280px]:block mx-[10px] my-[0px]"
-              style={{
-                position: "absolute",
-                top: scalePx(-25),
-                left: scalePx(-92),
-                width: scalePercent(1200),
-                height: scalePercent(115),
-                pointerEvents: "none",
-                zIndex: 1,
-                ...builtTrackStyles.vertical,
-              }}
-            />
-            <img
-              src={trackBottomSvg}
-              alt=""
-              aria-hidden="true"
-              className="hidden min-[1280px]:block mx-[10px] my-[0px]"
-              style={{
-                position: "absolute",
-                top: scalePx(-25),
-                left: scalePx(-92),
-                width: scalePercent(1200),
-                height: scalePercent(115),
-                pointerEvents: "none",
-                zIndex: 1,
-                ...builtTrackStyles.horizontal,
-              }}
-            />
-          </>
-        );
-      })()}
+    <section
+      ref={sectionRef}
+      className="course-line-section course-line-section-svg"
+      style={{
+        background: "var(--surface-dark)",
+        position: "relative",
+        overflow: "visible",
+        zIndex: 1,
+        "--course-line-top": "0%",
+        "--course-line-left": "0%",
+        "--course-line-width": "100%",
+        "--course-line-aspect-ratio": "1550 / 3194",
+        "--course-line-offset-y": "-28.05%",
+      } as CourseLineStyle}
+    >
+      <CourseLine3Background reveal={trackReveal} />
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .bfrd-btn {
@@ -1791,7 +1919,7 @@ function Resources({
   }, [sectionRef]);
 
   return (
-    <section ref={sectionRef} style={{ background: "var(--surface-default)", position: "relative", overflow: "hidden" }}>
+    <section ref={sectionRef} style={{ background: "transparent", position: "relative", overflow: "visible" }}>
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .resource-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
@@ -1887,7 +2015,7 @@ function PageCTA({
       if (cancelled) return;
 
       confettiFiredRef.current = true;
-      const end = Date.now() + 3 * 1e3;
+      const end = Date.now() + 1 * 1e3;
       const colors = ["#D96220", "#FCF3ED", "#232943", "#006C67", "#B0521F", "#F5D6C4"];
 
       const frame = () => {
@@ -1945,7 +2073,7 @@ function PageCTA({
   }, [sectionRef]);
 
   return (
-    <section ref={sectionRef} style={{ background: "var(--surface-default)", padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", overflow: "hidden" }}>
+    <section ref={sectionRef} style={{ background: "transparent", padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", overflow: "hidden", zIndex: 2 }}>
       <style>{`
         @media (hover: hover) and (pointer: fine) {
           .cta-btn { transition: transform 0.25s ease, background-color 0.2s ease; }
@@ -2065,7 +2193,8 @@ export default function HomePage() {
   const trackScale = useTrackScale();
 
   return (
-    <main style={{ ["--track-scale" as any]: trackScale }}>
+    <main style={{ ["--track-scale" as any]: trackScale, background: "var(--surface-default)" }}>
+      <style>{COURSE_LINE_CSS}</style>
       <Hero sectionRef={heroRef} trackReveal={trackReveals[0]} />
 
       <Services sectionRef={servicesRef} trackReveal={trackReveals[1]} />
@@ -2073,23 +2202,7 @@ export default function HomePage() {
 
       <BuiltForRaceDay sectionRef={builtRef} trackReveal={trackReveals[3]} />
 
-      <div style={{ position: "relative", overflow: "hidden" }}>
-        <img
-          src={trackBottom2Svg}
-          alt=""
-          aria-hidden="true"
-          className="hidden min-[1280px]:block"
-          style={{
-            position: "absolute",
-            top: scalePx(-317),
-            left: scalePx(-27),
-            width: scalePercent(100),
-            height: "auto",
-            pointerEvents: "none",
-            zIndex: 1,
-            ...getTrackRevealStyle("ttb", trackReveals[4]),
-          }}
-        />
+      <div style={{ position: "relative", overflow: "visible" }}>
         <Resources sectionRef={resourcesRef} />
         <PageCTA sectionRef={ctaRef} />
       </div>
