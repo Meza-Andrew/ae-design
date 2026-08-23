@@ -1497,6 +1497,15 @@ function FeaturedRaces({
           width: min(274.894px, 100%);
           min-height: 68.318px;
         }
+        .upcoming-races-heading-bg {
+          left: clamp(-400px, calc(-400px + (100vw - 1440px) * 0.54), -76px);
+        }
+        @media (min-width: 1720px) {
+          .upcoming-races-heading-bg {
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+          }
+        }
         @media (hover: hover) and (pointer: fine) {
           .ae-btn {
             transition: transform 0.25s ease, background-color 0.25s ease;
@@ -1647,8 +1656,8 @@ function FeaturedRaces({
                   <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                      className="upcoming-races-heading-bg absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ right: "0", background: "var(--surface-dark)" }}
                     />
                     <h2
                       className="relative font-bold italic"
@@ -1696,8 +1705,8 @@ function FeaturedRaces({
                   <div className="relative inline-flex self-start rounded-l-[0px] rounded-r-[10px]" style={{ marginBottom: "32px" }}>
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                      className="upcoming-races-heading-bg absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ right: "0", background: "var(--surface-dark)" }}
                     />
                     <h2
                       className="relative font-bold italic"
@@ -1764,8 +1773,8 @@ function FeaturedRaces({
                   >
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
-                      style={{ left: "-400px", right: "0", background: "var(--surface-dark)" }}
+                      className="upcoming-races-heading-bg absolute inset-y-0 rounded-l-[0px] rounded-r-[10px]"
+                      style={{ right: "0", background: "var(--surface-dark)" }}
                     />
                     <h2
                       className="relative font-bold italic"
