@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { WireLabel, BtnGhost } from "./shared";
-import { useSwipeNavigation } from "./sitePatterns";
+import { Autoplay, A11y, EffectFade, Keyboard } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper/types";
+import "swiper/css";
+import "swiper/css/effect-fade";
 import imgHero from "@/imports/image-7.png";
 import HeroImageOverlay from "@/imports/HeroImageOverlay/index";
 import RaceCourseTrackLine from "@/imports/RaceCourseTrackLine/index";
@@ -31,6 +35,7 @@ const TRACK_ARTWORK_BASE_WIDTH = 1350;
 const HERO_TRACK_TOP = -100.17;
 const HERO_TRACK_LEFT = -140.1975;
 const HERO_TRACK_WIDTH = 1509.435;
+const LOWER_TRACK_GROUP_OFFSET_Y = TRACK_ARTWORK_BASE_WIDTH * 0.05;
 const TRACK2_SECTION_TOP_OFFSET = -246.5014;
 const TRACK2_PATH_END_Y = 1779.44;
 const TRACK3_PATH_START_Y = 544.789;
@@ -547,7 +552,7 @@ function HeroBtn({ to, children }: { to: string; children: React.ReactNode }) {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           margin-top: 8px;
         }
         @media (min-width: 1150px) {
@@ -619,7 +624,7 @@ function HomepageTrackLayer({
           </div>
         </TrackArtworkFrame>
 
-        <TrackArtworkFrame anchorTop={offsets.servicesTop}>
+        <TrackArtworkFrame anchorTop={offsets.servicesTop + LOWER_TRACK_GROUP_OFFSET_Y}>
           <CourseLine2Background
             reveal={trackReveals[1]}
             style={{
@@ -948,7 +953,7 @@ function Services({
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           margin-top: 8px;
         }
         @media (min-width: 1150px) {
@@ -959,15 +964,16 @@ function Services({
         }
         @media (hover: hover) and (pointer: fine) {
             .svc-link-item:hover { color: var(--text-accent) !important; }
-            .svc-link-item:hover .svc-chevron { opacity: 1 !important; }
+            .svc-link-item:hover .svc-link-label { transform: translateX(6px); }
+            .svc-link-item:hover .svc-chevron { opacity: 1 !important; transform: translateX(0); }
           }
           .svc-link-item {
-            display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: center; column-gap: 4px;
+            position: relative; display: inline-flex; align-items: center; align-self: flex-start;
             color: var(--action-tertiary-default); font-weight: 600;
             text-decoration: none; transition: color 0.15s ease; min-height: 34px;
           }
-          .svc-chevron { opacity: 0; justify-self: center; transition: opacity 0.15s ease; }
-          .svc-link-label { min-width: 0; text-align: left; }
+          .svc-chevron { position: absolute; left: -24px; opacity: 0; transform: translateX(6px); transition: opacity 0.15s ease, transform 0.18s ease; }
+          .svc-link-label { min-width: 0; text-align: left; display: inline-block; transition: transform 0.18s ease; }
           .services-card-grid {
             display: flex;
             justify-content: center;
@@ -1073,7 +1079,7 @@ function Services({
               </Link>
               <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
                 <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
-                  <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)", paddingLeft: "20px" }}>
+                  <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
                     Everything you need to plan, register, and time your event from start to finish.
                   </p>
                   <div className="flex flex-col">
@@ -1108,7 +1114,7 @@ function Services({
               </Link>
               <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
                 <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
-                  <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)", paddingLeft: "20px" }}>
+                  <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
                     Find your next race, check your results, and relive race day with photos.
                   </p>
                   <div className="flex flex-col">
@@ -1441,12 +1447,10 @@ function FeaturedRaces({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const prevRace = () => setActiveRaceIndex((index) => (index - 1 + races.length) % races.length);
-  const nextRace = () => setActiveRaceIndex((index) => (index + 1) % races.length);
-  const raceSwipeHandlers = useSwipeNavigation(prevRace, nextRace);
-  const activeRace = races[activeRaceIndex];
-  const previousRace = races[(activeRaceIndex - 1 + races.length) % races.length];
-  const followingRace = races[(activeRaceIndex + 1) % races.length];
+  const raceSwiperRef = useRef<SwiperClass | null>(null);
+  const prevRace = () => raceSwiperRef.current?.slidePrev();
+  const nextRace = () => raceSwiperRef.current?.slideNext();
+  const goToRace = (index: number) => raceSwiperRef.current?.slideToLoop(index);
 
   return (
     <section
@@ -1495,7 +1499,7 @@ function FeaturedRaces({
         .upcoming-races-single-rail {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 16px;
         }
         .upcoming-races-single-card {
           width: 390px;
@@ -1506,7 +1510,7 @@ function FeaturedRaces({
         .swipe-peek-track {
           display: grid;
           grid-template-columns: repeat(3, 100%);
-          gap: 16px;
+          gap: 14px;
           transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
           transition: var(--swipe-transition, transform 180ms ease);
         }
@@ -1581,7 +1585,7 @@ function FeaturedRaces({
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           margin-top: 8px;
         }
         @media (min-width: 1150px) {
@@ -1661,7 +1665,7 @@ function FeaturedRaces({
         @media (max-width: 1000px) {
           .upcoming-races-stack {
             width: 100%;
-            gap: 20px;
+            gap: 16px;
             align-items: center;
           }
           .upcoming-races-copy {
@@ -1676,7 +1680,7 @@ function FeaturedRaces({
             width: 100%;
             flex-direction: column;
             align-items: stretch;
-            gap: 16px;
+            gap: 14px;
           }
           .upcoming-races-single-card {
             width: min(390px, 100%);
@@ -1817,16 +1821,32 @@ function FeaturedRaces({
                 </div>
 
                 <div className="upcoming-races-single-rail">
-                  <div className="upcoming-races-single-card" {...raceSwipeHandlers}>
-                    <div className="swipe-peek-track" aria-live="polite">
-                      {[previousRace, activeRace, followingRace].map((race, index) => (
-                        <div key={`${race.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+                  <div className="upcoming-races-single-card">
+                    <Swiper
+                      modules={[Keyboard, A11y]}
+                      loop={races.length > 1}
+                      slidesPerView={1}
+                      spaceBetween={16}
+                      speed={300}
+                      threshold={35}
+                      grabCursor
+                      allowTouchMove
+                      autoHeight
+                      keyboard={{ enabled: true }}
+                      onSwiper={(swiper) => {
+                        raceSwiperRef.current = swiper;
+                        setActiveRaceIndex(swiper.realIndex);
+                      }}
+                      onSlideChange={(swiper) => setActiveRaceIndex(swiper.realIndex)}
+                    >
+                      {races.map((race, index) => (
+                        <SwiperSlide key={`${race.name}-${index}`}>
                           <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
                             <RaceCard race={race} />
                           </div>
-                        </div>
+                        </SwiperSlide>
                       ))}
-                    </div>
+                    </Swiper>
                   </div>
 
                   <div className="upcoming-races-carousel-controls">
@@ -1837,7 +1857,7 @@ function FeaturedRaces({
                       {races.map((_, index) => (
                         <button
                           key={index}
-                          onClick={() => setActiveRaceIndex(index)}
+                          onClick={() => goToRace(index)}
                           aria-label={`Go to race ${index + 1}`}
                           className={`transition-all duration-200 ${index === activeRaceIndex ? "h-5 w-1.5 bg-foreground" : "h-1.5 w-1.5 bg-border"}`}
                         />
@@ -1874,16 +1894,32 @@ function FeaturedRaces({
                 </div>
 
                 <div className="upcoming-races-single-rail">
-                  <div className="upcoming-races-single-card" {...raceSwipeHandlers}>
-                    <div className="swipe-peek-track" aria-live="polite">
-                      {[previousRace, activeRace, followingRace].map((race, index) => (
-                        <div key={`${race.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+                  <div className="upcoming-races-single-card">
+                    <Swiper
+                      modules={[Keyboard, A11y]}
+                      loop={races.length > 1}
+                      slidesPerView={1}
+                      spaceBetween={16}
+                      speed={300}
+                      threshold={35}
+                      grabCursor
+                      allowTouchMove
+                      autoHeight
+                      keyboard={{ enabled: true }}
+                      onSwiper={(swiper) => {
+                        raceSwiperRef.current = swiper;
+                        setActiveRaceIndex(swiper.realIndex);
+                      }}
+                      onSlideChange={(swiper) => setActiveRaceIndex(swiper.realIndex)}
+                    >
+                      {races.map((race, index) => (
+                        <SwiperSlide key={`${race.name}-${index}`}>
                           <div className={`upcoming-races-card-shell upcoming-races-card-reveal ${isVisible ? "is-visible" : ""}`}>
                             <RaceCard race={race} />
                           </div>
-                        </div>
+                        </SwiperSlide>
                       ))}
-                    </div>
+                    </Swiper>
                   </div>
 
                   <div className="upcoming-races-carousel-controls">
@@ -1894,7 +1930,7 @@ function FeaturedRaces({
                       {races.map((_, index) => (
                         <button
                           key={index}
-                          onClick={() => setActiveRaceIndex(index)}
+                          onClick={() => goToRace(index)}
                           aria-label={`Go to race ${index + 1}`}
                           className={`transition-all duration-200 ${index === activeRaceIndex ? "h-5 w-1.5 bg-foreground" : "h-1.5 w-1.5 bg-border"}`}
                         />
@@ -1956,7 +1992,7 @@ function FeaturedRaces({
 
 // ─── Built for Race Day ───────────────────────────────────────────────────────
 
-// Testimonials are grouped as race-director/runner pairs; each pair shows 2 stacked quotes simultaneously.
+// Testimonials render as two independent lanes: race-director quotes and runner quotes.
 const BUILT_TESTIMONIALS = [
   {
     label: "Race Directors say:",
@@ -2076,18 +2112,21 @@ const BUILT_STATS = [
   { icon: smileSvg, value: "100%", label: "Race Director Satisfaction" },
 ];
 
-const getBuiltQuoteAnimationStyle = (active: boolean, index: 0 | 1): React.CSSProperties => {
-  const enterDelay = index === 0 ? 420 : 920;
-  const exitDelay = index === 0 ? 0 : 360;
-  const delay = active ? enterDelay : exitDelay;
+type BuiltQuoteLane = "director" | "runner";
+
+const getBuiltQuoteAnimationStyle = (active: boolean, lane: BuiltQuoteLane): React.CSSProperties => {
+  const timing = lane === "director"
+    ? { enterDelay: 180, exitDelay: 420, enterDuration: 720, exitDuration: 520, hiddenY: 28 }
+    : { enterDelay: 760, exitDelay: 0, enterDuration: 860, exitDuration: 620, hiddenY: 22 };
+  const delay = active ? timing.enterDelay : timing.exitDelay;
 
   return {
     opacity: active ? 1 : 0,
-    transform: active ? "translateY(0) scale(1)" : "translateY(30px) scale(0.96)",
+    transform: active ? "translateY(0) scale(1)" : `translateY(${timing.hiddenY}px) scale(0.96)`,
     transformOrigin: "left center",
     transition: active
-      ? `opacity 0.65s ease ${delay}ms, transform 0.95s cubic-bezier(0.18, 0.9, 0.24, 1.32) ${delay}ms`
-      : `opacity 0.45s ease-in ${delay}ms, transform 0.55s cubic-bezier(0.55, 0, 1, 0.45) ${delay}ms`,
+      ? `opacity ${timing.enterDuration}ms ease ${delay}ms, transform ${timing.enterDuration + 220}ms cubic-bezier(0.18, 0.9, 0.24, 1.32) ${delay}ms`
+      : `opacity ${timing.exitDuration}ms ease-in ${delay}ms, transform ${timing.exitDuration}ms cubic-bezier(0.55, 0, 1, 0.45) ${delay}ms`,
     willChange: "opacity, transform",
   };
 };
@@ -2102,8 +2141,9 @@ function BuiltTestimonialItem({
 }) {
   return (
     <div
+      className="bfrd-testimonial-item"
       style={{
-        marginBottom: withBottomGap ? "32px" : 0,
+        marginBottom: withBottomGap ? "34px" : 0,
         display: "flex",
         gap: "20px",
         alignItems: "flex-start",
@@ -2111,13 +2151,14 @@ function BuiltTestimonialItem({
     >
       {/* One blockquote mark per testimonial row */}
       <img
+        className="bfrd-quote-mark"
         src={blockQuoteSvg}
         alt=""
         aria-hidden="true"
         style={{ width: "80px", flexShrink: 0, marginTop: "4px" }}
       />
       {/* Text column */}
-      <div style={{ maxWidth: "360px" }}>
+      <div className="bfrd-quote-copy" style={{ maxWidth: "360px" }}>
         {/* Quote/Lead — Bold Italic — highlight color */}
         <p
           className="font-bold italic"
@@ -2229,10 +2270,19 @@ function BuiltForRaceDay({
 }: {
   sectionRef: React.RefObject<HTMLElement | null>;
 }) {
-  const NUM_PAIRS = Math.floor(BUILT_TESTIMONIALS.length / 2);
-  const [activePair, setActivePair] = useState(0);
+  const [activeDirectorQuoteIndex, setActiveDirectorQuoteIndex] = useState(0);
+  const [activeRunnerQuoteIndex, setActiveRunnerQuoteIndex] = useState(0);
   const [quotesHaveEntered, setQuotesHaveEntered] = useState(false);
   const quotesRef = useRef<HTMLDivElement | null>(null);
+  const directorQuoteSwiperRef = useRef<SwiperClass | null>(null);
+  const runnerQuoteSwiperRef = useRef<SwiperClass | null>(null);
+  const quoteLaneDraggingRef = useRef(false);
+  const directorQuotes = BUILT_TESTIMONIALS.filter((testimonial) =>
+    testimonial.label.startsWith("Race Directors"),
+  );
+  const runnerQuotes = BUILT_TESTIMONIALS.filter((testimonial) =>
+    testimonial.label.startsWith("Runners"),
+  );
 
   useEffect(() => {
     const node = quotesRef.current;
@@ -2251,8 +2301,8 @@ function BuiltForRaceDay({
         }
       },
       {
-        threshold: 0.35,
-        rootMargin: "0px 0px -12% 0px",
+        threshold: 0.05,
+        rootMargin: "0px 0px -2% 0px",
       },
     );
 
@@ -2261,14 +2311,45 @@ function BuiltForRaceDay({
   }, []);
 
   useEffect(() => {
-    if (!quotesHaveEntered) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(
-      () => setActivePair((p) => (p + 1) % NUM_PAIRS),
-      4000
-    );
-    return () => clearInterval(id);
-  }, [NUM_PAIRS, quotesHaveEntered]);
+    const swipers = [directorQuoteSwiperRef.current, runnerQuoteSwiperRef.current];
+
+    swipers.forEach((swiper) => {
+      if (!swiper?.autoplay) return;
+      if (quotesHaveEntered) {
+        swiper.autoplay.start();
+      } else {
+        swiper.autoplay.stop();
+      }
+    });
+  }, [quotesHaveEntered]);
+  const handleQuoteLaneClick = (swiper: SwiperClass | null) => {
+    if (quoteLaneDraggingRef.current) {
+      quoteLaneDraggingRef.current = false;
+      return;
+    }
+    progressQuoteLane(swiper, 1);
+  };
+
+  const progressQuoteLane = (swiper: SwiperClass | null, direction = 1) => {
+    if (!swiper) return;
+    if (direction < 0) {
+      swiper.slidePrev();
+    } else {
+      swiper.slideNext();
+    }
+  };
+
+  const handleQuoteLaneKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, swiper: SwiperClass | null) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      progressQuoteLane(swiper, -1);
+    }
+    if (event.key === "ArrowRight" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      progressQuoteLane(swiper, 1);
+    }
+  };
+
 
   return (
     <section
@@ -2281,18 +2362,136 @@ function BuiltForRaceDay({
       } as CourseLineStyle}
     >
       <style>{`
+        .bfrd-section-inner {
+          width: min(1120px, 100%);
+          margin: 0 auto;
+          padding: clamp(72px, 7.1vw, 112px) clamp(20px, 4vw, 60px) clamp(78px, 7.4vw, 118px);
+          position: relative;
+          z-index: 2;
+        }
+        .bfrd-content {
+          width: 100%;
+          max-width: 1030px;
+          margin: 0 auto;
+        }
+        .bfrd-header {
+          display: grid;
+          grid-template-columns: minmax(0, 690px) auto;
+          align-items: end;
+          justify-content: space-between;
+          gap: 40px;
+          margin-bottom: clamp(54px, 5vw, 72px);
+        }
+        .bfrd-copy {
+          min-width: 0;
+        }
+        .bfrd-body {
+          display: grid;
+          grid-template-columns: minmax(0, 650px) minmax(250px, 310px);
+          align-items: center;
+          gap: clamp(54px, 6.4vw, 86px);
+        }
+        .bfrd-testimonial-rotator {
+          width: 100%;
+          min-width: 0;
+          display: grid;
+          gap: 0;
+        }
+        .bfrd-testimonial-lane {
+          display: grid;
+          width: 100%;
+          min-width: 0;
+          overflow: visible;
+        }
+        .bfrd-testimonial-lane > * {
+          grid-area: 1 / 1;
+          min-width: 0;
+        }
+        .bfrd-testimonial-sizer {
+          display: grid;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        .bfrd-testimonial-sizer > * {
+          grid-area: 1 / 1;
+        }
+        .bfrd-testimonial-sizer .bfrd-quote-row {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+        }
+        .bfrd-testimonial-swiper {
+          width: 100%;
+          align-self: start;
+          overflow: visible;
+        }
+        .bfrd-testimonial-swiper .swiper-wrapper {
+          overflow: visible;
+        }
+        .bfrd-testimonial-swiper .swiper-slide {
+          height: auto;
+        }
+        .bfrd-testimonial-item {
+          gap: clamp(20px, 2.8vw, 34px) !important;
+        }
+        .bfrd-quote-mark {
+          width: clamp(112px, 10.2vw, 156px) !important;
+          margin-top: 0 !important;
+        }
+        .bfrd-quote-copy {
+          max-width: 390px !important;
+          padding-top: 8px;
+        }
+        .bfrd-stats {
+          flex-shrink: 0;
+          width: min(310px, 100%);
+        }
+        .bfrd-stats-list {
+          display: flex;
+          flex-direction: column;
+          gap: 34px;
+        }
+        .bfrd-stat-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
         .cta-button-group {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           margin-top: 8px;
         }
         @media (min-width: 1150px) {
           .cta-button-group {
             flex-direction: row;
             flex-wrap: wrap;
+          }
+        }
+        @media (max-width: 890px) {
+          .bfrd-header,
+          .bfrd-body {
+            grid-template-columns: 1fr;
+          }
+          .bfrd-header {
+            align-items: start;
+          }
+          .bfrd-testimonial-rotator,
+          .bfrd-stats {
+            width: 100%;
+          }
+        }
+        @media (max-width: 560px) {
+          .bfrd-testimonial-item {
+            gap: 18px !important;
+          }
+          .bfrd-quote-mark {
+            width: 86px !important;
+          }
+          .bfrd-quote-copy {
+            padding-top: 0;
           }
         }
         @media (hover: hover) and (pointer: fine) {
@@ -2306,7 +2505,7 @@ function BuiltForRaceDay({
         }
         @media (prefers-reduced-motion: reduce) {
           .bfrd-btn { transition: background-color 0.2s ease !important; }
-                      .bfrd-btn:hover { transform: none !important; }
+          .bfrd-btn:hover { transform: none !important; }
           .bfrd-slide,
           .bfrd-quote-row {
             transition: none !important;
@@ -2315,19 +2514,15 @@ function BuiltForRaceDay({
         }
       `}</style>
 
-      <div
-        className="max-w-[1550px] mx-auto"
-        style={{ padding: "clamp(48px, 6vw, 80px) clamp(20px, 4vw, 60px)", position: "relative", zIndex: 2 }}
-      >
+      <div className="bfrd-section-inner">
         {/* ── Centered content block ── */}
-        <div style={{ width: "fit-content", margin: "0 auto" }}>
+        <div className="bfrd-content">
 
           {/* Intro: heading left, CTA right, aligned to the same width as columns below */}
           <div
-            className="flex flex-wrap items-center justify-between"
-            style={{ gap: "24px", marginBottom: "57px", width: "100%" }}
+            className="bfrd-header"
           >
-            <div style={{ minWidth: 0 }}>
+            <div className="bfrd-copy">
               <h2
                 className="font-bold italic"
                 style={{
@@ -2372,55 +2567,109 @@ function BuiltForRaceDay({
 
           {/* Two-column: quotes + stats, stats vertically centered with quotes */}
           <div
-            className="flex flex-col min-[891px]:flex-row items-center"
-            style={{ gap: "64px" }}
+            className="bfrd-body"
           >
-          {/* ── Left: testimonial rotator — 2 quotes stacked, pairs crossfade ── */}
-          <div ref={quotesRef} style={{ minWidth: 0 }}>
-            {/* Stable-height crossfade container — ghost pair holds layout height */}
-            <div style={{ position: "relative" }}>
-              {/* Ghost: pair 0 always in flow (invisible) to anchor the container height */}
-              <div aria-hidden="true" style={{ visibility: "hidden", pointerEvents: "none" }}>
-                <BuiltTestimonialItem t={BUILT_TESTIMONIALS[0]} withBottomGap />
-                <BuiltTestimonialItem t={BUILT_TESTIMONIALS[1]} />
-              </div>
-
-              {/* Rotating pairs — staggered fade per item */}
-              {Array.from({ length: NUM_PAIRS }).map((_, pairIdx) => {
-                const active = quotesHaveEntered && pairIdx === activePair;
-                return (
-                  <div
-                    key={pairIdx}
-                    style={{ position: "absolute", top: 0, left: 0, right: 0 }}
-                  >
-                    <div
-                      className="bfrd-quote-row"
-                      style={getBuiltQuoteAnimationStyle(active, 0)}
-                    >
-                      <BuiltTestimonialItem
-                        t={BUILT_TESTIMONIALS[pairIdx * 2]}
-                        withBottomGap
-                      />
-                    </div>
-                    <div
-                      className="bfrd-quote-row"
-                      style={getBuiltQuoteAnimationStyle(active, 1)}
-                    >
-                      <BuiltTestimonialItem
-                        t={BUILT_TESTIMONIALS[pairIdx * 2 + 1]}
-                      />
-                    </div>
+          {/* Left: testimonial rotators */}
+          <div ref={quotesRef} className="bfrd-testimonial-rotator">
+            <div
+              className="bfrd-testimonial-lane"
+              role={directorQuotes.length > 1 ? "button" : undefined}
+              tabIndex={directorQuotes.length > 1 ? 0 : undefined}
+              aria-label={directorQuotes.length > 1 ? "Advance race director quote" : undefined}
+              onClick={() => handleQuoteLaneClick(directorQuoteSwiperRef.current)}
+              onKeyDown={(event) => handleQuoteLaneKeyDown(event, directorQuoteSwiperRef.current)}
+            >
+              <div className="bfrd-testimonial-sizer" aria-hidden="true">
+                {directorQuotes.map((testimonial, index) => (
+                  <div key={`${testimonial.attribution}-director-sizer-${index}`} className="bfrd-quote-row">
+                    <BuiltTestimonialItem t={testimonial} withBottomGap />
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              <Swiper
+                modules={[Autoplay, A11y, EffectFade, Keyboard]}
+                className="bfrd-testimonial-swiper"
+                loop={directorQuotes.length > 1}
+                slidesPerView={1}
+                effect="fade"
+                fadeEffect={{ crossFade: true }}
+                speed={700}
+                allowTouchMove
+                grabCursor
+                keyboard={{ enabled: true }}
+                autoplay={directorQuotes.length > 1 ? { delay: 3900, disableOnInteraction: false, pauseOnMouseEnter: false, waitForTransition: true } : false}
+                onSwiper={(swiper) => {
+                  directorQuoteSwiperRef.current = swiper;
+                  if (!quotesHaveEntered) swiper.autoplay?.stop();
+                }}
+                onSliderMove={() => { quoteLaneDraggingRef.current = true; }}
+                onSlideChange={(swiper) => setActiveDirectorQuoteIndex(swiper.realIndex)}
+              >
+                {directorQuotes.map((testimonial, index) => (
+                  <SwiperSlide key={`${testimonial.attribution}-director-${index}`}>
+                    <div
+                      className="bfrd-quote-row"
+                      style={getBuiltQuoteAnimationStyle(index === activeDirectorQuoteIndex, "director")}
+                    >
+                      <BuiltTestimonialItem t={testimonial} withBottomGap />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+            <div
+              className="bfrd-testimonial-lane"
+              role={runnerQuotes.length > 1 ? "button" : undefined}
+              tabIndex={runnerQuotes.length > 1 ? 0 : undefined}
+              aria-label={runnerQuotes.length > 1 ? "Advance runner quote" : undefined}
+              onClick={() => handleQuoteLaneClick(runnerQuoteSwiperRef.current)}
+              onKeyDown={(event) => handleQuoteLaneKeyDown(event, runnerQuoteSwiperRef.current)}
+            >
+              <div className="bfrd-testimonial-sizer" aria-hidden="true">
+                {runnerQuotes.map((testimonial, index) => (
+                  <div key={`${testimonial.attribution}-runner-sizer-${index}`} className="bfrd-quote-row">
+                    <BuiltTestimonialItem t={testimonial} />
+                  </div>
+                ))}
+              </div>
+              <Swiper
+                modules={[Autoplay, A11y, EffectFade, Keyboard]}
+                className="bfrd-testimonial-swiper"
+                loop={runnerQuotes.length > 1}
+                slidesPerView={1}
+                effect="fade"
+                fadeEffect={{ crossFade: true }}
+                speed={700}
+                allowTouchMove
+                grabCursor
+                keyboard={{ enabled: true }}
+                autoplay={runnerQuotes.length > 1 ? { delay: 5300, disableOnInteraction: false, pauseOnMouseEnter: false, waitForTransition: true } : false}
+                onSwiper={(swiper) => {
+                  runnerQuoteSwiperRef.current = swiper;
+                  if (!quotesHaveEntered) swiper.autoplay?.stop();
+                }}
+                onSliderMove={() => { quoteLaneDraggingRef.current = true; }}
+                onSlideChange={(swiper) => setActiveRunnerQuoteIndex(swiper.realIndex)}
+              >
+                {runnerQuotes.map((testimonial, index) => (
+                  <SwiperSlide key={`${testimonial.attribution}-runner-${index}`}>
+                    <div
+                      className="bfrd-quote-row"
+                      style={getBuiltQuoteAnimationStyle(index === activeRunnerQuoteIndex, "runner")}
+                    >
+                      <BuiltTestimonialItem t={testimonial} />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
           </div>
 
           {/* ── Right: stats ── */}
-          <div style={{ flexShrink: 0 }}>
-            <div className="flex flex-col" style={{ gap: "32px" }}>
+          <div className="bfrd-stats">
+            <div className="bfrd-stats-list">
               {BUILT_STATS.map((stat) => (
-                <div key={stat.label} className="flex items-center" style={{ gap: "20px" }}>
+                <div key={stat.label} className="bfrd-stat-item">
                   <img
                     src={stat.icon}
                     alt=""
@@ -2579,14 +2828,10 @@ function Resources({
     return () => observer.disconnect();
   }, [sectionRef]);
 
-  const prevResource = () =>
-    setActiveResourceIndex((index) => (index - 1 + RESOURCE_CARDS.length) % RESOURCE_CARDS.length);
-  const nextResource = () =>
-    setActiveResourceIndex((index) => (index + 1) % RESOURCE_CARDS.length);
-  const resourceSwipeHandlers = useSwipeNavigation(prevResource, nextResource);
-  const activeResourceCard = RESOURCE_CARDS[activeResourceIndex];
-  const previousResourceCard = RESOURCE_CARDS[(activeResourceIndex - 1 + RESOURCE_CARDS.length) % RESOURCE_CARDS.length];
-  const followingResourceCard = RESOURCE_CARDS[(activeResourceIndex + 1) % RESOURCE_CARDS.length];
+  const resourceSwiperRef = useRef<SwiperClass | null>(null);
+  const prevResource = () => resourceSwiperRef.current?.slidePrev();
+  const nextResource = () => resourceSwiperRef.current?.slideNext();
+  const goToResource = (index: number) => resourceSwiperRef.current?.slideToLoop(index);
 
   return (
     <section ref={sectionRef} style={{ background: "transparent", position: "relative", overflow: "visible" }}>
@@ -2596,7 +2841,7 @@ function Resources({
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           margin-top: 8px;
         }
         @media (min-width: 1150px) {
@@ -2637,7 +2882,7 @@ function Resources({
         .swipe-peek-track {
           display: grid;
           grid-template-columns: repeat(3, 100%);
-          gap: 16px;
+          gap: 14px;
           transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
           transition: var(--swipe-transition, transform 180ms ease);
         }
@@ -2745,17 +2990,33 @@ function Resources({
         </div>
 
         <div className="resources-card-carousel">
-          <div className="resources-carousel-card" {...resourceSwipeHandlers}>
-            <div className="swipe-peek-track" aria-live="polite">
-              {[previousResourceCard, activeResourceCard, followingResourceCard].map((card, index) => (
-                <div key={`${card.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+          <div className="resources-carousel-card">
+            <Swiper
+              modules={[Keyboard, A11y]}
+              loop={RESOURCE_CARDS.length > 1}
+              slidesPerView={1}
+              spaceBetween={16}
+              speed={300}
+              threshold={35}
+              grabCursor
+              allowTouchMove
+              autoHeight
+              keyboard={{ enabled: true }}
+              onSwiper={(swiper) => {
+                resourceSwiperRef.current = swiper;
+                setActiveResourceIndex(swiper.realIndex);
+              }}
+              onSlideChange={(swiper) => setActiveResourceIndex(swiper.realIndex)}
+            >
+              {RESOURCE_CARDS.map((card, index) => (
+                <SwiperSlide key={`${card.title}-${index}`}>
                   <ResourceCard
                     card={card}
                     className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
                   />
-                </div>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
 
           <div className="resources-carousel-controls">
@@ -2770,7 +3031,7 @@ function Resources({
               {RESOURCE_CARDS.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setActiveResourceIndex(index)}
+                  onClick={() => goToResource(index)}
                   aria-label={`Go to resource ${index + 1}`}
                   className={`transition-all duration-200 ${
                     index === activeResourceIndex ? "w-5 h-1.5 bg-foreground" : "w-1.5 h-1.5 bg-border"
@@ -2887,16 +3148,17 @@ function PageCTA({
         .home-cta-button-group {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           margin-top: 8px;
-          width: 100%;
+          width: min(680px, 100%);
         }
-        @media (min-width: 1150px) {
+        @media (min-width: 670px) {
           .home-cta-button-group {
             flex-direction: row;
             flex-wrap: nowrap;
+            gap: 16px;
           }
         }
         @media (max-width: 767px) {
@@ -2928,13 +3190,14 @@ function PageCTA({
         style={{
           background: "var(--surface-dark)",
           borderRadius: "10px",
-          maxWidth: "960px",
+          width: "100%",
+          maxWidth: "1040px",
           margin: "0 auto",
-          padding: "clamp(48px, 6vw, 72px) clamp(32px, 5vw, 80px)",
+          padding: "clamp(58px, 5.7vw, 78px) clamp(48px, 6vw, 96px)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "24px",
+          gap: "30px",
           textAlign: ctaLeftAlign ? "left" : "center",
           position: "relative",
           zIndex: 2,
@@ -2943,7 +3206,7 @@ function PageCTA({
         <h2
           className="font-bold italic"
           style={{
-            fontSize: "clamp(32px, 4vw, 48px)",
+            fontSize: "clamp(34px, 4.35vw, 56px)",
             lineHeight: "1.08",
             color: "var(--text-inverse)",
             margin: 0,
@@ -2957,7 +3220,7 @@ function PageCTA({
           style={{
             ...BODY_COPY_STYLE,
             color: "var(--text-inverse)",
-            maxWidth: "616px",
+            maxWidth: "680px",
             margin: 0,
             alignSelf: ctaLeftAlign ? "stretch" : undefined,
           }}
@@ -2975,11 +3238,12 @@ function PageCTA({
               background: "var(--action-primary-default)",
               color: "var(--text-inverse)",
               fontWeight: 600,
-              fontSize: "clamp(16px, 4vw, 20px)",
+              fontSize: "clamp(16px, 4vw, 18px)",
               lineHeight: "20px",
-              width: "min(274.894px, 100%)",
+              width: "min(272px, 100%)",
               minWidth: 0,
-              padding: "16px clamp(20px, 6vw, 40px)",
+              minHeight: "68px",
+              padding: "12px 40px",
               boxSizing: "border-box",
               borderRadius: "10px",
               textDecoration: "none",
@@ -2999,11 +3263,12 @@ function PageCTA({
               background: "var(--action-primary-default)",
               color: "var(--text-inverse)",
               fontWeight: 600,
-              fontSize: "clamp(16px, 4vw, 20px)",
+              fontSize: "clamp(16px, 4vw, 18px)",
               lineHeight: "20px",
-              width: "min(274.894px, 100%)",
+              width: "min(272px, 100%)",
               minWidth: 0,
-              padding: "16px clamp(20px, 6vw, 40px)",
+              minHeight: "68px",
+              padding: "12px 40px",
               boxSizing: "border-box",
               borderRadius: "10px",
               textDecoration: "none",
@@ -3065,6 +3330,31 @@ export default function HomePage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

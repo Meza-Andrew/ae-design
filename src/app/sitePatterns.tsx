@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Autoplay, A11y, EffectFade, Keyboard } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper/types";
+import "swiper/css";
+import "swiper/css/effect-fade";
 import imgHalloweenBg from "@/imports/race_86385_294977_e12aa008-9a13-459f-a326-cf9bb249dadd_1.png";
 import imgHalloweenLogo from "@/imports/24_Oct_2026_Halloween_5K_Monster_Mile_1.png";
 import imgFrostyBg from "@/imports/race_86385_294977_e12aa008-9a13-459f-a326-cf9bb249dadd_2.png";
@@ -26,73 +31,6 @@ export const SITE_BODY_COPY_STYLE = {
 } as const;
 
 
-export function useSwipeNavigation(onPrevious: () => void, onNext: () => void, threshold = 35) {
-  const startRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
-  const swipedRef = useRef(false);
-  const [dragX, setDragX] = useState(0);
-
-  const resetDrag = () => {
-    startRef.current = null;
-    setDragX(0);
-  };
-
-  const finishSwipe = (x: number, y: number, pointerId: number) => {
-    const start = startRef.current;
-    resetDrag();
-    if (!start || start.pointerId !== pointerId) return;
-
-    const deltaX = x - start.x;
-    const deltaY = y - start.y;
-    if (Math.abs(deltaX) < threshold || Math.abs(deltaX) < Math.abs(deltaY) * 1.1) return;
-
-    swipedRef.current = true;
-    if (deltaX < 0) {
-      onNext();
-    } else {
-      onPrevious();
-    }
-  };
-
-  return {
-    style: {
-      "--swipe-drag-x": `${dragX}px`,
-      "--swipe-transition": startRef.current ? "none" : "transform 180ms ease",
-      cursor: startRef.current ? "grabbing" : "grab",
-      userSelect: "none",
-    } as React.CSSProperties & Record<`--${string}`, string>,
-    onPointerDown: (event: React.PointerEvent<HTMLElement>) => {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      startRef.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
-      swipedRef.current = false;
-      setDragX(0);
-      event.currentTarget.setPointerCapture?.(event.pointerId);
-    },
-    onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
-      const start = startRef.current;
-      if (!start || start.pointerId !== event.pointerId) return;
-
-      const deltaX = event.clientX - start.x;
-      const deltaY = event.clientY - start.y;
-      if (Math.abs(deltaX) < 6 || Math.abs(deltaX) < Math.abs(deltaY)) return;
-
-      setDragX(deltaX * 0.72);
-    },
-    onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
-      finishSwipe(event.clientX, event.clientY, event.pointerId);
-    },
-    onPointerCancel: resetDrag,
-    onLostPointerCapture: resetDrag,
-    onDragStart: (event: React.DragEvent<HTMLElement>) => {
-      event.preventDefault();
-    },
-    onClickCapture: (event: React.MouseEvent<HTMLElement>) => {
-      if (!swipedRef.current) return;
-      event.preventDefault();
-      event.stopPropagation();
-      swipedRef.current = false;
-    },
-  };
-}
 function useRevealOnce<T extends HTMLElement>(threshold = 0.2, rootMargin = "0px 0px -12% 0px") {
   const ref = useRef<T | null>(null);
   const [visible, setVisible] = useState(false);
@@ -469,15 +407,11 @@ export function ResourceCardGallery({
   visible?: boolean;
 }) {
   const [activeResourceIndex, setActiveResourceIndex] = useState(0);
-  const activeCard = cards[activeResourceIndex] ?? cards[0];
-  const previousCard = cards[(activeResourceIndex - 1 + cards.length) % cards.length] ?? activeCard;
-  const nextCard = cards[(activeResourceIndex + 1) % cards.length] ?? activeCard;
+  const swiperRef = useRef<SwiperClass | null>(null);
 
-  const prevResource = () =>
-    setActiveResourceIndex((index) => (index - 1 + cards.length) % cards.length);
-  const nextResource = () =>
-    setActiveResourceIndex((index) => (index + 1) % cards.length);
-  const resourceSwipeHandlers = useSwipeNavigation(prevResource, nextResource);
+  const prevResource = () => swiperRef.current?.slidePrev();
+  const nextResource = () => swiperRef.current?.slideNext();
+  const goToResource = (index: number) => swiperRef.current?.slideToLoop(index);
 
   return (
     <>
@@ -493,17 +427,33 @@ export function ResourceCardGallery({
       </div>
 
       <div className="resources-card-carousel">
-        <div className="resources-carousel-card" {...resourceSwipeHandlers}>
-          <div className="swipe-peek-track" aria-live="polite">
-            {[previousCard, activeCard, nextCard].map((card, index) => (
-              <div key={`${card.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
+        <div className="resources-carousel-card">
+          <Swiper
+            modules={[Keyboard, A11y]}
+            loop={cards.length > 1}
+            slidesPerView={1}
+            spaceBetween={16}
+            speed={300}
+            threshold={35}
+            grabCursor
+            allowTouchMove
+            autoHeight
+            keyboard={{ enabled: true }}
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+              setActiveResourceIndex(swiper.realIndex);
+            }}
+            onSlideChange={(swiper) => setActiveResourceIndex(swiper.realIndex)}
+          >
+            {cards.map((card, index) => (
+              <SwiperSlide key={`${card.title}-${index}`}>
                 <ResourceCard
                   card={card}
                   className={`reveal-from-bottom ${visible ? "is-visible" : ""}`}
                 />
-              </div>
+              </SwiperSlide>
             ))}
-          </div>
+          </Swiper>
         </div>
 
         {cards.length > 1 && (
@@ -519,7 +469,7 @@ export function ResourceCardGallery({
               {cards.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setActiveResourceIndex(index)}
+                  onClick={() => goToResource(index)}
                   aria-label={`Go to resource ${index + 1}`}
                   className={`transition-all duration-200 ${
                     index === activeResourceIndex ? "w-5 h-1.5 bg-foreground" : "w-1.5 h-1.5 bg-border"
@@ -540,7 +490,6 @@ export function ResourceCardGallery({
     </>
   );
 }
-
 export function ResourceSection({
   title = "Resources",
   copy = "Placeholder supporting headline copy with a sentence or two leading into the Runner's Arsenal blog and its benefits.",
@@ -690,9 +639,13 @@ export function StatsBand({
   ctaTo?: string;
   stackBelow950?: boolean;
 }) {
-  const [sectionRef, visible] = useRevealOnce<HTMLElement>(0.2);
+  const [sectionRef, visible] = useRevealOnce<HTMLElement>(0.05, "0px 0px -2% 0px");
   const quoteItems = quotes && quotes.length > 0 ? quotes : [{ audience: quoteAudience, quote, attribution: quoteAttribution }];
   const [activeQuoteIndex, setActiveQuoteIndex] = useState(0);
+  const quoteSwipeStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
+  const quoteSwipeMovedRef = useRef(false);
+  const quoteTouchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const quoteLastGestureAtRef = useRef(0);
   const [activeQuoteMeasureRef, shouldLeftAlignActiveQuote] =
     useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>(2, 659);
 
@@ -710,6 +663,90 @@ export function StatsBand({
   useEffect(() => {
     setActiveQuoteIndex(0);
   }, [quoteItems.length]);
+  const progressQuote = (direction = 1) => {
+    if (quoteItems.length < 2) return;
+    setActiveQuoteIndex((index) => (index + direction + quoteItems.length) % quoteItems.length);
+  };
+
+  const progressQuoteFromGesture = (deltaX: number, deltaY: number) => {
+    if (Math.abs(deltaX) < 28 || Math.abs(deltaX) < Math.abs(deltaY) * 1.05) return;
+
+    const now = window.performance.now();
+    if (now - quoteLastGestureAtRef.current < 220) return;
+
+    quoteLastGestureAtRef.current = now;
+    quoteSwipeMovedRef.current = true;
+    progressQuote(deltaX < 0 ? 1 : -1);
+  };
+
+  const finishQuoteSwipe = (clientX: number, clientY: number, pointerId: number) => {
+    const start = quoteSwipeStartRef.current;
+    quoteSwipeStartRef.current = null;
+    if (!start || start.pointerId !== pointerId) return;
+
+    progressQuoteFromGesture(clientX - start.x, clientY - start.y);
+  };
+
+  const handleQuotePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (quoteItems.length < 2) return;
+    quoteSwipeStartRef.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    quoteSwipeMovedRef.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleQuotePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const start = quoteSwipeStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      quoteSwipeMovedRef.current = true;
+    }
+  };
+
+  const handleQuotePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    finishQuoteSwipe(event.clientX, event.clientY, event.pointerId);
+  };
+
+  const handleQuotePointerCancel = () => {
+    quoteSwipeStartRef.current = null;
+  };
+
+  const handleQuoteTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (quoteItems.length < 2 || event.touches.length === 0) return;
+    const touch = event.touches[0];
+    quoteTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    quoteSwipeMovedRef.current = false;
+  };
+
+  const handleQuoteTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = quoteTouchStartRef.current;
+    quoteTouchStartRef.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+
+    progressQuoteFromGesture(touch.clientX - start.x, touch.clientY - start.y);
+  };
+
+  const handleQuoteClick = () => {
+    if (quoteSwipeMovedRef.current) {
+      quoteSwipeMovedRef.current = false;
+      return;
+    }
+    progressQuote(1);
+  };
+
+  const handleQuoteKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      progressQuote(-1);
+    }
+    if (event.key === "ArrowRight" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      progressQuote(1);
+    }
+  };
 
   return (
     <section ref={sectionRef} className={`stats-band ${stackBelow950 ? "stats-band-stack-950" : ""} homepage-built-mobile-padding px-5 py-16 @sm:px-10 @sm:py-24`} style={{ background: "var(--surface-dark)", color: "var(--text-inverse)" }}>
@@ -723,15 +760,32 @@ export function StatsBand({
         </div>
         <div className="stats-band-content grid gap-10 @lg:grid-cols-[1.1fr_0.9fr] @lg:items-center">
           <div
-            className={`stats-quote-column ${shouldLeftAlignActiveQuote ? "is-left-aligned" : ""} grid grid-cols-[120px_1fr] items-center gap-6`}
+            className={`stats-quote-column ${shouldLeftAlignActiveQuote ? "is-left-aligned" : ""} grid items-start`}
             style={{
               opacity: visible ? 1 : 0,
               transform: visible ? "translateY(0) scale(1)" : "translateY(32px) scale(0.96)",
               transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              touchAction: "pan-y",
+              userSelect: "none",
+              cursor: quoteItems.length > 1 ? "grab" : undefined,
             }}
+            onPointerDown={handleQuotePointerDown}
+            onPointerMove={handleQuotePointerMove}
+            onPointerUp={handleQuotePointerUp}
+            onPointerCancel={handleQuotePointerCancel}
+            onTouchStart={handleQuoteTouchStart}
+            onTouchEnd={handleQuoteTouchEnd}
+            onDragStart={(event) => event.preventDefault()}
           >
-            <img src={blockQuoteSvg} alt="" className="w-full opacity-95" />
-            <div className="stats-quote-rotator relative">
+            <img src={blockQuoteSvg} alt="" className="stats-quote-mark opacity-95" />
+            <div
+              className="stats-quote-rotator relative"
+              role={quoteItems.length > 1 ? "button" : undefined}
+              tabIndex={quoteItems.length > 1 ? 0 : undefined}
+              aria-label={quoteItems.length > 1 ? "Advance quote" : undefined}
+              onClick={handleQuoteClick}
+              onKeyDown={handleQuoteKeyDown}
+            >
               <blockquote aria-hidden="true" className="stats-quote-ghost">
                 <p className="mb-2 text-[22px] font-bold italic" style={{ color: "var(--decorative-highlight)" }}>{quoteItems[activeQuoteIndex]?.audience}</p>
                 <p ref={activeQuoteMeasureRef} className="stats-quote-text max-w-[420px] text-[18px] font-bold italic leading-snug">&ldquo;{quoteItems[activeQuoteIndex]?.quote}&rdquo;</p>
@@ -765,7 +819,7 @@ export function StatsBand({
                   >
                     <p className="mb-2 text-[22px] font-bold italic" style={{ color: "var(--decorative-highlight)" }}>{item.audience}</p>
                     <p className="stats-quote-text max-w-[420px] text-[18px] font-bold italic leading-snug">&ldquo;{item.quote}&rdquo;</p>
-                                        <cite
+                    <cite
                       className="mt-2 block not-italic"
                       style={{
                         fontWeight: 400,
@@ -807,6 +861,53 @@ export function PageCTA({
   primaryLabel?: string;
   secondaryLabel?: string;
 }) {
+  const [accentReveal, setAccentReveal] = useState(0);
+  const ctaAccentRef = useRef<HTMLDivElement | null>(null);
+  const [ctaCopyRef, ctaLeftAlign] = useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setAccentReveal(1);
+      return;
+    }
+
+    let rafId = 0;
+    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+    const update = () => {
+      const node = ctaAccentRef.current;
+      if (!node) return;
+
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const travel = Math.max(1, viewportHeight * 0.5184);
+      const progress = clamp01((viewportHeight * 0.78 - rect.top) / travel);
+
+      setAccentReveal((previous) => (
+        Math.abs(previous - progress) < 0.001 ? previous : progress
+      ));
+    };
+
+    const requestUpdate = () => {
+      cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+    };
+  }, []);
+
+  const accentRevealClip = `inset(0 0 0 ${((1 - accentReveal) * 100).toFixed(3)}%)`;
+
   return (
     <PageBand className="relative overflow-visible">
       <style>{`
@@ -819,6 +920,7 @@ export function PageCTA({
           pointer-events: none;
           z-index: 20;
           transform: translateY(-75%);
+          will-change: clip-path;
         }
         @media (min-width: 1550px) {
           .page-cta-accent {
@@ -834,10 +936,11 @@ export function PageCTA({
         .page-cta-buttons {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           gap: 16px;
           margin-top: 8px;
+          width: min(680px, 100%);
         }
         .page-cta-button {
           width: min(272px, 100%);
@@ -855,21 +958,66 @@ export function PageCTA({
             line-height: 1.12 !important;
           }
         }
-        @media (min-width: 1150px) {
+        @media (min-width: 670px) {
           .page-cta-buttons {
             flex-direction: row;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
           }
           .page-cta-button {
             width: 272px;
           }
         }
       `}</style>
-      <div className="relative mx-auto max-w-[1040px]">
-        <img src={whatWeOfferAccent} alt="" className="page-cta-accent" />
-        <div className="relative z-10 rounded-[8px] px-8 py-14 text-center @sm:px-14 @sm:py-16" style={{ background: "var(--surface-dark)", color: "var(--text-inverse)" }}>
-          <h2 className="mb-6 text-[clamp(34px,4vw,52px)] font-bold italic leading-none">{title}</h2>
-          <p className="mx-auto mb-10 max-w-[680px]" style={SITE_BODY_COPY_STYLE}>{copy}</p>
+      <div ref={ctaAccentRef} className="relative mx-auto max-w-[1040px]">
+        <img
+          src={whatWeOfferAccent}
+          alt=""
+          className="page-cta-accent"
+          style={{ clipPath: accentRevealClip, WebkitClipPath: accentRevealClip }}
+        />
+        <div
+          className="relative z-10"
+          style={{
+            background: "var(--surface-dark)",
+            color: "var(--text-inverse)",
+            borderRadius: "10px",
+            width: "100%",
+            padding: "clamp(58px, 5.7vw, 78px) clamp(48px, 6vw, 96px)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "30px",
+            textAlign: ctaLeftAlign ? "left" : "center",
+          }}
+        >
+          <h2
+            className="font-bold italic"
+            style={{
+              fontSize: "clamp(34px, 4.35vw, 56px)",
+              lineHeight: "1.08",
+              width: "min(680px, 100%)",
+              margin: 0,
+              alignSelf: ctaLeftAlign ? "stretch" : undefined,
+            }}
+          >
+            {title}
+          </h2>
+          <p
+            ref={ctaCopyRef}
+            style={{
+              fontSize: "24px",
+              lineHeight: "32px",
+              fontWeight: 500,
+              width: "min(680px, 100%)",
+              maxWidth: "680px",
+              margin: 0,
+              alignSelf: ctaLeftAlign ? "stretch" : undefined,
+            }}
+          >
+            {copy}
+          </p>
           <div className="page-cta-buttons">
             <AeButton to="/for-race-directors" className="page-cta-button">{primaryLabel}</AeButton>
             <AeButton to="/races" className="page-cta-button">{secondaryLabel}</AeButton>
@@ -938,6 +1086,8 @@ export function FormWithFAQ({
   const [activeFaq, setActiveFaq] = useState(0);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [servicesOpen, setServicesOpen] = useState(false);
+  const formSectionRef = useRef<HTMLElement | null>(null);
+  const formPanelRef = useRef<HTMLFormElement | null>(null);
   const [formValues, setFormValues] = useState({
     firstName: "",
     lastName: "",
@@ -977,13 +1127,75 @@ export function FormWithFAQ({
     }, 700);
   };
 
+  useEffect(() => {
+    if (submitStatus !== "sent") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let rafId = 0;
+    let cancelled = false;
+
+    const runConfetti = async () => {
+      const { default: confetti } = await import("canvas-confetti");
+      if (cancelled) return;
+
+      const target = formPanelRef.current ?? formSectionRef.current;
+      const rect = target?.getBoundingClientRect();
+      const viewportWidth = Math.max(1, window.innerWidth);
+      const viewportHeight = Math.max(1, window.innerHeight);
+      const originY = rect ? Math.min(0.95, Math.max(0.12, rect.bottom / viewportHeight)) : 0.86;
+      const leftOriginX = rect ? Math.min(0.92, Math.max(0.08, rect.left / viewportWidth)) : 0.22;
+      const rightOriginX = rect ? Math.min(0.92, Math.max(0.08, rect.right / viewportWidth)) : 0.78;
+      const end = Date.now() + 500;
+      const colors = ["#D96220", "#FCF3ED", "#232943", "#006C67", "#B0521F", "#F5D6C4"];
+
+      const frame = () => {
+        confetti({
+          particleCount: 4,
+          angle: 55,
+          spread: 58,
+          origin: { x: leftOriginX, y: originY },
+          colors,
+          ticks: 155,
+          gravity: 1.05,
+          scalar: 0.86,
+          zIndex: 30,
+        });
+        confetti({
+          particleCount: 4,
+          angle: 125,
+          spread: 58,
+          origin: { x: rightOriginX, y: originY },
+          colors,
+          ticks: 155,
+          gravity: 1.05,
+          scalar: 0.86,
+          zIndex: 30,
+        });
+
+        if (!cancelled && Date.now() < end) {
+          rafId = window.requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    };
+
+    void runConfetti();
+
+    return () => {
+      cancelled = true;
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, [submitStatus]);
+
+  const placeholderColor = "rgba(35,41,67,0.32)";
   const fieldClass = "min-h-[52px] rounded-[6px] border-0 bg-white px-5 text-[17px] font-normal text-[var(--text-default)] outline-none placeholder:text-[rgba(35,41,67,0.32)] focus:ring-2 focus:ring-[var(--decorative-highlight)]";
   const sectionLabelClass = "mb-4 block text-[19px] font-bold italic text-white";
   const submitLabel = submitStatus === "sending" ? "Sending your request..." : submitStatus === "sent" ? "Request sent!" : "Request timing services";
   const selectedServicesLabel = formValues.services.length > 0 ? formValues.services.join(", ") : "Services Needed";
 
   return (
-    <section className="homepage-built-mobile-padding relative overflow-visible px-5 pb-12 pt-16 @sm:px-10 @sm:pb-[72px] @sm:pt-24" style={{ background: "var(--surface-default)" }}>
+    <section ref={formSectionRef} className="homepage-built-mobile-padding relative overflow-visible px-5 pb-12 pt-16 @sm:px-10 @sm:pb-[72px] @sm:pt-24" style={{ background: "var(--surface-default)" }}>
       <style>{`
         .form-section-topography {
           position: absolute;
@@ -997,6 +1209,18 @@ export function FormWithFAQ({
           z-index: 0;
           -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 76%, rgba(0,0,0,0.18) 91%, transparent 100%);
           mask-image: linear-gradient(180deg, #000 0%, #000 76%, rgba(0,0,0,0.18) 91%, transparent 100%);
+        }
+        @media (min-width: 1921px) {
+          .form-section-topography {
+            inset: 0 auto 0 50%;
+            width: 1920px;
+            max-width: 1920px;
+            transform: translateX(-50%);
+            -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%), linear-gradient(180deg, #000 0%, #000 76%, rgba(0,0,0,0.18) 91%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%), linear-gradient(180deg, #000 0%, #000 76%, rgba(0,0,0,0.18) 91%, transparent 100%);
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+          }
         }
         .form-faq-layout {
           display: grid;
@@ -1028,15 +1252,16 @@ export function FormWithFAQ({
         <SectionIntro title={title} copy={copy} />
         <div className="form-faq-layout">
           <form
+            ref={formPanelRef}
             className="rounded-[4px] p-8 shadow-[0_8px_22px_rgba(35,41,67,0.14)] @sm:p-12"
             style={{ background: "var(--action-primary-default)" }}
             onSubmit={handleSubmit}
           >
-            <fieldset className="grid gap-6 @sm:grid-cols-2">
+            <fieldset className="grid gap-6 min-[601px]:grid-cols-2">
               <legend className={sectionLabelClass}>Contact Info</legend>
               <input name="firstName" autoComplete="given-name" value={formValues.firstName} onChange={updateField} aria-label="First Name" placeholder="First Name" className={fieldClass} required />
               <input name="lastName" autoComplete="family-name" value={formValues.lastName} onChange={updateField} aria-label="Last Name" placeholder="Last Name" className={fieldClass} required />
-              <input name="organization" autoComplete="organization" value={formValues.organization} onChange={updateField} aria-label="Organization/Race Name" placeholder="Organization/Race Name" className={`${fieldClass} @sm:col-span-2`} />
+              <input name="organization" autoComplete="organization" value={formValues.organization} onChange={updateField} aria-label="Organization/Race Name" placeholder="Organization/Race Name" className={`${fieldClass} min-[601px]:col-span-2`} />
               <input name="email" type="email" autoComplete="email" value={formValues.email} onChange={updateField} aria-label="Email" placeholder="Email" className={fieldClass} required />
               <input name="phone" type="tel" autoComplete="tel" value={formValues.phone} onChange={updateField} aria-label="Phone" placeholder="Phone" className={fieldClass} />
             </fieldset>
@@ -1051,7 +1276,7 @@ export function FormWithFAQ({
                   aria-controls="services-needed-options"
                   onClick={() => setServicesOpen((open) => !open)}
                 >
-                  <span className={formValues.services.length > 0 ? "line-clamp-1" : "text-[rgba(35,41,67,0.45)]"}>{selectedServicesLabel}</span>
+                  <span className="line-clamp-1" style={{ color: formValues.services.length > 0 ? "var(--text-default)" : placeholderColor }}>{selectedServicesLabel}</span>
                   <ChevronRight className="h-5 w-5 shrink-0 transition-transform" style={{ transform: servicesOpen ? "rotate(90deg)" : "rotate(0deg)" }} />
                 </button>
                 {servicesOpen && (
@@ -1074,12 +1299,12 @@ export function FormWithFAQ({
               </div>
             </fieldset>
 
-            <fieldset className="mt-8 grid gap-6 @sm:grid-cols-2">
+            <fieldset className="mt-8 grid gap-6 min-[601px]:grid-cols-2">
               <legend className={sectionLabelClass}>About Your Event</legend>
-              <input name="eventDate" type="date" value={formValues.eventDate} onChange={updateField} aria-label="Event Date" className={fieldClass} />
+              <input name="eventDate" type="date" value={formValues.eventDate} onChange={updateField} aria-label="Event Date" className={fieldClass} style={{ color: formValues.eventDate ? "var(--text-default)" : placeholderColor }} />
               <input name="location" autoComplete="address-level2" value={formValues.location} onChange={updateField} aria-label="Location" placeholder="Location" className={fieldClass} />
               <input name="participants" type="number" min="0" inputMode="numeric" value={formValues.participants} onChange={updateField} aria-label="Estimated Participants" placeholder="Estimated Participants" className={fieldClass} />
-              <select name="raceType" value={formValues.raceType} onChange={updateField} aria-label="Race Type" className={fieldClass}>
+              <select name="raceType" value={formValues.raceType} onChange={updateField} aria-label="Race Type" className={fieldClass} style={{ color: formValues.raceType ? "var(--text-default)" : placeholderColor }}>
                 <option value="">Race Type</option>
                 {raceTypes.map((raceType) => (
                   <option key={raceType} value={raceType}>{raceType}</option>
@@ -1091,7 +1316,7 @@ export function FormWithFAQ({
                 onChange={updateField}
                 aria-label="Comments"
                 placeholder="Comments"
-                className={`${fieldClass} min-h-[170px] py-4 @sm:col-span-2`}
+                className={`${fieldClass} min-h-[170px] py-4 min-[601px]:col-span-2`}
               />
             </fieldset>
 
@@ -1099,7 +1324,7 @@ export function FormWithFAQ({
               <button
                 type="submit"
                 disabled={submitStatus === "sending"}
-                className="inline-flex min-h-[52px] min-w-[230px] items-center justify-center rounded-[8px] px-8 text-[17px] font-bold text-[var(--text-default)] transition-opacity disabled:cursor-wait disabled:opacity-70" style={{ background: "#E3E6E0" }}
+                className="ae-button inline-flex min-h-[52px] min-w-[230px] items-center justify-center rounded-[8px] px-8 text-[17px] font-bold text-[var(--text-default)] transition disabled:cursor-wait disabled:opacity-70" style={{ background: "#E3E6E0", ["--ae-button-hover" as string]: "#CAD8D2" }}
               >
                 {submitLabel}
               </button>
@@ -1107,7 +1332,7 @@ export function FormWithFAQ({
 
             <div aria-live="polite" className="mt-6 text-center">
               {submitStatus === "sent" && (
-                <div className="rounded-[6px] bg-white px-5 py-4 text-left text-[16px] font-medium leading-snug text-[var(--text-default)]">
+                <div className="rounded-[6px] px-5 py-4 text-left text-[16px] font-medium leading-snug text-[var(--text-default)]" style={{ background: "#E3E6E0" }}>
                   <p className="mb-2 text-[20px] font-bold">Thanks for reaching out!</p>
                   <p>We've received your race information and someone from Arsenal Events will review your request. We'll contact you within one business day to learn more about your event and discuss how we can help.</p>
                 </div>
@@ -1136,7 +1361,7 @@ export function FormWithFAQ({
                     >
                       <ChevronRight className="mt-1 h-5 w-5 shrink-0" style={{ color: "var(--action-tertiary-default)" }} />
                       <span className="text-[22px] font-bold leading-tight" style={{ color: "var(--action-tertiary-default)" }}>
-                        {index + 1}. {faq.q}
+                        {faq.q}
                       </span>
                     </button>
                     <div
@@ -1297,20 +1522,27 @@ export const SHARED_PATTERN_CSS = `
       align-items: center;
     }
   }
-
-
-
+  .stats-quote-column {
+    grid-template-columns: clamp(112px, 10.2vw, 156px) minmax(0, 1fr);
+    gap: clamp(20px, 2.8vw, 34px);
+  }
+  .stats-quote-mark {
+    width: 100%;
+    flex-shrink: 0;
+    margin-top: 0;
+  }
   .stats-quote-rotator {
     min-height: 190px;
+    padding-top: 8px;
   }
-  .stats-quote-ghost {
+.stats-quote-ghost {
     visibility: hidden;
     pointer-events: none;
   }
 
   @media (max-width: 949px) {
     .stats-band-stack-950 .stats-quote-column {
-      grid-template-columns: minmax(78px, 110px) minmax(0, 1fr);
+      grid-template-columns: clamp(112px, 15vw, 156px) minmax(0, 1fr);
       align-items: start;
       width: min(620px, 100%);
     }
@@ -1385,6 +1617,33 @@ export const SHARED_PATTERN_CSS = `
     }
   }
 `;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

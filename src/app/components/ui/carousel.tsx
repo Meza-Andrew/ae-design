@@ -1,18 +1,18 @@
 "use client";
 
 import * as React from "react";
-import useEmblaCarousel, {
-  type UseEmblaCarouselType,
-} from "embla-carousel-react";
+import { A11y, Keyboard } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass, SwiperOptions } from "swiper/types";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import "swiper/css";
 
 import { cn } from "./utils";
 import { Button } from "./button";
 
-type CarouselApi = UseEmblaCarouselType[1];
-type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
-type CarouselOptions = UseCarouselParameters[0];
-type CarouselPlugin = UseCarouselParameters[1];
+type CarouselApi = SwiperClass;
+type CarouselOptions = SwiperOptions;
+type CarouselPlugin = never;
 
 type CarouselProps = {
   opts?: CarouselOptions;
@@ -22,8 +22,8 @@ type CarouselProps = {
 };
 
 type CarouselContextProps = {
-  carouselRef: ReturnType<typeof useEmblaCarousel>[0];
-  api: ReturnType<typeof useEmblaCarousel>[1];
+  api: CarouselApi | null;
+  orientation?: "horizontal" | "vertical";
   scrollPrev: () => void;
   scrollNext: () => void;
   canScrollPrev: boolean;
@@ -46,33 +46,25 @@ function Carousel({
   orientation = "horizontal",
   opts,
   setApi,
-  plugins,
   className,
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
-  const [carouselRef, api] = useEmblaCarousel(
-    {
-      ...opts,
-      axis: orientation === "horizontal" ? "x" : "y",
-    },
-    plugins,
-  );
+  const [api, setInternalApi] = React.useState<CarouselApi | null>(null);
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-  const onSelect = React.useCallback((api: CarouselApi) => {
-    if (!api) return;
-    setCanScrollPrev(api.canScrollPrev());
-    setCanScrollNext(api.canScrollNext());
+  const updateScrollState = React.useCallback((swiper: CarouselApi) => {
+    setCanScrollPrev(!swiper.isBeginning || Boolean(swiper.params.loop));
+    setCanScrollNext(!swiper.isEnd || Boolean(swiper.params.loop));
   }, []);
 
   const scrollPrev = React.useCallback(() => {
-    api?.scrollPrev();
+    api?.slidePrev();
   }, [api]);
 
   const scrollNext = React.useCallback(() => {
-    api?.scrollNext();
+    api?.slideNext();
   }, [api]);
 
   const handleKeyDown = React.useCallback(
@@ -93,25 +85,12 @@ function Carousel({
     setApi(api);
   }, [api, setApi]);
 
-  React.useEffect(() => {
-    if (!api) return;
-    onSelect(api);
-    api.on("reInit", onSelect);
-    api.on("select", onSelect);
-
-    return () => {
-      api?.off("select", onSelect);
-    };
-  }, [api, onSelect]);
-
   return (
     <CarouselContext.Provider
       value={{
-        carouselRef,
-        api: api,
+        api,
         opts,
-        orientation:
-          orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
+        orientation,
         scrollPrev,
         scrollNext,
         canScrollPrev,
@@ -132,32 +111,42 @@ function Carousel({
   );
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
-  const { carouselRef, orientation } = useCarousel();
+function CarouselContent({ className, ...props }: React.ComponentProps<typeof Swiper>) {
+  const { opts, orientation, setApiInstance } = useCarousel();
 
   return (
-    <div
-      ref={carouselRef}
-      className="overflow-hidden"
+    <Swiper
+      modules={[Keyboard, A11y]}
+      direction={orientation === "vertical" ? "vertical" : "horizontal"}
+      slidesPerView={1}
+      threshold={35}
+      grabCursor
+      allowTouchMove
+      keyboard={{ enabled: true }}
+      {...props}
+      {...opts}
+      onSwiper={(swiper) => {
+        setApiInstance(swiper);
+        props.onSwiper?.(swiper);
+      }}
+      onInit={(swiper) => {
+        setApiInstance(swiper);
+        props.onInit?.(swiper);
+      }}
+      onSlideChange={(swiper) => {
+        setApiInstance(swiper);
+        props.onSlideChange?.(swiper);
+      }}
+      className={cn("overflow-hidden", className)}
       data-slot="carousel-content"
-    >
-      <div
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className,
-        )}
-        {...props}
-      />
-    </div>
+    />
   );
 }
-
-function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
+function CarouselItem({ className, ...props }: React.ComponentProps<typeof SwiperSlide>) {
   const { orientation } = useCarousel();
 
   return (
-    <div
+    <SwiperSlide
       role="group"
       aria-roledescription="slide"
       data-slot="carousel-item"
@@ -239,3 +228,4 @@ export {
   CarouselPrevious,
   CarouselNext,
 };
+
