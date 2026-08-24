@@ -4,7 +4,7 @@ import { PageCTA, ResourceCardGallery, RESOURCE_CARDS, SectionIntro, SITE_BODY_C
 
 function ArticleBody() {
   return (
-    <article className="homepage-built-mobile-padding px-5 py-20 @sm:px-10 @sm:py-28" style={{ background: "var(--surface-default)", color: "var(--text-default)" }}>
+    <article className="homepage-built-mobile-padding px-5 py-16 @sm:px-10 @sm:py-24" style={{ background: "var(--surface-default)", color: "var(--text-default)" }}>
       <div className="mx-auto max-w-[920px]">
         <p className="mb-5 text-[24px] font-bold italic" style={{ color: "var(--text-accent)" }}>For Runners</p>
         <h1 className="mb-5 text-[clamp(48px,7vw,86px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>
@@ -17,7 +17,7 @@ function ArticleBody() {
             You crossed the finish line, caught your breath, and pulled up your results-but what do all those numbers actually mean? Your finish time is the total time it took you to complete the course, while your pace shows how quickly you covered each mile or kilometer on average.
           </p>
           <blockquote className="mb-12 grid grid-cols-[110px_1fr] items-center gap-6">
-            <div className="text-[150px] font-bold leading-none" style={{ color: "var(--action-tertiary-default)" }}>“</div>
+            <div className="text-[150px] font-bold leading-none" style={{ color: "var(--action-tertiary-default)" }}>&ldquo;</div>
             <p className="text-[25px] font-bold" style={{ color: "var(--text-accent)" }}>
               Your finish time tells you how the race went. Your progress tells you how far you've come.
             </p>
@@ -43,7 +43,7 @@ function ArticleBody() {
 
 function RelatedPosts() {
   return (
-    <section className="homepage-built-mobile-padding px-5 pb-24 @sm:px-10 @sm:pb-32" style={{ background: "var(--surface-default)" }}>
+    <section className="homepage-built-mobile-padding px-5 py-16 @sm:px-10 @sm:py-24" style={{ background: "var(--surface-default)" }}>
       <div className="mx-auto max-w-[1260px]">
         <SectionIntro
           title="Related Posts"

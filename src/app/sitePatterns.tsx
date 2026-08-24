@@ -25,8 +25,57 @@ export const SITE_BODY_COPY_STYLE = {
   fontWeight: 500,
 } as const;
 
+const clampProgress = (value: number) => Math.min(1, Math.max(0, value));
 
-export function useSwipeNavigation(onPrevious: () => void, onNext: () => void, threshold = 35) {
+export function useTrackAccentReveal<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotion.matches) {
+      setProgress(1);
+      return;
+    }
+
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const rect = element.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const start = viewportHeight * 0.92;
+      const travel = 240;
+      setProgress(clampProgress((start - rect.top) / travel));
+    };
+    const requestUpdate = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+    };
+  }, []);
+
+  return [
+    ref,
+    {
+      opacity: progress > 0.01 ? 1 : 0,
+      clipPath: `inset(0 0 0 ${((1 - progress) * 100).toFixed(3)}%)`,
+    } as React.CSSProperties,
+  ] as const;
+}
+
+
+export function useSwipeNavigation(onPrevious: () => void, onNext: () => void, threshold = 35, options: { transition?: string; dragFactor?: number } = {}) {
   const startRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
   const swipedRef = useRef(false);
   const [dragX, setDragX] = useState(0);
@@ -56,7 +105,7 @@ export function useSwipeNavigation(onPrevious: () => void, onNext: () => void, t
   return {
     style: {
       "--swipe-drag-x": `${dragX}px`,
-      "--swipe-transition": startRef.current ? "none" : "transform 180ms ease",
+      "--swipe-transition": startRef.current ? "none" : options.transition ?? "transform 180ms ease",
       cursor: startRef.current ? "grabbing" : "grab",
       userSelect: "none",
     } as React.CSSProperties & Record<`--${string}`, string>,
@@ -75,7 +124,7 @@ export function useSwipeNavigation(onPrevious: () => void, onNext: () => void, t
       const deltaY = event.clientY - start.y;
       if (Math.abs(deltaX) < 6 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
-      setDragX(deltaX * 0.72);
+      setDragX(deltaX * (options.dragFactor ?? 0.72));
     },
     onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
       finishSwipe(event.clientX, event.clientY, event.pointerId);
@@ -807,6 +856,8 @@ export function PageCTA({
   primaryLabel?: string;
   secondaryLabel?: string;
 }) {
+  const [accentRef, accentRevealStyle] = useTrackAccentReveal<HTMLImageElement>();
+
   return (
     <PageBand className="relative overflow-visible">
       <style>{`
@@ -819,6 +870,8 @@ export function PageCTA({
           pointer-events: none;
           z-index: 20;
           transform: translateY(-75%);
+          transition: clip-path 180ms linear, opacity 180ms ease;
+          will-change: clip-path;
         }
         @media (min-width: 1550px) {
           .page-cta-accent {
@@ -866,7 +919,7 @@ export function PageCTA({
         }
       `}</style>
       <div className="relative mx-auto max-w-[1040px]">
-        <img src={whatWeOfferAccent} alt="" className="page-cta-accent" />
+        <img ref={accentRef} src={whatWeOfferAccent} alt="" className="page-cta-accent" style={accentRevealStyle} />
         <div className="relative z-10 rounded-[8px] px-8 py-14 text-center @sm:px-14 @sm:py-16" style={{ background: "var(--surface-dark)", color: "var(--text-inverse)" }}>
           <h2 className="mb-6 text-[clamp(34px,4vw,52px)] font-bold italic leading-none">{title}</h2>
           <p className="mx-auto mb-10 max-w-[680px]" style={SITE_BODY_COPY_STYLE}>{copy}</p>
@@ -983,7 +1036,7 @@ export function FormWithFAQ({
   const selectedServicesLabel = formValues.services.length > 0 ? formValues.services.join(", ") : "Services Needed";
 
   return (
-    <section className="homepage-built-mobile-padding relative overflow-visible px-5 pb-12 pt-16 @sm:px-10 @sm:pb-[72px] @sm:pt-24" style={{ background: "var(--surface-default)" }}>
+    <section className="homepage-built-mobile-padding relative overflow-visible px-5 pb-8 pt-16 @sm:px-10 @sm:pb-10 @sm:pt-24" style={{ background: "var(--surface-default)" }}>
       <style>{`
         .form-section-topography {
           position: absolute;
@@ -1136,7 +1189,7 @@ export function FormWithFAQ({
                     >
                       <ChevronRight className="mt-1 h-5 w-5 shrink-0" style={{ color: "var(--action-tertiary-default)" }} />
                       <span className="text-[22px] font-bold leading-tight" style={{ color: "var(--action-tertiary-default)" }}>
-                        {index + 1}. {faq.q}
+                        {faq.q}
                       </span>
                     </button>
                     <div
@@ -1385,6 +1438,7 @@ export const SHARED_PATTERN_CSS = `
     }
   }
 `;
+
 
 
 

@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter, Outlet } from "react-router";
+import { createBrowserRouter, Outlet } from "react-router";
 import { Nav, Footer } from "./shared";
 import HomePage from "./HomePage";
 import ForRaceDirectorsPage from "./ForRaceDirectorsPage";
@@ -23,7 +23,7 @@ function Root() {
 function Placeholder() {
   return (
     <main
-      className="homepage-built-mobile-padding px-6 py-24 text-center @sm:py-36"
+      className="homepage-built-mobile-padding px-6 py-16 text-center @sm:py-24"
       style={{ background: "var(--surface-subtle)", color: "var(--text-default)" }}
     >
       <div className="mx-auto max-w-[1245px]">

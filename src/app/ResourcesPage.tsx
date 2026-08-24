@@ -1,4 +1,4 @@
-﻿import imgFeatured from "@/imports/DSC07982-2_1.png";
+import imgFeatured from "@/imports/DSC07982-2_1.png";
 import {
   AeButton,
   PageCTA,
@@ -31,7 +31,7 @@ function Hero() {
 
 function LatestArticles() {
   return (
-    <section className="homepage-built-mobile-padding px-5 py-20 @sm:px-10 @sm:py-28" style={{ background: "var(--surface-default)" }}>
+    <section className="homepage-built-mobile-padding px-5 py-16 @sm:px-10 @sm:py-24" style={{ background: "var(--surface-default)" }}>
       <div className="mx-auto max-w-[1260px]">
         <SectionIntro
           title="Latest Articles"

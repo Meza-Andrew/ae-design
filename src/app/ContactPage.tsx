@@ -1,10 +1,10 @@
-﻿import { Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import imgMap from "@/imports/image-13.png";
 import { AeButton, FormWithFAQ, PageBand, SectionIntro, SITE_BODY_COPY_STYLE } from "./sitePatterns";
 
 function Hero() {
   return (
-    <section className="homepage-built-mobile-padding px-5 py-24 text-center @sm:px-10 @sm:py-36" style={{ background: "var(--surface-subtle)", color: "var(--text-default)" }}>
+    <section className="homepage-built-mobile-padding px-5 py-16 text-center @sm:px-10 @sm:py-24" style={{ background: "var(--surface-subtle)", color: "var(--text-default)" }}>
       <div className="mx-auto max-w-[1245px]">
         <h1 className="mb-8 text-[clamp(52px,8vw,104px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>
           We'd Love to Hear From You

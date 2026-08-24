@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import imgHero from "@/imports/race-directors-hero.png";
-import imgGalleryCrew from "@/imports/race-day-gallery-crew.jpg";
+import imgGalleryCrew from "@/imports/race-day-gallery-crew.png";
 import imgGalleryEquipment from "@/imports/race-day-gallery-equipment.jpg";
 import imgGalleryResults from "@/imports/race-day-gallery-results.jpg";
-import imgGalleryTrophies from "@/imports/race-day-gallery-trophies.jpg";
+import imgGalleryTrophies from "@/imports/race-day-gallery-trophies.png";
 import raceDayChevron from "@/imports/race-day-chevron.svg";
 import topographyBg from "@/imports/topography-bg-1.svg";
 import imgServiceRegistration from "@/imports/service-race-registration.png";
@@ -29,6 +29,7 @@ import {
   SITE_BODY_COPY_STYLE,
   StatsBand,
   useSwipeNavigation,
+  useTrackAccentReveal,
 } from "./sitePatterns";
 
 const services = [
@@ -65,13 +66,19 @@ const services = [
 ];
 function Hero() {
   return (
-    <section className="relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
+    <section className="race-directors-hero-section relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
       <style>{`
         .race-directors-hero-photo {
           object-position: 38% top;
         }
         .race-directors-hero-content {
           min-height: clamp(420px, 42vw, 620px);
+        }
+        @media (min-width: 1550px) {
+          .race-directors-hero-section,
+          .race-directors-hero-content {
+            min-height: clamp(620px, 38vw, 860px);
+          }
         }
         @media (max-width: 1200px) {
           .race-directors-hero-photo {
@@ -225,7 +232,8 @@ function Services() {
     pauseForInteraction();
     goTo(index);
   };
-  const serviceSwipeHandlers = useSwipeNavigation(prevManual, nextManual);
+  const serviceSwipeHandlers = useSwipeNavigation(prevManual, nextManual, 35, { transition: "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)", dragFactor: 0.82 });
+  const [servicesAccentRef, servicesAccentRevealStyle] = useTrackAccentReveal<HTMLImageElement>();
   const activeService = services[activeIndex];
   const previousService = services[(activeIndex - 1 + services.length) % services.length];
   const followingService = services[(activeIndex + 1) % services.length];
@@ -233,7 +241,7 @@ function Services() {
   return (
     <section
       id="services"
-      className="rd-services-section homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:py-24 scroll-mt-20"
+      className="rd-services-section homepage-built-mobile-padding relative overflow-hidden px-5 pb-8 pt-16 @sm:px-10 @sm:pb-10 @sm:pt-24 scroll-mt-20"
       style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
     >
       <style>{`
@@ -246,6 +254,8 @@ function Services() {
           pointer-events: none;
           z-index: 1;
           transform: translateY(-15%);
+          transition: clip-path 180ms linear, opacity 180ms ease;
+          will-change: clip-path;
         }
         @media (min-width: 1550px) {
           .rd-services-accent {
@@ -270,7 +280,7 @@ function Services() {
         .rd-service-card-shell {
           position: absolute;
           width: 668px;
-          transform: translateX(calc(var(--x) + var(--swipe-drag-x, 0px))) scale(var(--scale));
+          transform: translateX(calc(var(--x) + var(--drag-x, 0px))) scale(var(--scale));
           opacity: var(--opacity);
           z-index: var(--z);
           transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease, filter 320ms ease;
@@ -372,7 +382,7 @@ function Services() {
           grid-template-columns: repeat(3, 100%);
           gap: 16px;
           transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
-          transition: var(--swipe-transition, transform 180ms ease);
+          transition: var(--swipe-transition, transform 420ms cubic-bezier(0.22, 1, 0.36, 1));
         }
         .swipe-peek-item {
           min-width: 0;
@@ -450,7 +460,7 @@ function Services() {
           }
         }
       `}</style>
-      <img src={whatWeOfferAccent} alt="" className="rd-services-accent" />
+      <img ref={servicesAccentRef} src={whatWeOfferAccent} alt="" className="rd-services-accent" style={servicesAccentRevealStyle} />
       <div className="rd-services-inner">
         <SectionIntro
           title="What We Offer"
@@ -469,6 +479,7 @@ function Services() {
               "--z": active ? 5 : abs === 1 ? 3 : 1,
               "--gray": active ? 0 : 1,
               "--events": active ? "auto" : "none",
+              "--drag-x": active ? "var(--swipe-drag-x, 0px)" : "0px",
             } as React.CSSProperties & Record<`--${string}`, string | number>;
 
             return (
@@ -514,6 +525,58 @@ function Services() {
   );
 }
 function Gallery() {
+  const galleryImages = [
+    { src: imgGalleryCrew, alt: "Arsenal Events crew working at a race timing station" },
+    { src: imgGalleryEquipment, alt: "Race timing equipment in an orange case" },
+    { src: imgGalleryResults, alt: "Race results displayed on a monitor" },
+    { src: imgGalleryTrophies, alt: "Race awards lined up on a table" },
+  ] as const;
+  const [activeImage, setActiveImage] = useState<(typeof galleryImages)[number] | null>(null);
+  const captionRef = useRef<HTMLParagraphElement | null>(null);
+  const [captionLeftAligned, setCaptionLeftAligned] = useState(false);
+
+  useEffect(() => {
+    if (!activeImage) return;
+
+    const measureCaption = () => {
+      const node = captionRef.current;
+      if (!node) {
+        setCaptionLeftAligned(false);
+        return;
+      }
+
+      const styles = window.getComputedStyle(node);
+      const lineHeight = Number.parseFloat(styles.lineHeight) || 24;
+      setCaptionLeftAligned(node.scrollHeight > lineHeight * 3 + 1);
+    };
+
+    measureCaption();
+    const resizeObserver = new ResizeObserver(measureCaption);
+    if (captionRef.current) resizeObserver.observe(captionRef.current);
+    window.addEventListener("resize", measureCaption);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", measureCaption);
+    };
+  }, [activeImage]);
+
+  useEffect(() => {
+    if (!activeImage) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActiveImage(null);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [activeImage]);
+
   return (
     <section className="rd-gallery-section homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:py-24">
       <style>{`
@@ -562,14 +625,27 @@ function Gallery() {
           gap: 16px;
         }
         .rd-gallery-item {
+          position: relative;
           overflow: hidden;
           background: var(--surface-dark);
+          cursor: zoom-in;
+        }
+        .rd-gallery-item::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: #0f1424;
+          pointer-events: none;
         }
         .rd-gallery-item img {
+          position: relative;
+          z-index: 1;
           width: 100%;
           height: 100%;
           object-fit: cover;
           display: block;
+          transform: scale(1.02);
+          transform-origin: center center;
         }
         .rd-gallery-equipment {
           grid-column: 2;
@@ -578,17 +654,83 @@ function Gallery() {
         .rd-gallery-trophies {
           grid-column: 1 / -1;
         }
-        .rd-gallery-crew img {
-          object-position: center center;
-        }
-        .rd-gallery-equipment img {
-          object-position: center center;
-        }
+        .rd-gallery-crew img,
+        .rd-gallery-equipment img,
         .rd-gallery-results img {
           object-position: center center;
         }
         .rd-gallery-trophies img {
-          object-position: center center;
+          object-position: center calc(50% + 50px);
+        }
+        .rd-gallery-modal {
+          position: fixed;
+          inset: 0;
+          z-index: 80;
+          display: block;
+          padding: 0;
+          background: #0f1424;
+        }
+        .rd-gallery-modal-panel {
+          position: absolute;
+          inset: 0;
+        }
+        .rd-gallery-modal-image {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+        .rd-gallery-modal-caption {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 15%;
+          min-height: 86px;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          padding: 18px 22px 20px;
+          border-radius: 0;
+          background: linear-gradient(180deg, rgba(15, 20, 36, 0) 0%, rgba(15, 20, 36, 0.9) 100%);
+          color: var(--text-inverse);
+          text-align: center;
+        }
+        .rd-gallery-modal-caption p {
+          width: 100%;
+          margin: 0;
+          max-width: none;
+          font-size: 16px;
+          line-height: 24px;
+          font-weight: 500;
+        }
+        .rd-gallery-modal-caption.is-left-aligned {
+          text-align: left;
+        }
+        .rd-gallery-modal-close {
+          position: absolute;
+          top: 18px;
+          right: 18px;
+          z-index: 4;
+          width: 44px;
+          height: 44px;
+          border-radius: 999px;
+          border: 0;
+          background: var(--surface-dark);
+          color: var(--text-inverse);
+          cursor: pointer;
+          box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+        }
+        .rd-gallery-modal-close svg {
+          width: 22px;
+          height: 22px;
+          display: block;
+          stroke: currentColor;
         }
         @media (max-width: 900px) {
           .rd-gallery-heading {
@@ -618,20 +760,35 @@ function Gallery() {
           <img src={raceDayChevron} alt="" className="rd-gallery-chevron" />
         </div>
         <div className="rd-gallery-grid">
-          <figure className="rd-gallery-item rd-gallery-crew">
+          <figure className="rd-gallery-item rd-gallery-crew" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[0])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[0])}>
             <img src={imgGalleryCrew} alt="Arsenal Events crew working at a race timing station" />
           </figure>
-          <figure className="rd-gallery-item rd-gallery-equipment">
+          <figure className="rd-gallery-item rd-gallery-equipment" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[1])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[1])}>
             <img src={imgGalleryEquipment} alt="Race timing equipment in an orange case" />
           </figure>
-          <figure className="rd-gallery-item rd-gallery-results">
+          <figure className="rd-gallery-item rd-gallery-results" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[2])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[2])}>
             <img src={imgGalleryResults} alt="Race results displayed on a monitor" />
           </figure>
-          <figure className="rd-gallery-item rd-gallery-trophies">
+          <figure className="rd-gallery-item rd-gallery-trophies" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[3])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[3])}>
             <img src={imgGalleryTrophies} alt="Race awards lined up on a table" />
           </figure>
         </div>
       </div>
+      {activeImage && (
+        <div className="rd-gallery-modal" role="dialog" aria-modal="true" aria-label="Gallery image lightbox" onClick={() => setActiveImage(null)}>
+          <div className="rd-gallery-modal-panel" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="rd-gallery-modal-close" aria-label="Close lightbox" onClick={() => setActiveImage(null)}>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                <path d="M6 6L18 18M18 6L6 18" strokeWidth="2.4" strokeLinecap="round" />
+              </svg>
+            </button>
+            <img src={activeImage.src} alt={activeImage.alt} className="rd-gallery-modal-image" />
+            <div className={`rd-gallery-modal-caption ${captionLeftAligned ? "is-left-aligned" : ""}`}>
+              <p ref={captionRef}>Placeholder supporting gallery copy describing the moment captured in this race-day image.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -650,6 +807,16 @@ export default function ForRaceDirectorsPage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
