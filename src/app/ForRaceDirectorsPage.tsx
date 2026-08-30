@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Autoplay, A11y, EffectCreative, Keyboard } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper/types";
+import "swiper/css";
+import "swiper/css/effect-creative";
 import imgHero from "@/imports/race-directors-hero.png";
 import imgGalleryCrew from "@/imports/race-day-gallery-crew.png";
 import imgGalleryEquipment from "@/imports/race-day-gallery-equipment.jpg";
@@ -28,8 +33,6 @@ import {
   SectionIntro,
   SITE_BODY_COPY_STYLE,
   StatsBand,
-  useSwipeNavigation,
-  useTrackAccentReveal,
 } from "./sitePatterns";
 
 const services = [
@@ -65,8 +68,20 @@ const services = [
   },
 ];
 function Hero() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const id = window.requestAnimationFrame(() => setIsVisible(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
   return (
-    <section className="race-directors-hero-section relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
+    <section className="relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
       <style>{`
         .race-directors-hero-photo {
           object-position: 38% top;
@@ -74,15 +89,15 @@ function Hero() {
         .race-directors-hero-content {
           min-height: clamp(420px, 42vw, 620px);
         }
-        @media (min-width: 1550px) {
-          .race-directors-hero-section,
-          .race-directors-hero-content {
-            min-height: clamp(620px, 38vw, 860px);
-          }
-        }
         @media (max-width: 1200px) {
           .race-directors-hero-photo {
             object-position: 30% top;
+          }
+        }
+        @media (max-width: 1199px) {
+          .rd-gallery-trophies img {
+            object-fit: cover;
+            object-position: center center;
           }
         }
         @media (max-width: 900px) {
@@ -115,6 +130,12 @@ function Hero() {
             rgba(35,41,67,0) 100%
           );
         }
+        @media (max-width: 1199px) {
+          .rd-gallery-trophies img {
+            object-fit: cover;
+            object-position: center center;
+          }
+        }
         @media (max-width: 900px) {
           @media (max-width: 767px) {
           .race-directors-hero-actions {
@@ -136,7 +157,15 @@ function Hero() {
       />
       <div className="race-directors-hero-overlay absolute bottom-0 left-0 pointer-events-none" />
       <div className="homepage-built-mobile-padding race-directors-hero-content relative z-10 mx-auto flex max-w-[1440px] flex-col justify-end px-5 pb-8 @sm:px-10 @md:pb-10">
-        <div className="grid gap-7 @lg:grid-cols-[minmax(0,760px)_auto] @lg:items-end @lg:justify-between">
+        <div
+          className="grid gap-7 @lg:grid-cols-[minmax(0,760px)_auto] @lg:items-end @lg:justify-between"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? "translateX(0)" : "translateX(-48px)",
+            transition: "opacity 0.7s ease, transform 0.7s ease",
+            willChange: "opacity, transform",
+          }}
+        >
           <div>
             <h1 className="mb-5 text-[clamp(46px,5.5vw,72px)] font-bold italic leading-none" style={{ color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
               Race Day, Handled.
@@ -187,16 +216,13 @@ function ServiceCard({
 
 function Services() {
   const [activeIndex, setActiveIndex] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
+  const [accentReveal, setAccentReveal] = useState(0);
+  const servicesSectionRef = useRef<HTMLElement | null>(null);
+  const mobileServiceSwiperRef = useRef<SwiperClass | null>(null);
+  const desktopServiceSwiperRef = useRef<SwiperClass | null>(null);
   const interactionPauseTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (isPaused) return;
-    const id = window.setInterval(() => {
-      setActiveIndex((index) => (index + 1) % services.length);
-    }, 2000);
-    return () => window.clearInterval(id);
-  }, [isPaused]);
+  const [isDesktopServices, setIsDesktopServices] = useState(false);
+  const [desktopServiceOffset, setDesktopServiceOffset] = useState("42%");
 
   useEffect(() => {
     return () => {
@@ -206,42 +232,133 @@ function Services() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
+    const updateDesktop = () => {
+      setIsDesktopServices(desktopQuery.matches);
+      const progress = Math.min(1, Math.max(0, (window.innerWidth - 1280) / 640));
+      setDesktopServiceOffset(`${(42 + progress * 22).toFixed(2)}%`);
+    };
+    updateDesktop();
+    desktopQuery.addEventListener?.("change", updateDesktop);
+    window.addEventListener("resize", updateDesktop);
+
+    return () => {
+      desktopQuery.removeEventListener?.("change", updateDesktop);
+      window.removeEventListener("resize", updateDesktop);
+    };
+  }, []);
+
+  const getActiveServiceSwiper = () => isDesktopServices ? desktopServiceSwiperRef.current : mobileServiceSwiperRef.current;
+  const getInactiveServiceSwiper = () => isDesktopServices ? mobileServiceSwiperRef.current : desktopServiceSwiperRef.current;
+
+  useEffect(() => {
+    mobileServiceSwiperRef.current?.update();
+    desktopServiceSwiperRef.current?.update();
+  }, [isDesktopServices, desktopServiceOffset]);
+
+  useEffect(() => {
+    getInactiveServiceSwiper()?.autoplay?.stop();
+    getActiveServiceSwiper()?.autoplay?.start();
+  }, [isDesktopServices, desktopServiceOffset]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setAccentReveal(1);
+      return;
+    }
+
+    let rafId = 0;
+    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+    const update = () => {
+      const node = servicesSectionRef.current;
+      if (!node) return;
+
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const travel = Math.max(1, viewportHeight * 0.5184);
+      const progress = clamp01((viewportHeight * 0.78 - rect.top) / travel);
+
+      setAccentReveal((previous) => (
+        Math.abs(previous - progress) < 0.001 ? previous : progress
+      ));
+    };
+
+    const requestUpdate = () => {
+      cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+    };
+  }, []);
+
+  const accentRevealClip = `inset(0 0 0 ${((1 - accentReveal) * 100).toFixed(3)}%)`;
+  const desktopServices = [...services, ...services, ...services];
+  const normalizeServiceIndex = (index: number) => ((index % services.length) + services.length) % services.length;
+
   const pauseForInteraction = () => {
-    setIsPaused(true);
+    getActiveServiceSwiper()?.autoplay?.stop();
     if (interactionPauseTimerRef.current !== null) {
       window.clearTimeout(interactionPauseTimerRef.current);
     }
     interactionPauseTimerRef.current = window.setTimeout(() => {
-      setIsPaused(false);
+      getActiveServiceSwiper()?.autoplay?.start();
       interactionPauseTimerRef.current = null;
-    }, 5000);
+    }, 2000);
   };
 
-  const goTo = (index: number) => setActiveIndex((index + services.length) % services.length);
-  const prev = () => goTo(activeIndex - 1);
-  const next = () => goTo(activeIndex + 1);
+  const pauseAutoplay = () => pauseForInteraction();
+  const resumeAutoplay = () => undefined;
   const prevManual = () => {
     pauseForInteraction();
-    prev();
+    setActiveIndex((index) => normalizeServiceIndex(index - 1));
+    getActiveServiceSwiper()?.slidePrev(300);
   };
   const nextManual = () => {
     pauseForInteraction();
-    next();
+    setActiveIndex((index) => normalizeServiceIndex(index + 1));
+    getActiveServiceSwiper()?.slideNext(300);
   };
+  const handleDesktopSlideChange = (swiper: SwiperClass) => {
+    const normalizedIndex = normalizeServiceIndex(swiper.activeIndex);
+    setActiveIndex(normalizedIndex);
+
+    if (swiper.activeIndex < services.length || swiper.activeIndex >= services.length * 2) {
+      window.requestAnimationFrame(() => {
+        swiper.slideTo(normalizedIndex + services.length, 0, false);
+      });
+    }
+  };
+
   const goToManual = (index: number) => {
     pauseForInteraction();
-    goTo(index);
+    setActiveIndex(index);
+    const swiper = getActiveServiceSwiper();
+    if (isDesktopServices) {
+      swiper?.slideTo(index + services.length, 360);
+    } else {
+      swiper?.slideToLoop(index, 360);
+    }
   };
-  const serviceSwipeHandlers = useSwipeNavigation(prevManual, nextManual, 35, { transition: "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)", dragFactor: 0.82 });
-  const [servicesAccentRef, servicesAccentRevealStyle] = useTrackAccentReveal<HTMLImageElement>();
-  const activeService = services[activeIndex];
-  const previousService = services[(activeIndex - 1 + services.length) % services.length];
-  const followingService = services[(activeIndex + 1) % services.length];
 
   return (
     <section
+      ref={servicesSectionRef}
       id="services"
-      className="rd-services-section homepage-built-mobile-padding relative overflow-hidden px-5 pb-8 pt-16 @sm:px-10 @sm:pb-10 @sm:pt-24 scroll-mt-20"
+      className="rd-services-section homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:pt-24 @sm:pb-[72px] scroll-mt-20"
       style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
     >
       <style>{`
@@ -254,7 +371,6 @@ function Services() {
           pointer-events: none;
           z-index: 1;
           transform: translateY(-15%);
-          transition: clip-path 180ms linear, opacity 180ms ease;
           will-change: clip-path;
         }
         @media (min-width: 1550px) {
@@ -271,27 +387,68 @@ function Services() {
         }
         .rd-services-stage {
           position: relative;
-          height: 360px;
-          margin: 54px auto 0;
-          display: none;
-          align-items: center;
-          justify-content: center;
+          display: grid;
+          margin: 44px auto 0;
+          width: min(560px, 100%);
+          overflow: hidden;
+          touch-action: pan-y;
+          place-items: center;
         }
-        .rd-service-card-shell {
-          position: absolute;
-          width: 668px;
-          transform: translateX(calc(var(--x) + var(--drag-x, 0px))) scale(var(--scale));
-          opacity: var(--opacity);
-          z-index: var(--z);
-          transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease, filter 320ms ease;
-          filter: grayscale(var(--gray));
-          pointer-events: var(--events);
+        .rd-services-stage > * {
+          grid-area: 1 / 1;
+          min-width: 0;
+        }
+        .rd-services-sizer {
+          display: grid;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        .rd-services-sizer > * {
+          grid-area: 1 / 1;
+        }
+        .rd-services-swiper {
+          width: 100%;
+          height: 100%;
+          align-self: stretch;
+        }
+        .rd-services-swiper-desktop {
+          display: none;
+        }
+        .rd-services-swiper .swiper-wrapper {
+          height: 100%;
+          align-items: stretch;
+        }
+        .rd-services-swiper .swiper-slide {
+          height: 100%;
+          align-self: stretch;
+          border-radius: 10px;
+          transition: filter 320ms ease, opacity 320ms ease;
+        }
+        .rd-services-swiper .swiper-slide-shadow,
+        .rd-services-swiper .swiper-slide-shadow-left,
+        .rd-services-swiper .swiper-slide-shadow-right,
+        .rd-services-swiper .swiper-slide-shadow-top,
+        .rd-services-swiper .swiper-slide-shadow-bottom {
+          display: none !important;
+        }
+        .rd-services-swiper .swiper-slide:not(.swiper-slide-active) {
+          filter: none;
+          pointer-events: none;
         }
         .rd-service-card {
           width: 100%;
+          height: 100%;
+          min-height: 100%;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
+          box-sizing: border-box;
           background: white;
+          background-clip: padding-box;
           border-radius: 10px;
+          transform: translateZ(0);
+          isolation: isolate;
+          position: relative;
           box-shadow: 0 4px 12px rgba(35,41,67,0.22);
           color: var(--text-default);
         }
@@ -317,21 +474,28 @@ function Services() {
         }
         .rd-service-card-header h3 {
           margin: 0;
-          font-size: 32px;
+          font-size: clamp(24px, 5.6vw, 32px);
           line-height: 1;
           font-weight: 700;
           font-style: italic;
         }
         .rd-service-card-body {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 318px;
-          min-height: 218px;
+          grid-template-columns: 1fr;
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow: hidden;
+          border-bottom-left-radius: inherit;
+          border-bottom-right-radius: inherit;
         }
         .rd-service-copy {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 30px 40px;
+          padding: 28px;
+          background: inherit;
+          border-bottom-left-radius: inherit;
+          border-bottom-right-radius: inherit;
         }
         .rd-service-copy p {
           margin: 0 0 22px;
@@ -340,10 +504,10 @@ function Services() {
           font-weight: 500;
         }
         .rd-service-link {
-          display: grid;
-          grid-template-columns: 16px minmax(0, 1fr);
+          position: relative;
+          display: inline-flex;
           align-items: center;
-          column-gap: 4px;
+          align-self: flex-start;
           min-height: 30px;
           text-decoration: none;
           font-size: 20px;
@@ -352,47 +516,43 @@ function Services() {
           color: var(--action-tertiary-default);
           transition: color 0.15s ease;
         }
+        .rd-service-link span {
+          display: inline-block;
+          transition: transform 0.18s ease;
+        }
         .rd-service-chevron {
+          position: absolute;
+          left: -24px;
           opacity: 0;
-          justify-self: center;
-          transition: opacity 0.15s ease;
+          transform: translateX(6px);
+          transition: opacity 0.15s ease, transform 0.18s ease;
         }
         @media (hover: hover) and (pointer: fine) {
           .rd-service-link:hover {
             color: var(--text-accent);
           }
+          .rd-service-link:hover span {
+            transform: translateX(6px);
+          }
           .rd-service-link:hover .rd-service-chevron {
             opacity: 1;
+            transform: translateX(0);
           }
         }
         .rd-service-image {
           width: 100%;
-          height: 100%;
-          min-height: 218px;
+          height: 260px;
+          min-height: 260px;
           object-fit: cover;
-        }
-        .rd-services-mobile-card {
-          margin: 44px auto 0;
-          width: min(680px, 100%);
-          overflow: hidden;
-          touch-action: pan-y;
-        }
-        .swipe-peek-track {
-          display: grid;
-          grid-template-columns: repeat(3, 100%);
-          gap: 16px;
-          transform: translate3d(calc((-100% - 16px) + var(--swipe-drag-x, 0px)), 0, 0);
-          transition: var(--swipe-transition, transform 420ms cubic-bezier(0.22, 1, 0.36, 1));
-        }
-        .swipe-peek-item {
-          min-width: 0;
+          order: -1;
         }
         .rd-services-controls {
-          margin-top: 28px;
+          margin: 44px auto 0;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 14px;
+          width: min(560px, 100%);
         }
         .rd-services-control-btn {
           display: flex;
@@ -411,7 +571,9 @@ function Services() {
         .rd-services-dots {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
+          min-width: 90px;
         }
         .rd-services-dot {
           height: 8px;
@@ -425,82 +587,231 @@ function Services() {
           width: 34px;
           background: var(--surface-dark);
         }
-        @media (min-width: 1161px) {
-          .rd-services-stage {
-            display: flex;
+        @media (max-width: 767px) {
+          .rd-services-section {
+            padding-bottom: 45px !important;
           }
-          .rd-services-mobile-card {
-            display: none;
+          .rd-gallery-section {
+            padding-top: 45px !important;
+          }
+        }        @media (min-width: 1161px) {
+          .rd-services-stage {
+            width: min(560px, 100%);
           }
           .rd-services-stage + .rd-services-controls {
-            margin-top: 16px;
+            margin-top: 36px;
+            width: min(560px, 100%);
+          }
+        }
+        @media (min-width: 1280px) {
+          .rd-services-stage {
+            width: 100%;
+            max-width: min(100%, clamp(1180px, calc(1180px + (100vw - 1280px) * 0.40625), 1440px));
+            min-height: clamp(560px, 39vw, 640px);
+          }
+          .rd-services-sizer,
+          .rd-services-swiper {
+            width: clamp(330px, 25.2vw, 387px);
+            justify-self: center;
+          }
+          .rd-services-stage + .rd-services-controls {
+            width: clamp(330px, 25.2vw, 387px);
+          }
+          .rd-services-swiper-mobile {
+            display: none;
+          }
+          .rd-services-swiper-desktop {
+            display: block;
+            overflow: visible;
+          }
+          .rd-services-swiper .swiper-slide {
+            filter: none;
+            pointer-events: auto;
+          }
+          .rd-services-swiper .swiper-slide:not(.swiper-slide-active) {
+            filter: none;
+            pointer-events: none;
+            opacity: 0.54;
+          }
+          .rd-services-swiper-desktop .swiper-slide-prev,
+          .rd-services-swiper-desktop .swiper-slide-next {
+            opacity: 0.76;
+          }
+          .rd-services-swiper-desktop .swiper-slide-active {
+            opacity: 1;
+          }
+          .rd-services-swiper-desktop .swiper-slide:not(.swiper-slide-active) .rd-service-card {
+            box-shadow: inset 0 0 0 3px var(--surface-card), 0 4px 12px rgba(35,41,67,0.16);
+          }
+          .rd-services-swiper-desktop .swiper-slide:not(.swiper-slide-active) .rd-service-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            border-radius: inherit;
+            background: rgba(240, 232, 226, 0.46);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            pointer-events: none;
+            transition: opacity 260ms ease;
+          }
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-card::after {
+            opacity: 0;
+          }
+          .rd-service-card-header h3 {
+            font-size: clamp(27px, 2.25vw, 32px);
+          }
+          .rd-service-image {
+            height: clamp(232px, 18vw, 270px);
+            min-height: clamp(232px, 18vw, 270px);
+          }
+          .rd-service-copy {
+            min-height: 203px;
+          }
+          .rd-services-swiper-desktop .rd-service-card {
+            background: #F0E8E2;
+            transition: background 260ms ease;
+          }
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-card {
+            background: white;
+          }
+          .rd-services-swiper-desktop .rd-service-card-body {
+            background: #F0E8E2;
+            border-bottom-left-radius: inherit;
+            border-bottom-right-radius: inherit;
+            transition: background 260ms ease;
+          }
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-card-body {
+            background: white;
+          }
+          .rd-services-swiper-desktop .rd-service-copy > * {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 260ms ease, transform 260ms ease;
+          }
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-copy > * {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-copy > *:nth-child(2) {
+            transition-delay: 70ms;
+          }
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-copy > *:nth-child(3) {
+            transition-delay: 120ms;
+          }
+        }
+        @media (min-width: 1440px) {
+          .rd-services-swiper-desktop .swiper-slide-active .rd-service-copy {
+            justify-content: flex-start;
+            padding-top: 15px;
           }
         }
         @media (max-width: 1160px) {
           .rd-services-accent {
             display: none;
           }
-          .rd-service-card-body {
-            grid-template-columns: 1fr;
-          }
-          .rd-service-image {
-            min-height: 260px;
-            order: -1;
-          }
-          .rd-service-copy {
-            padding: 28px;
-          }
-          .rd-service-card-header h3 {
-            font-size: clamp(24px, 5.6vw, 32px);
-          }
         }
         @media (prefers-reduced-motion: reduce) {
-          .rd-service-card-shell {
+          .rd-services-swiper .swiper-slide {
             transition: none;
           }
         }
       `}</style>
-      <img ref={servicesAccentRef} src={whatWeOfferAccent} alt="" className="rd-services-accent" style={servicesAccentRevealStyle} />
+      <img
+        src={whatWeOfferAccent}
+        alt=""
+        className="rd-services-accent"
+        style={{ clipPath: accentRevealClip, WebkitClipPath: accentRevealClip }}
+      />
       <div className="rd-services-inner">
         <SectionIntro
           title="What We Offer"
           copy="Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition."
         />
 
-        <div className="rd-services-stage" {...serviceSwipeHandlers} aria-live="polite" onPointerDownCapture={pauseForInteraction} onMouseEnter={() => setIsPaused(true)} onMouseLeave={pauseForInteraction} onFocus={() => setIsPaused(true)} onBlur={pauseForInteraction}>
-          {services.map((service, index) => {
-            const offset = ((index - activeIndex + services.length + 2) % services.length) - 2;
-            const active = offset === 0;
-            const abs = Math.abs(offset);
-            const style = {
-              "--x": `${offset * 205}px`,
-              "--scale": active ? 1 : abs === 1 ? 0.93 : 0.84,
-              "--opacity": active ? 1 : abs === 1 ? 0.92 : 0.62,
-              "--z": active ? 5 : abs === 1 ? 3 : 1,
-              "--gray": active ? 0 : 1,
-              "--events": active ? "auto" : "none",
-              "--drag-x": active ? "var(--swipe-drag-x, 0px)" : "0px",
-            } as React.CSSProperties & Record<`--${string}`, string | number>;
-
-            return (
-              <div key={service.title} className="rd-service-card-shell" style={style}>
-                <ServiceCard service={service} active={active} />
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="rd-services-mobile-card" {...serviceSwipeHandlers} onPointerDownCapture={pauseForInteraction} onTouchStartCapture={pauseForInteraction} onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} onFocus={() => setIsPaused(true)} onBlur={() => setIsPaused(false)}>
-          <div className="swipe-peek-track" aria-live="polite">
-            {[previousService, activeService, followingService].map((service, index) => (
-              <div key={`${service.title}-${index}`} className="swipe-peek-item" aria-hidden={index !== 1}>
-                <ServiceCard service={service} mobile />
-              </div>
+        <div className="rd-services-stage" aria-live="polite" onPointerDownCapture={pauseForInteraction} onMouseEnter={pauseAutoplay} onMouseLeave={resumeAutoplay} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
+          <div className="rd-services-sizer" aria-hidden="true">
+            {services.map((service) => (
+              <ServiceCard key={`${service.title}-sizer`} service={service} active mobile />
             ))}
           </div>
+          <Swiper
+            modules={[Autoplay, A11y, EffectCreative, Keyboard]}
+            className="rd-services-swiper rd-services-swiper-mobile"
+            initialSlide={1}
+            loop={services.length > 1}
+            slidesPerView={1}
+            centeredSlides
+            spaceBetween={16}
+            speed={300}
+            threshold={35}
+            grabCursor
+            allowTouchMove
+            keyboard={{ enabled: true }}
+            effect="creative"
+            creativeEffect={{
+              limitProgress: 2,
+              perspective: false,
+              prev: { translate: [-205, 0, 0], scale: 0.93, shadow: false },
+              next: { translate: [205, 0, 0], scale: 0.93, shadow: false },
+            }}
+            autoplay={{ delay: 1200, disableOnInteraction: false, pauseOnMouseEnter: false }}
+            onSwiper={(swiper) => {
+              mobileServiceSwiperRef.current = swiper;
+              if (!isDesktopServices) setActiveIndex(swiper.realIndex);
+            }}
+            onSlideChange={(swiper) => {
+              if (!isDesktopServices) setActiveIndex(swiper.realIndex);
+            }}
+          >
+            {services.map((service, index) => (
+              <SwiperSlide key={service.title}>
+                <ServiceCard service={service} active={index === activeIndex} mobile={index === activeIndex} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          <Swiper
+            modules={[Autoplay, A11y, EffectCreative, Keyboard]}
+            key={desktopServiceOffset}
+            className="rd-services-swiper rd-services-swiper-desktop"
+            initialSlide={services.length + 1}
+            loop={false}
+            slidesPerView={1}
+            centeredSlides
+            spaceBetween={0}
+            speed={300}
+            threshold={35}
+            grabCursor
+            allowTouchMove
+            keyboard={{ enabled: true }}
+            effect="creative"
+            creativeEffect={{
+              limitProgress: 2,
+              perspective: false,
+              prev: { translate: [`-${desktopServiceOffset}`, 0, 0], scale: 0.86, shadow: false },
+              next: { translate: [desktopServiceOffset, 0, 0], scale: 0.86, shadow: false },
+            }}
+            autoplay={{ delay: 1200, disableOnInteraction: false, pauseOnMouseEnter: false }}
+            onSwiper={(swiper) => {
+              desktopServiceSwiperRef.current = swiper;
+              if (isDesktopServices) handleDesktopSlideChange(swiper);
+            }}
+            onSlideChange={(swiper) => {
+              if (isDesktopServices) handleDesktopSlideChange(swiper);
+            }}
+          >
+            {desktopServices.map((service, index) => {
+              const normalizedIndex = normalizeServiceIndex(index);
+              return (
+                <SwiperSlide key={`${service.title}-desktop-${index}`}>
+                  <ServiceCard service={service} active={normalizedIndex === activeIndex} mobile={normalizedIndex === activeIndex} />
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
         </div>
 
-        <div className="rd-services-controls" aria-label="Service carousel controls" onPointerDownCapture={pauseForInteraction} onMouseEnter={() => setIsPaused(true)} onMouseLeave={pauseForInteraction} onFocus={() => setIsPaused(true)} onBlur={pauseForInteraction}>
+        <div className="rd-services-controls" aria-label="Service carousel controls" onPointerDownCapture={pauseForInteraction} onMouseEnter={pauseAutoplay} onMouseLeave={resumeAutoplay} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
           <button type="button" className="rd-services-control-btn" onClick={prevManual} aria-label="Previous service">
             <ChevronLeft size={22} />
           </button>
@@ -524,58 +835,54 @@ function Services() {
     </section>
   );
 }
+const galleryItems = [
+  {
+    className: "rd-gallery-crew",
+    src: imgGalleryCrew,
+    alt: "Arsenal Events crew working at a race timing station",
+    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+  },
+  {
+    className: "rd-gallery-equipment",
+    src: imgGalleryEquipment,
+    alt: "Race timing equipment in an orange case",
+    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+  },
+  {
+    className: "rd-gallery-results",
+    src: imgGalleryResults,
+    alt: "Race results displayed on a monitor",
+    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+  },
+  {
+    className: "rd-gallery-trophies",
+    src: imgGalleryTrophies,
+    alt: "Race awards lined up on a table",
+    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+  },
+];
+
 function Gallery() {
-  const galleryImages = [
-    { src: imgGalleryCrew, alt: "Arsenal Events crew working at a race timing station" },
-    { src: imgGalleryEquipment, alt: "Race timing equipment in an orange case" },
-    { src: imgGalleryResults, alt: "Race results displayed on a monitor" },
-    { src: imgGalleryTrophies, alt: "Race awards lined up on a table" },
-  ] as const;
-  const [activeImage, setActiveImage] = useState<(typeof galleryImages)[number] | null>(null);
-  const captionRef = useRef<HTMLParagraphElement | null>(null);
-  const [captionLeftAligned, setCaptionLeftAligned] = useState(false);
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState<number | null>(null);
+  const activeGalleryItem = activeGalleryIndex === null ? null : galleryItems[activeGalleryIndex];
 
   useEffect(() => {
-    if (!activeImage) return;
+    if (activeGalleryIndex === null) return;
 
-    const measureCaption = () => {
-      const node = captionRef.current;
-      if (!node) {
-        setCaptionLeftAligned(false);
-        return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveGalleryIndex(null);
       }
-
-      const styles = window.getComputedStyle(node);
-      const lineHeight = Number.parseFloat(styles.lineHeight) || 24;
-      setCaptionLeftAligned(node.scrollHeight > lineHeight * 3 + 1);
     };
 
-    measureCaption();
-    const resizeObserver = new ResizeObserver(measureCaption);
-    if (captionRef.current) resizeObserver.observe(captionRef.current);
-    window.addEventListener("resize", measureCaption);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", measureCaption);
-    };
-  }, [activeImage]);
-
-  useEffect(() => {
-    if (!activeImage) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setActiveImage(null);
-    };
-
-    document.addEventListener("keydown", onKeyDown);
     document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeImage]);
+  }, [activeGalleryIndex]);
 
   return (
     <section className="rd-gallery-section homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:py-24">
@@ -592,6 +899,18 @@ function Gallery() {
           z-index: 0;
           -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 9%, #000 24%);
           mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 9%, #000 24%);
+        }
+        @media (min-width: 1921px) {
+          .rd-gallery-topography {
+            inset: 0 auto 0 50%;
+            width: 1920px;
+            max-width: 1920px;
+            transform: translateX(-50%);
+            -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%), linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 9%, #000 24%);
+            mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%), linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 9%, #000 24%);
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+          }
         }
         .rd-gallery-inner {
           position: relative;
@@ -625,27 +944,88 @@ function Gallery() {
           gap: 16px;
         }
         .rd-gallery-item {
-          position: relative;
           overflow: hidden;
           background: var(--surface-dark);
+          border: 0;
+          padding: 0;
           cursor: zoom-in;
         }
-        .rd-gallery-item::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: #0f1424;
-          pointer-events: none;
-        }
         .rd-gallery-item img {
-          position: relative;
-          z-index: 1;
           width: 100%;
           height: 100%;
           object-fit: cover;
           display: block;
-          transform: scale(1.02);
-          transform-origin: center center;
+        }
+        .rd-gallery-lightbox {
+          position: fixed;
+          inset: 0;
+          z-index: 1000;
+          display: grid;
+          place-items: center;
+          background: rgba(16,18,31,0.92);
+          padding: clamp(16px, 3vw, 40px);
+        }
+        .rd-gallery-lightbox-frame {
+          position: relative;
+          width: min(100%, 1500px);
+          height: min(100%, 88vh);
+          overflow: hidden;
+          background: transparent;
+        }
+        .rd-gallery-lightbox-frame img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          display: block;
+        }
+        .rd-gallery-lightbox-caption {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          min-height: 15%;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          padding: clamp(18px, 2vw, 30px);
+          color: var(--text-inverse);
+          text-align: center;
+          background: linear-gradient(180deg, rgba(16,18,31,0) 0%, rgba(16,18,31,0.82) 58%, rgba(16,18,31,0.95) 100%);
+          pointer-events: none;
+        }
+        .rd-gallery-lightbox-caption p {
+          width: 100%;
+          margin: 0;
+          font-size: clamp(16px, 1.7vw, 22px);
+          line-height: 1.35;
+          font-weight: 500;
+        }
+        @media (max-width: 600px) {
+          .rd-gallery-lightbox-caption p {
+            text-align: left;
+          }
+        }
+        .rd-gallery-lightbox-close {
+          position: fixed;
+          top: clamp(14px, 2vw, 28px);
+          right: clamp(14px, 2vw, 28px);
+          z-index: 1001;
+          display: grid;
+          place-items: center;
+          width: 48px;
+          height: 48px;
+          border: 0;
+          border-radius: 999px;
+          background: var(--surface-dark);
+          color: var(--text-inverse);
+          cursor: pointer;
+          box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+        }
+        .rd-gallery-lightbox-close svg {
+          width: 24px;
+          height: 24px;
+          stroke: currentColor;
+          stroke-width: 2.5;
         }
         .rd-gallery-equipment {
           grid-column: 2;
@@ -654,83 +1034,23 @@ function Gallery() {
         .rd-gallery-trophies {
           grid-column: 1 / -1;
         }
-        .rd-gallery-crew img,
-        .rd-gallery-equipment img,
+        .rd-gallery-crew img {
+          object-position: center center;
+        }
+        .rd-gallery-equipment img {
+          object-position: center center;
+        }
         .rd-gallery-results img {
           object-position: center center;
         }
         .rd-gallery-trophies img {
           object-position: center calc(50% + 50px);
         }
-        .rd-gallery-modal {
-          position: fixed;
-          inset: 0;
-          z-index: 80;
-          display: block;
-          padding: 0;
-          background: #0f1424;
-        }
-        .rd-gallery-modal-panel {
-          position: absolute;
-          inset: 0;
-        }
-        .rd-gallery-modal-image {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-        }
-        .rd-gallery-modal-caption {
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          width: 100%;
-          height: 15%;
-          min-height: 86px;
-          display: flex;
-          align-items: flex-end;
-          justify-content: center;
-          padding: 18px 22px 20px;
-          border-radius: 0;
-          background: linear-gradient(180deg, rgba(15, 20, 36, 0) 0%, rgba(15, 20, 36, 0.9) 100%);
-          color: var(--text-inverse);
-          text-align: center;
-        }
-        .rd-gallery-modal-caption p {
-          width: 100%;
-          margin: 0;
-          max-width: none;
-          font-size: 16px;
-          line-height: 24px;
-          font-weight: 500;
-        }
-        .rd-gallery-modal-caption.is-left-aligned {
-          text-align: left;
-        }
-        .rd-gallery-modal-close {
-          position: absolute;
-          top: 18px;
-          right: 18px;
-          z-index: 4;
-          width: 44px;
-          height: 44px;
-          border-radius: 999px;
-          border: 0;
-          background: var(--surface-dark);
-          color: var(--text-inverse);
-          cursor: pointer;
-          box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-        }
-        .rd-gallery-modal-close svg {
-          width: 22px;
-          height: 22px;
-          display: block;
-          stroke: currentColor;
+        @media (max-width: 1199px) {
+          .rd-gallery-trophies img {
+            object-fit: cover;
+            object-position: center center;
+          }
         }
         @media (max-width: 900px) {
           .rd-gallery-heading {
@@ -760,36 +1080,45 @@ function Gallery() {
           <img src={raceDayChevron} alt="" className="rd-gallery-chevron" />
         </div>
         <div className="rd-gallery-grid">
-          <figure className="rd-gallery-item rd-gallery-crew" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[0])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[0])}>
-            <img src={imgGalleryCrew} alt="Arsenal Events crew working at a race timing station" />
-          </figure>
-          <figure className="rd-gallery-item rd-gallery-equipment" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[1])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[1])}>
-            <img src={imgGalleryEquipment} alt="Race timing equipment in an orange case" />
-          </figure>
-          <figure className="rd-gallery-item rd-gallery-results" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[2])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[2])}>
-            <img src={imgGalleryResults} alt="Race results displayed on a monitor" />
-          </figure>
-          <figure className="rd-gallery-item rd-gallery-trophies" role="button" tabIndex={0} onClick={() => setActiveImage(galleryImages[3])} onKeyDown={(event) => event.key === "Enter" && setActiveImage(galleryImages[3])}>
-            <img src={imgGalleryTrophies} alt="Race awards lined up on a table" />
-          </figure>
+          {galleryItems.map((item, index) => (
+            <button
+              key={item.alt}
+              type="button"
+              className={`rd-gallery-item ${item.className}`}
+              onClick={() => setActiveGalleryIndex(index)}
+              aria-label={`Open gallery image: ${item.alt}`}
+            >
+              <img src={item.src} alt={item.alt} />
+            </button>
+          ))}
         </div>
       </div>
-      {activeImage && (
-        <div className="rd-gallery-modal" role="dialog" aria-modal="true" aria-label="Gallery image lightbox" onClick={() => setActiveImage(null)}>
-          <div className="rd-gallery-modal-panel" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="rd-gallery-modal-close" aria-label="Close lightbox" onClick={() => setActiveImage(null)}>
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-                <path d="M6 6L18 18M18 6L6 18" strokeWidth="2.4" strokeLinecap="round" />
-              </svg>
-            </button>
-            <img src={activeImage.src} alt={activeImage.alt} className="rd-gallery-modal-image" />
-            <div className={`rd-gallery-modal-caption ${captionLeftAligned ? "is-left-aligned" : ""}`}>
-              <p ref={captionRef}>Placeholder supporting gallery copy describing the moment captured in this race-day image.</p>
+      {activeGalleryItem && (
+        <div
+          className="rd-gallery-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Race day gallery image"
+          onClick={() => setActiveGalleryIndex(null)}
+        >
+          <button
+            type="button"
+            className="rd-gallery-lightbox-close"
+            onClick={() => setActiveGalleryIndex(null)}
+            aria-label="Close gallery image"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none">
+              <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+            </svg>
+          </button>
+          <div className="rd-gallery-lightbox-frame" onClick={(event) => event.stopPropagation()}>
+            <img src={activeGalleryItem.src} alt={activeGalleryItem.alt} />
+            <div className="rd-gallery-lightbox-caption">
+              <p>{activeGalleryItem.caption}</p>
             </div>
           </div>
         </div>
-      )}
-    </section>
+      )}      </section>
   );
 }
 export default function ForRaceDirectorsPage() {
@@ -807,6 +1136,53 @@ export default function ForRaceDirectorsPage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

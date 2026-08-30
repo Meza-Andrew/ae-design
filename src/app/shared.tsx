@@ -255,6 +255,18 @@ export function Nav() {
     { label: "Resources", to: "/resources" },
   ];
 
+  const scrollToPageTop = () => {
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+  };
+
+  const handlePrimaryNavClick = () => {
+    setOpen(false);
+    scrollToPageTop();
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -355,7 +367,7 @@ export function Nav() {
           <Link
             to="/"
             className="flex items-center shrink-0"
-            onClick={() => setOpen(false)}
+            onClick={handlePrimaryNavClick}
             aria-label="Arsenal Events — home"
           >
             <div className="nav-logo-scale">
@@ -372,6 +384,7 @@ export function Nav() {
                   location.pathname === l.to ? "opacity-100 underline underline-offset-4" : "opacity-90 hover:opacity-100"
                 }`}
                 style={{ color: "var(--text-inverse)" }}
+                onClick={handlePrimaryNavClick}
               >
                 {l.label}
               </Link>
@@ -390,7 +403,7 @@ export function Nav() {
           <Link
             to="/"
             className="flex items-center shrink-0"
-            onClick={() => setOpen(false)}
+            onClick={handlePrimaryNavClick}
             aria-label="Arsenal Events — home"
           >
             <div className="nav-logo-scale">
@@ -419,7 +432,7 @@ export function Nav() {
           <Link
             to="/"
             className="flex items-center shrink-0"
-            onClick={() => setOpen(false)}
+            onClick={handlePrimaryNavClick}
             aria-label="Arsenal Events — home"
           >
             <div className="nav-logo-scale">
@@ -448,7 +461,7 @@ export function Nav() {
             <Link
               key={l.to}
               to={l.to}
-              onClick={() => setOpen(false)}
+              onClick={handlePrimaryNavClick}
               className={`flex items-center px-6 py-4 text-base border-b transition-opacity ${
                 location.pathname === l.to
                   ? "font-semibold opacity-100 border-[#fcf3ed]/20"
@@ -463,7 +476,7 @@ export function Nav() {
           <div className="px-6 py-5">
             <Link
               to="/for-race-directors"
-              onClick={() => setOpen(false)}
+              onClick={handlePrimaryNavClick}
               className="flex items-center justify-center w-full py-3.5 font-semibold text-base"
               style={{
                 background: "var(--action-primary-default)",
@@ -514,6 +527,13 @@ const FOOTER_NAV = [
 ];
 
 export function Footer() {
+  const scrollToPageTop = () => {
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+  };
+
   return (
     <footer style={{ background: "var(--surface-footer)" }}>
       <style>{`
@@ -614,6 +634,7 @@ export function Footer() {
             <p style={{ fontWeight: 400, fontSize: "16px", lineHeight: "20px", marginBottom: "8px" }}>
               <Link
                 to="/privacy-policy"
+                onClick={scrollToPageTop}
                 className="ftrl"
                 style={{ color: "var(--text-inverse)", textDecoration: "none" }}
               >
@@ -622,6 +643,7 @@ export function Footer() {
               {" | "}
               <Link
                 to="/cookie-policy"
+                onClick={scrollToPageTop}
                 className="ftrl"
                 style={{ color: "var(--text-inverse)", textDecoration: "none" }}
               >
@@ -641,6 +663,7 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       to={link.to}
+                      onClick={scrollToPageTop}
                       className="ftrl"
                       style={{
                         display: "block",
@@ -784,4 +807,7 @@ export function AnnotationKey() {
     null
   );
 }
+
+
+
 
