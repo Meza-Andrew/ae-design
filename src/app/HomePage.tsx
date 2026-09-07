@@ -1000,7 +1000,7 @@ function Services({
             flex: 1 1 0;
             max-width: 680px;
             min-width: 0;
-            height: 444px;
+            height: 510px;
           }
           .services-card {
             width: 100%;
@@ -1093,8 +1093,8 @@ function Services({
                   For Race Directors
                 </h3>
               </Link>
-              <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
-                <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
+              <div className="flex" style={{ background: "var(--surface-card)", height: "422px" }}>
+                <div className="p-6 flex-shrink-0" style={{ width: "54%" }}>
                   <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
                     Everything you need to plan, register, and time your event with one convenient partner to handle all of the logistics of race day.
                   </p>
@@ -1129,8 +1129,8 @@ function Services({
                   For Runners
                 </h3>
               </Link>
-              <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
-                <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
+              <div className="flex" style={{ background: "var(--surface-card)", height: "422px" }}>
+                <div className="p-6 flex-shrink-0" style={{ width: "54%" }}>
                   <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
                     Find your next race, check your results, and relive the moments that made race day worth it.
                   </p>
@@ -2547,7 +2547,7 @@ function BuiltForRaceDay({
                   maxWidth: "672px",
                 }}
               >
-                Arsenal Events was built by people who know the running community from every side, as athletes, coaches, parents, event organizers, and race-day partners. Today, we bring that experience together with a team commitment to making every event feel organized, professional, and worth showing up for.
+                Arsenal Events was built by people who know the running community from every side, as athletes, coaches, parents, event organizers, and race-day partners.
               </p>
             </div>
             <Link
@@ -2558,9 +2558,9 @@ function BuiltForRaceDay({
                 color: "var(--action-primary-text)",
                 fontSize: "20px",
                 fontWeight: 600,
-                width: "274.894px",
+                width: "320px",
                 height: "68.318px",
-                padding: "0 40px",
+                padding: "0 32px",
                 borderRadius: "10px",
                 textDecoration: "none",
                 whiteSpace: "nowrap",
