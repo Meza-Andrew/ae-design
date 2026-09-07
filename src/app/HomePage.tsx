@@ -20,7 +20,7 @@ import blockQuoteSvg from "@/imports/block_quote.svg";
 import timerSvg from "@/imports/timer.svg";
 import medalSvg from "@/imports/medal.svg";
 import smileSvg from "@/imports/smile.svg";
-import imgResourceRunner from "@/imports/DSC07982-2_1.png";
+import imgResourceRunner from "@/imports/race-results-guide.jpg";
 import imgResourceDirector from "@/imports/image_2.png";
 import imgResourceGear from "@/imports/image_1.png";
 import personRunSvg from "@/imports/PersonSimpleRun.svg";
@@ -755,13 +755,16 @@ function Hero({
         >
           Run Your Next Race
         </h1>
+        <p className="sr-only">
+          Race Timing, Registration &amp; Event Services in Virginia, DC, and Maryland
+        </p>
 
         {/* Subtitle */}
         <p
           className="text-[clamp(18px,2.1vw,30px)] font-semibold leading-snug mb-10 max-w-[60ch]"
           style={{ textShadow: "0px 4px 4px rgba(0,0,0,0.25)", color: "var(--text-inverse)" }}
         >
-          Placeholder supporting headline copy — one or two sentences describing both race director and runner-facing value propositions.
+          Reliable technology, experienced support, and a smooth race-day experience from start to finish.
         </p>
 
         {/* CTA buttons */}
@@ -780,18 +783,17 @@ function Hero({
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 const DIRECTORS_SERVICES = [
-  { label: "Registration", accent: true, to: "/for-race-directors#registration" },
-  { label: "Timing & Results", accent: false, to: "/for-race-directors#timing" },
-  { label: "Packet Pickup", accent: false, to: "/for-race-directors#packet-pickup" },
-  { label: "Course Management", accent: false, to: "/for-race-directors#course-management" },
-  { label: "Consulting", accent: false, to: "/for-race-directors#consulting" },
+  { label: "Registration", accent: true, to: "/for-race-directors?service=registration#services" },
+  { label: "Timing & Results", accent: false, to: "/for-race-directors?service=timing-results#services" },
+  { label: "Packet Pickup", accent: false, to: "/for-race-directors?service=packet-pickup#services" },
+  { label: "Course Management", accent: false, to: "/for-race-directors?service=course-management#services" },
+  { label: "Consulting", accent: false, to: "/for-race-directors?service=race-directing#services" },
 ];
 
 const RUNNERS_SERVICES = [
-  { label: "Registration", to: "/races#registration" },
+  { label: "Upcoming Races", to: "/races#upcoming-races" },
   { label: "Results", to: "/races#results" },
-  { label: "Packet Pickup", to: "/races#packet-pickup" },
-  { label: "Photos", to: "/races#photos" },
+  { label: "Photos", to: "/races#results" },
 ];
 
 function RaceDirectorsIcon({ size = 28 }: { size?: number }) {
@@ -994,21 +996,32 @@ function Services({
               flex: 0 1 calc(50% - 12px);
             }
           }
-          .services-card {
+          .services-card-shell {
             flex: 1 1 0;
             max-width: 680px;
             min-width: 0;
             height: 444px;
           }
-          .services-card.reveal-from-bottom {
+          .services-card {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+          .services-card-shell.reveal-from-bottom {
             opacity: 0;
             transform: translateY(42px);
             transition: opacity 0.7s ease, transform 0.7s ease;
             will-change: opacity, transform;
           }
-          .services-card.reveal-from-bottom.is-visible {
+          .services-card-shell.reveal-from-bottom.is-visible {
             opacity: 1;
             transform: translateY(0);
+          }
+          @media (hover: hover) and (pointer: fine) {
+            .services-card:hover {
+              transform: translateY(-4px);
+              box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18) !important;
+            }
           }
           @media (min-width: 1161px) {
             .services-desktop-layout {
@@ -1023,16 +1036,19 @@ function Services({
               width: 1165px;
               max-width: 100%;
             }
-            .services-card {
+            .services-card-shell {
               flex: 0 0 570.5px;
               max-width: 570.5px;
             }
           }
           @media (prefers-reduced-motion: reduce) {
-            .services-card.reveal-from-bottom {
+            .services-card-shell.reveal-from-bottom {
               transition: none !important;
               transform: none !important;
               opacity: 1 !important;
+            }
+            .services-card:hover {
+              transform: none !important;
             }
           }
         `}</style>
@@ -1041,7 +1057,7 @@ function Services({
           className="font-bold italic mb-5"
           style={{ fontSize: "48px", lineHeight: "48px", color: "var(--text-headlines)" }}
         >
-          What We Offer
+          Everything You Need for Race Day
         </h2>
 
         <p
@@ -1054,7 +1070,7 @@ function Services({
             marginRight: servicesIntroLeftAlign ? 0 : undefined,
           }}
         >
-          Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+          We make race day simpler whether you’re organizing the event or crossing the finish line.
         </p>
 
         {/* ── Desktop: horizontal overlapping cards ── */}
@@ -1063,13 +1079,14 @@ function Services({
             className="services-card-grid mx-auto"
           >
             {/* Race Directors card */}
-            <div
-              className={`services-card reveal-from-bottom ${isVisible ? "is-visible" : ""} overflow-hidden`}
-              style={{
-                borderRadius: "10px",
-                boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
-              }}
-            >
+            <div className={`services-card-shell reveal-from-bottom ${isVisible ? "is-visible" : ""}`}>
+              <div
+                className="services-card overflow-hidden"
+                style={{
+                  borderRadius: "10px",
+                  boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
+                }}
+              >
               <Link to="/for-race-directors" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
                 <RaceDirectorsIcon size={28} />
                 <h3 className="font-bold italic" style={{ fontSize: "28px", lineHeight: "1.2", color: "var(--text-inverse)" }}>
@@ -1079,7 +1096,7 @@ function Services({
               <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
                 <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
                   <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
-                    Everything you need to plan, register, and time your event from start to finish.
+                    Everything you need to plan, register, and time your event with one convenient partner to handle all of the logistics of race day.
                   </p>
                   <div className="flex flex-col">
                     {DIRECTORS_SERVICES.map(({ label, to }) => (
@@ -1095,16 +1112,17 @@ function Services({
                 </div>
               </div>
             </div>
+            </div>
 
             {/* Runners card */}
-            <div
-              className={`services-card reveal-from-bottom ${isVisible ? "is-visible" : ""} overflow-hidden`}
-              style={{
-                borderRadius: "10px",
-                boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
-                transitionDelay: "140ms",
-              }}
-            >
+            <div className={`services-card-shell reveal-from-bottom ${isVisible ? "is-visible" : ""}`} style={{ transitionDelay: "140ms" }}>
+              <div
+                className="services-card overflow-hidden"
+                style={{
+                  borderRadius: "10px",
+                  boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
+                }}
+              >
               <Link to="/races" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
                 <RunnersIcon size={34} />
                 <h3 className="font-bold italic" style={{ fontSize: "28px", lineHeight: "1.2", color: "var(--text-inverse)" }}>
@@ -1114,7 +1132,7 @@ function Services({
               <div className="flex" style={{ background: "var(--surface-card)", height: "356px" }}>
                 <div className="p-6 flex-shrink-0" style={{ width: "44%" }}>
                   <p className="mb-4 text-left" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
-                    Find your next race, check your results, and relive race day with photos.
+                    Find your next race, check your results, and relive the moments that made race day worth it.
                   </p>
                   <div className="flex flex-col">
                     {RUNNERS_SERVICES.map(({ label, to }) => (
@@ -1133,6 +1151,7 @@ function Services({
                 </div>
               </div>
             </div>
+            </div>
           </div>
         </div>
 
@@ -1148,7 +1167,7 @@ function Services({
             <img src={imgEquipment} alt="Arsenal Events timing equipment" className="w-full h-44 object-cover" />
             <div className="p-5">
               <p className="mb-3" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
-                Everything you need to plan, register, and time your event from start to finish.
+                Everything you need to plan, register, and time your event with one convenient partner to handle all of the logistics of race day.
               </p>
               <div className="flex flex-col">
                 {DIRECTORS_SERVICES.map(({ label, to }) => (
@@ -1174,7 +1193,7 @@ function Services({
             </div>
             <div className="p-5">
               <p className="mb-3" style={{ ...SERVICE_CARD_BODY_STYLE, color: "var(--text-default)" }}>
-                Find your next race, check your results, and relive race day with photos.
+                Find your next race, check your results, and relive the moments that made race day worth it.
               </p>
               <div className="flex flex-col">
                 {RUNNERS_SERVICES.map(({ label, to }) => (
@@ -1264,7 +1283,7 @@ const races = [
     name: "Halloween 5k & Monster Mile",
     date: "October 30, 2026",
     location: "Stafford, VA",
-    to: "/races#halloween-5k",
+    to: "/races#upcoming-races",
     isArsenalEvent: true,
     bgImg: imgHalloweenBg,
     logoImg: imgHalloweenLogo,
@@ -1273,7 +1292,7 @@ const races = [
     name: "Frosty 5k & Reindeer Run",
     date: "December 30, 2026",
     location: "Fredericksburg, VA",
-    to: "/races#frosty-5k",
+    to: "/races#upcoming-races",
     isArsenalEvent: false,
     bgImg: imgFrostyBg,
     logoImg: imgFrostyLogo,
@@ -1356,7 +1375,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
         >
           {race.name}
         </h3>
-        {/* Card is the link — Register is a visual CTA div with its own hover skew */}
+        {/* Card is the link — Register Now is a visual CTA div with its own hover skew */}
         <div
           className="ae-btn-register upcoming-race-register flex items-center justify-center mt-auto"
           style={{
@@ -1371,7 +1390,7 @@ function RaceCard({ race }: { race: (typeof races)[number] }) {
             alignSelf: "center",
           }}
         >
-          Register
+          Register Now
         </div>
       </div>
     </Link>
@@ -1591,12 +1610,11 @@ function FeaturedRaces({
           .ae-btn-secondary:hover { background: var(--action-secondary-hover) !important; }
 
           .race-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease, outline-color 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
           }
           .race-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0px 10px 28px 0px rgba(35,41,67,0.18);
-            outline-color: var(--text-accent);
+            box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18);
           }
 
           .ae-btn-register {
@@ -1611,7 +1629,7 @@ function FeaturedRaces({
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          .race-card { transition: box-shadow 0.2s ease, outline-color 0.2s ease !important; }
+          .race-card { transition: box-shadow 0.2s ease !important; }
           .race-card:hover { transform: none !important; }
           .ae-btn-register { transition: background-color 0.2s ease !important; }
           .ae-btn-register:hover { transform: none !important; }
@@ -1743,14 +1761,14 @@ function FeaturedRaces({
 
                   <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
                     <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
-                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                      Your next finish line is waiting.
                     </p>
                     <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
-                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                      Discover upcoming races produced or timed by Arsenal Events, find the one that fits, and get registered.
                     </p>
 
                     <Link
-                      to="/races"
+                      to="/races#upcoming-races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
                       style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
                     >
@@ -1792,14 +1810,14 @@ function FeaturedRaces({
 
                   <div className="upcoming-races-support-copy" style={{ paddingRight: "80px", position: "relative", zIndex: 2 }}>
                     <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}>
-                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                      Your next finish line is waiting.
                     </p>
                     <p style={{ ...BODY_COPY_STYLE, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
-                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                      Discover upcoming races produced or timed by Arsenal Events, find the one that fits, and get registered.
                     </p>
 
                     <Link
-                      to="/races"
+                      to="/races#upcoming-races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
                       style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
                     >
@@ -1945,14 +1963,14 @@ function FeaturedRaces({
                       ref={upcomingCopyRef}
                       style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "20px", maxWidth: "404px" }}
                     >
-                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                      Your next finish line is waiting.
                     </p>
                     <p style={{ fontSize: "24px", lineHeight: "32px", fontWeight: 500, color: "var(--text-default)", marginBottom: "40px", maxWidth: "404px" }}>
-                      Placeholder supporting headline copy — one or two sentences describing the runner-facing value proposition.
+                      Discover upcoming races produced or timed by Arsenal Events, find the one that fits, and get registered.
                     </p>
 
                     <Link
-                      to="/races"
+                      to="/races#upcoming-races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
                       style={{
                         background: "var(--action-primary-default)",
@@ -2097,7 +2115,7 @@ const BUILT_TESTIMONIALS = [
 const BUILT_STATS = [
   { icon: timerSvg, value: "200+", label: "Timed Races" },
   { icon: medalSvg, value: "50k+", label: "Finishers Tracked" },
-  { icon: smileSvg, value: "100%", label: "Race Director Satisfaction" },
+  { icon: smileSvg, value: "[#]", label: "Years of Combined Experience" },
 ];
 
 type BuiltQuoteLane = "director" | "runner";
@@ -2529,8 +2547,7 @@ function BuiltForRaceDay({
                   maxWidth: "672px",
                 }}
               >
-                Placeholder about copy — one or two sentences about Arsenal Events, its
-                mission, and what differentiates the service for both race directors and runners.
+                Arsenal Events was built by people who know the running community from every side, as athletes, coaches, parents, event organizers, and race-day partners. Today, we bring that experience together with a team commitment to making every event feel organized, professional, and worth showing up for.
               </p>
             </div>
             <Link
@@ -2549,7 +2566,7 @@ function BuiltForRaceDay({
                 whiteSpace: "nowrap",
               }}
             >
-              Meet The Team
+              Get to Know Arsenal Events
             </Link>
           </div>
 
@@ -2727,7 +2744,7 @@ function ResourceCard({
         overflow: "hidden",
         position: "relative",
         aspectRatio: "390 / 374",
-        boxShadow: "0px 1px 4px 0px rgba(165,162,169,0.8)",
+        boxShadow: "0px 1px 4px 0px rgba(165,162,169,1)",
         ...style,
       }}
     >
@@ -2839,18 +2856,18 @@ function Resources({
           }
         }
         @media (hover: hover) and (pointer: fine) {
-          .resource-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
-        .resource-card:hover { transform: translateY(-4px); box-shadow: 0px 6px 20px rgba(0,0,0,0.13) !important; }
+          .resource-card { width: 100%; height: 100%; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+          .resource-card:hover { transform: translateY(-4px); box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18) !important; }
           .res-cta { transition: transform 0.25s ease, background-color 0.2s ease; }
           .res-cta:hover { transform: skewX(-8deg); background: var(--action-primary-hover) !important; }
         }
-        .resource-card.reveal-from-bottom {
+        .resource-card-shell.reveal-from-bottom {
           opacity: 0;
           transform: translateY(42px);
           transition: opacity 0.7s ease, transform 0.7s ease;
           will-change: opacity, transform;
         }
-        .resource-card.reveal-from-bottom.is-visible {
+        .resource-card-shell.reveal-from-bottom.is-visible {
           opacity: 1;
           transform: translateY(0);
         }
@@ -2897,7 +2914,7 @@ function Resources({
             margin-left: auto;
             margin-right: auto;
           }
-          .resources-card-row .resource-card {
+          .resources-card-row .resource-card-shell {
             flex: 0 0 384px !important;
             max-width: 384px;
           }
@@ -2941,7 +2958,7 @@ function Resources({
               alignSelf: resourcesIntroLeftAlign ? "stretch" : undefined,
             }}
           >
-            Resources
+            Resources for a Better Race Day
           </h2>
           <p
             ref={resourcesIntroCopyRef}
@@ -2953,27 +2970,27 @@ function Resources({
               alignSelf: resourcesIntroLeftAlign ? "stretch" : undefined,
             }}
           >
-            Placeholder supporting headline copy with a sentence or two leading into
-            the Runner&apos;s Arsenal blog and its benefits.
+            Practical tips and guides for runners and race directors, from planning and registration to results, race day prep, and everything in between.
           </p>
           <Link
             to="/resources"
             className="res-cta inline-flex items-center justify-center"
             style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, width: "274.894px", height: "68.318px", padding: "0 40px", borderRadius: "10px", textDecoration: "none", whiteSpace: "nowrap" }}
           >
-            Learn Something New
+            See All Resources
           </Link>
         </div>
 
         {/* Three cards on desktop, single-card carousel on mobile/tablet */}
         <div className="resources-card-row">
           {RESOURCE_CARDS.map((card, index) => (
-            <ResourceCard
+            <div
               key={card.title}
-              card={card}
-              className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
+              className={`resource-card-shell reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
               style={{ transitionDelay: `${index * 140}ms` }}
-            />
+            >
+              <ResourceCard card={card} />
+            </div>
           ))}
         </div>
 
@@ -2998,10 +3015,9 @@ function Resources({
             >
               {RESOURCE_CARDS.map((card, index) => (
                 <SwiperSlide key={`${card.title}-${index}`}>
-                  <ResourceCard
-                    card={card}
-                    className={`reveal-from-bottom ${isVisible ? "is-visible" : ""}`}
-                  />
+                  <div className={`resource-card-shell reveal-from-bottom ${isVisible ? "is-visible" : ""}`}>
+                    <ResourceCard card={card} />
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -3201,7 +3217,7 @@ function PageCTA({
             alignSelf: ctaLeftAlign ? "stretch" : undefined,
           }}
         >
-          Ready To Work With Us?
+          Ready for Your Next Starting Line?
         </h2>
         <p
           ref={ctaCopyRef}
@@ -3213,7 +3229,7 @@ function PageCTA({
             alignSelf: ctaLeftAlign ? "stretch" : undefined,
           }}
         >
-          Placeholder about copy — one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.
+          Let’s make your race day one to remember.
         </p>
         <div className="home-cta-button-group">
           <Link
@@ -3242,7 +3258,7 @@ function PageCTA({
             Request Timing Services
           </Link>
           <Link
-            to="/races"
+            to="/races#upcoming-races"
             className="cta-btn"
             style={{
               display: "inline-flex",
@@ -3264,7 +3280,7 @@ function PageCTA({
               whiteSpace: "normal",
             }}
           >
-            Find A Race
+            Find a Race
           </Link>
         </div>
       </div>

@@ -34,5 +34,12 @@ export default defineConfig({
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
+  server: {
+    allowedHosts: ['192.168.1.168', 'tricky-stingray-58.loca.lt'],
+  },
+  preview: {
+    allowedHosts: ['arsenal-events-preview-prod.loca.lt'],
+  },
+
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

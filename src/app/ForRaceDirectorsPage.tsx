@@ -67,6 +67,21 @@ const services = [
     icon: iconPacketPickup,
   },
 ];
+
+const serviceQueryIndexes: Record<string, number> = {
+  registration: 0,
+  "timing-results": 1,
+  "race-directing": 2,
+  "course-management": 3,
+  "packet-pickup": 4,
+};
+
+function getRequestedServiceIndex() {
+  if (typeof window === "undefined") return 1;
+  const requestedService = new URLSearchParams(window.location.search).get("service");
+  return requestedService ? (serviceQueryIndexes[requestedService] ?? 1) : 1;
+}
+
 function Hero() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -81,7 +96,7 @@ function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
+    <section className="race-directors-hero-section relative min-h-[clamp(420px,42vw,620px)] overflow-hidden" style={{ background: "var(--surface-dark)" }}>
       <style>{`
         .race-directors-hero-photo {
           object-position: 38% top;
@@ -89,7 +104,13 @@ function Hero() {
         .race-directors-hero-content {
           min-height: clamp(420px, 42vw, 620px);
         }
-        @media (max-width: 1200px) {
+                @media (min-width: 1550px) {
+          .race-directors-hero-section,
+          .race-directors-hero-content {
+            min-height: clamp(620px, 38vw, 860px);
+          }
+        }
+@media (max-width: 1200px) {
           .race-directors-hero-photo {
             object-position: 30% top;
           }
@@ -215,7 +236,8 @@ function ServiceCard({
 }
 
 function Services() {
-  const [activeIndex, setActiveIndex] = useState(1);
+  const initialServiceIndexRef = useRef(getRequestedServiceIndex());
+  const [activeIndex, setActiveIndex] = useState(initialServiceIndexRef.current);
   const [accentReveal, setAccentReveal] = useState(0);
   const servicesSectionRef = useRef<HTMLElement | null>(null);
   const mobileServiceSwiperRef = useRef<SwiperClass | null>(null);
@@ -321,7 +343,13 @@ function Services() {
   };
 
   const pauseAutoplay = () => pauseForInteraction();
-  const resumeAutoplay = () => undefined;
+  const resumeAutoplay = () => {
+    if (interactionPauseTimerRef.current !== null) {
+      window.clearTimeout(interactionPauseTimerRef.current);
+      interactionPauseTimerRef.current = null;
+    }
+    getActiveServiceSwiper()?.autoplay?.start();
+  };
   const prevManual = () => {
     pauseForInteraction();
     setActiveIndex((index) => normalizeServiceIndex(index - 1));
@@ -388,8 +416,9 @@ function Services() {
         .rd-services-stage {
           position: relative;
           display: grid;
-          margin: 44px auto 0;
+          margin: 32px auto 0;
           width: min(560px, 100%);
+          padding-top: 12px;
           overflow: hidden;
           touch-action: pan-y;
           place-items: center;
@@ -410,6 +439,7 @@ function Services() {
           width: 100%;
           height: 100%;
           align-self: stretch;
+          overflow: visible;
         }
         .rd-services-swiper-desktop {
           display: none;
@@ -417,11 +447,13 @@ function Services() {
         .rd-services-swiper .swiper-wrapper {
           height: 100%;
           align-items: stretch;
+          overflow: visible;
         }
         .rd-services-swiper .swiper-slide {
           height: 100%;
           align-self: stretch;
           border-radius: 10px;
+          overflow: visible;
           transition: filter 320ms ease, opacity 320ms ease;
         }
         .rd-services-swiper .swiper-slide-shadow,
@@ -528,6 +560,13 @@ function Services() {
           transition: opacity 0.15s ease, transform 0.18s ease;
         }
         @media (hover: hover) and (pointer: fine) {
+          .rd-services-swiper .swiper-slide-active .rd-service-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+          .rd-services-swiper .swiper-slide-active .rd-service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18);
+          }
           .rd-service-link:hover {
             color: var(--text-accent);
           }
@@ -729,7 +768,7 @@ function Services() {
           copy="Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition."
         />
 
-        <div className="rd-services-stage" aria-live="polite" onPointerDownCapture={pauseForInteraction} onMouseEnter={pauseAutoplay} onMouseLeave={resumeAutoplay} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
+        <div className="rd-services-stage" aria-live="polite" onPointerDownCapture={pauseForInteraction} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
           <div className="rd-services-sizer" aria-hidden="true">
             {services.map((service) => (
               <ServiceCard key={`${service.title}-sizer`} service={service} active mobile />
@@ -738,12 +777,12 @@ function Services() {
           <Swiper
             modules={[Autoplay, A11y, EffectCreative, Keyboard]}
             className="rd-services-swiper rd-services-swiper-mobile"
-            initialSlide={1}
+            initialSlide={initialServiceIndexRef.current}
             loop={services.length > 1}
             slidesPerView={1}
             centeredSlides
             spaceBetween={16}
-            speed={300}
+            speed={600}
             threshold={35}
             grabCursor
             allowTouchMove
@@ -755,7 +794,7 @@ function Services() {
               prev: { translate: [-205, 0, 0], scale: 0.93, shadow: false },
               next: { translate: [205, 0, 0], scale: 0.93, shadow: false },
             }}
-            autoplay={{ delay: 1200, disableOnInteraction: false, pauseOnMouseEnter: false }}
+            autoplay={{ delay: 1600, disableOnInteraction: false, pauseOnMouseEnter: false }}
             onSwiper={(swiper) => {
               mobileServiceSwiperRef.current = swiper;
               if (!isDesktopServices) setActiveIndex(swiper.realIndex);
@@ -774,12 +813,12 @@ function Services() {
             modules={[Autoplay, A11y, EffectCreative, Keyboard]}
             key={desktopServiceOffset}
             className="rd-services-swiper rd-services-swiper-desktop"
-            initialSlide={services.length + 1}
+            initialSlide={services.length + initialServiceIndexRef.current}
             loop={false}
             slidesPerView={1}
             centeredSlides
             spaceBetween={0}
-            speed={300}
+            speed={600}
             threshold={35}
             grabCursor
             allowTouchMove
@@ -791,7 +830,7 @@ function Services() {
               prev: { translate: [`-${desktopServiceOffset}`, 0, 0], scale: 0.86, shadow: false },
               next: { translate: [desktopServiceOffset, 0, 0], scale: 0.86, shadow: false },
             }}
-            autoplay={{ delay: 1200, disableOnInteraction: false, pauseOnMouseEnter: false }}
+            autoplay={{ delay: 1600, disableOnInteraction: false, pauseOnMouseEnter: false }}
             onSwiper={(swiper) => {
               desktopServiceSwiperRef.current = swiper;
               if (isDesktopServices) handleDesktopSlideChange(swiper);
@@ -811,7 +850,7 @@ function Services() {
           </Swiper>
         </div>
 
-        <div className="rd-services-controls" aria-label="Service carousel controls" onPointerDownCapture={pauseForInteraction} onMouseEnter={pauseAutoplay} onMouseLeave={resumeAutoplay} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
+        <div className="rd-services-controls" aria-label="Service carousel controls" onPointerDownCapture={pauseForInteraction} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
           <button type="button" className="rd-services-control-btn" onClick={prevManual} aria-label="Previous service">
             <ChevronLeft size={22} />
           </button>
@@ -1127,11 +1166,11 @@ export default function ForRaceDirectorsPage() {
       <Hero />
       <Services />
       <Gallery />
-      <StatsBand quotes={RACE_DIRECTOR_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 />
+      <StatsBand quotes={RACE_DIRECTOR_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 showLeftTrackAccent />
       <div id="form" className="scroll-mt-20">
         <FormWithFAQ />
       </div>
-      <ResourceSection />
+      <ResourceSection audience="For Race Directors" />
       <PageCTA />
     </main>
   );

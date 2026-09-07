@@ -10,7 +10,7 @@ import imgHalloweenBg from "@/imports/race_86385_294977_e12aa008-9a13-459f-a326-
 import imgHalloweenLogo from "@/imports/24_Oct_2026_Halloween_5K_Monster_Mile_1.png";
 import imgFrostyBg from "@/imports/race_86385_294977_e12aa008-9a13-459f-a326-cf9bb249dadd_2.png";
 import imgFrostyLogo from "@/imports/12_Dec_2026_Frosty_5K_Reindeer_Run_1.png";
-import imgResourceRunner from "@/imports/DSC07982-2_1.png";
+import imgResourceRunner from "@/imports/race-results-guide.jpg";
 import imgResourceDirector from "@/imports/image_2.png";
 import imgResourceGear from "@/imports/image_1.png";
 import blockQuoteSvg from "@/imports/block_quote.svg";
@@ -264,18 +264,19 @@ export const SHARED_RACES = [
 
 function ArsenalEventBadge() {
   return (
-    <div
-      className="absolute left-0 top-0 z-10 rounded-br-[6px] px-3 py-1 text-[12px] font-bold uppercase"
-      style={{ background: "var(--action-tertiary-default)", color: "var(--text-inverse)" }}
-    >
-      An Arsenal Event
+    <div className="absolute left-0 top-0 z-10 h-10 w-[270px]" style={{ fontFamily: "Cooper Hewitt, Arial, sans-serif" }}>
+      <svg width="270" height="40" viewBox="0 0 270 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AN ARSENAL EVENTS RACE">
+        <path d="M0 4C0 1.79086 1.79086 0 4 0H270L249.236 19.5477L270 39.0955H0V10Z" fill="#035A58" />
+        <path d="M22.8285 17.0689V19.6236C23.8076 19.845 24.678 20.2088 25.5896 20.4602V17.9017C24.6142 17.6841 23.7364 17.3202 22.8285 17.0689ZM31.2055 12.4546C29.9187 13.0511 28.3356 13.6513 26.8163 13.6513C24.8093 13.6513 23.1474 12.3458 20.6189 12.3458C19.6811 12.3458 18.8445 12.5109 18.0679 12.796C18.173 12.5221 18.2217 12.2258 18.203 11.9107C18.1355 10.8452 17.2614 9.98991 16.1922 9.94489C14.9918 9.89613 14.0051 10.8565 14.0051 12.0457C14.0051 12.7585 14.3615 13.3887 14.9055 13.7676V28.2519C14.9055 28.7509 15.3069 29.1523 15.8058 29.1523H16.4061C16.905 29.1523 17.3064 28.7509 17.3064 28.2519V24.7106C18.3681 24.2566 19.6923 23.8815 21.598 23.8815C23.6088 23.8815 25.267 25.187 27.7954 25.187C29.6035 25.187 31.0479 24.5755 32.391 23.6527C32.7173 23.4276 32.9086 23.0599 32.9086 22.6623V13.5425C32.9124 12.6684 32.0008 12.087 31.2055 12.4546ZM20.0675 22.1558C19.0997 22.2571 18.1917 22.4635 17.3064 22.7786V20.1338C18.2893 19.7849 19.0883 19.5711 20.0675 19.4811V22.1558ZM31.1117 17.1101C30.2264 17.4778 29.3748 17.8417 28.3506 18.0067V20.674C29.281 20.5465 30.2789 20.2314 31.1117 19.6986V22.3434C30.1701 22.9474 29.2923 23.27 28.3506 23.3601V20.674C27.3378 20.8128 26.5537 20.7303 25.5896 20.4639V22.9924C24.693 22.7148 23.8152 22.3659 22.8285 22.1934V19.6236C22.0895 19.4586 21.2979 19.3685 20.0675 19.4811V16.8551C19.2271 16.9713 18.3943 17.2377 17.3064 17.6391V14.9943C18.5519 14.5367 19.1859 14.2516 20.0675 14.169V16.8551C21.0803 16.7162 21.8836 16.8062 22.8285 17.0689V14.5404C23.7176 14.818 24.5992 15.1669 25.5896 15.3395V17.9055C26.4787 18.1043 27.3753 18.1643 28.3506 18.0067V15.3095C29.3635 15.1294 30.3127 14.7993 31.1117 14.4654V17.1101Z" fill="#FCF3ED" />
+        <text x="47" y="24.5" fill="#FCF3ED" fontFamily="Cooper Hewitt, Arial, sans-serif" fontSize="14" fontWeight="700" letterSpacing="0.4" fontStyle="italic">AN ARSENAL EVENTS RACE</text>
+      </svg>
     </div>
   );
 }
 
 export function RaceCard({ race }: { race: (typeof SHARED_RACES)[number] }) {
   return (
-    <article className="overflow-hidden rounded-[4px] bg-white shadow-[0_4px_14px_rgba(35,41,67,0.18)]">
+    <article className="race-card overflow-hidden rounded-[4px] bg-white shadow-[0_4px_14px_rgba(35,41,67,0.18)]">
       <div className="relative flex aspect-[1.45/1] items-center justify-center overflow-hidden">
         <ArsenalEventBadge />
         <img src={race.background} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
@@ -319,13 +320,21 @@ export const RESOURCE_CARDS = [
     to: "/resources",
   },
 ];
+type ResourceAudience = "For Runners" | "For Race Directors";
+type ResourceCardData = (typeof RESOURCE_CARDS)[number];
 
+function getAudienceResourceCards(audience?: ResourceAudience) {
+  const filtered = audience ? RESOURCE_CARDS.filter((card) => card.category === audience) : RESOURCE_CARDS;
+  if (filtered.length === 0) return RESOURCE_CARDS;
+
+  return Array.from({ length: Math.max(3, filtered.length) }, (_, index) => filtered[index % filtered.length]);
+}
 export function ResourceCard({
   card,
   className = "",
   style,
 }: {
-  card: (typeof RESOURCE_CARDS)[number];
+  card: ResourceCardData;
   className?: string;
   style?: React.CSSProperties;
 }) {
@@ -344,7 +353,7 @@ export function ResourceCard({
         overflow: "hidden",
         position: "relative",
         aspectRatio: "390 / 374",
-        boxShadow: "0px 1px 4px 0px rgba(165,162,169,0.8)",
+        boxShadow: "0px 1px 4px 0px rgba(165,162,169,1)",
         ...style,
       }}
     >
@@ -403,7 +412,7 @@ export function ResourceCardGallery({
   cards = RESOURCE_CARDS,
   visible = true,
 }: {
-  cards?: typeof RESOURCE_CARDS;
+  cards?: ResourceCardData[];
   visible?: boolean;
 }) {
   const [activeResourceIndex, setActiveResourceIndex] = useState(0);
@@ -417,12 +426,13 @@ export function ResourceCardGallery({
     <>
       <div className="resources-card-row">
         {cards.map((card, index) => (
-          <ResourceCard
+          <div
             key={`${card.title}-${index}`}
-            card={card}
-            className={`reveal-from-bottom ${visible ? "is-visible" : ""}`}
+            className={`resource-card-shell reveal-from-bottom ${visible ? "is-visible" : ""}`}
             style={{ transitionDelay: `${index * 140}ms` }}
-          />
+          >
+            <ResourceCard card={card} />
+          </div>
         ))}
       </div>
 
@@ -447,10 +457,9 @@ export function ResourceCardGallery({
           >
             {cards.map((card, index) => (
               <SwiperSlide key={`${card.title}-${index}`}>
-                <ResourceCard
-                  card={card}
-                  className={`reveal-from-bottom ${visible ? "is-visible" : ""}`}
-                />
+                <div className={`resource-card-shell reveal-from-bottom ${visible ? "is-visible" : ""}`}>
+                  <ResourceCard card={card} />
+                </div>
               </SwiperSlide>
             ))}
           </Swiper>
@@ -495,13 +504,16 @@ export function ResourceSection({
   copy = "Placeholder supporting headline copy with a sentence or two leading into the Runner's Arsenal blog and its benefits.",
   ctaLabel = "Learn Something New",
   showTabs = false,
+  audience,
 }: {
   title?: string;
   copy?: string;
   ctaLabel?: string;
   showTabs?: boolean;
+  audience?: ResourceAudience;
 }) {
   const [sectionRef, visible] = useRevealOnce<HTMLElement>(0.18);
+  const cards = getAudienceResourceCards(audience);
 
   return (
     <PageBand className="resource-section-band relative overflow-hidden">
@@ -516,7 +528,7 @@ export function ResourceSection({
             <AeButton to="/resources" className="min-h-[50px] min-w-[214px] text-[16px]">{ctaLabel}</AeButton>
           )}
         </SectionIntro>
-        <ResourceCardGallery visible={visible} />
+        <ResourceCardGallery cards={cards} visible={visible} />
       </section>
     </PageBand>
   );
@@ -629,6 +641,8 @@ export function StatsBand({
   ctaLabel = "See Our Race Day Tech",
   ctaTo = "/for-race-directors",
   stackBelow950 = false,
+  showLeftTrackAccent = false,
+  trackAccentSpeed = 1,
 }: {  title?: string;
   copy?: string;
   quoteAudience?: string;
@@ -638,8 +652,11 @@ export function StatsBand({
   ctaLabel?: string;
   ctaTo?: string;
   stackBelow950?: boolean;
+  showLeftTrackAccent?: boolean;
+  trackAccentSpeed?: number;
 }) {
   const [sectionRef, visible] = useRevealOnce<HTMLElement>(0.05, "0px 0px -2% 0px");
+  const [trackAccentReveal, setTrackAccentReveal] = useState(0);
   const quoteItems = quotes && quotes.length > 0 ? quotes : [{ audience: quoteAudience, quote, attribution: quoteAttribution }];
   const [activeQuoteIndex, setActiveQuoteIndex] = useState(0);
   const quoteSwipeStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
@@ -659,6 +676,46 @@ export function StatsBand({
 
     return () => window.clearInterval(id);
   }, [quoteItems.length, visible]);
+  useEffect(() => {
+    if (!showLeftTrackAccent || typeof window === "undefined") return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setTrackAccentReveal(1);
+      return;
+    }
+
+    let rafId = 0;
+    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+    const update = () => {
+      const node = sectionRef.current;
+      if (!node) return;
+
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const travel = Math.max(1, (viewportHeight * 0.52) / trackAccentSpeed);
+      const progress = clamp01((viewportHeight * 0.78 - rect.top) / travel);
+
+      setTrackAccentReveal((previous) => (
+        Math.abs(previous - progress) < 0.001 ? previous : progress
+      ));
+    };
+
+    const requestUpdate = () => {
+      cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+    };
+  }, [sectionRef, showLeftTrackAccent, trackAccentSpeed]);
 
   useEffect(() => {
     setActiveQuoteIndex(0);
@@ -748,9 +805,46 @@ export function StatsBand({
     }
   };
 
+  const leftTrackAccentClip = `inset(0 0 0 ${((1 - trackAccentReveal) * 100).toFixed(3)}%)`;
+
   return (
-    <section ref={sectionRef} className={`stats-band ${stackBelow950 ? "stats-band-stack-950" : ""} homepage-built-mobile-padding px-5 py-16 @sm:px-10 @sm:py-24`} style={{ background: "var(--surface-dark)", color: "var(--text-inverse)" }}>
-      <div className="mx-auto max-w-[1245px]">
+    <section ref={sectionRef} className={`stats-band ${showLeftTrackAccent ? "stats-band-left-track" : ""} ${stackBelow950 ? "stats-band-stack-950" : ""} homepage-built-mobile-padding relative overflow-hidden px-5 py-16 @sm:px-10 @sm:py-24`} style={{ background: "var(--surface-dark)", color: "var(--text-inverse)" }}>
+      {showLeftTrackAccent ? (
+        <>
+          <style>{`
+            .stats-band-left-track-accent {
+              position: absolute;
+              top: clamp(96.5px, 7.876vw, 147.8px);
+              left: clamp(-124.5px, -5.787vw, -79.8px);
+              width: min(33.12vw, 446.4px);
+              max-width: none;
+              pointer-events: none;
+              z-index: 1;
+              transform: translateY(-50%) rotate(180deg);
+              transform-origin: center;
+              will-change: clip-path;
+            }
+            @media (min-width: 1550px) {
+              .stats-band-left-track-accent {
+                -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 78%, transparent 100%);
+                mask-image: linear-gradient(90deg, #000 0%, #000 78%, transparent 100%);
+              }
+            }
+            @media (max-width: 1160px) {
+              .stats-band-left-track-accent {
+                display: none;
+              }
+            }
+          `}</style>
+          <img
+            src={whatWeOfferAccent}
+            alt=""
+            className="stats-band-left-track-accent"
+            style={{ clipPath: leftTrackAccentClip, WebkitClipPath: leftTrackAccentClip }}
+          />
+        </>
+      ) : null}
+      <div className="relative z-10 mx-auto max-w-[1245px]">
         <div className="stats-band-header mb-14 grid gap-8 @lg:grid-cols-[1fr_auto] @lg:items-start">
           <div>
             <h2 className="mb-4 text-[clamp(34px,3.8vw,52px)] font-bold italic leading-none">{title}</h2>
@@ -855,6 +949,7 @@ export function PageCTA({
   copy = "Placeholder about copy - one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.",
   primaryLabel = "Request Timing Services",
   secondaryLabel = "Find A Race",
+  accentRevealSpeed = 1,
 }: {
   title?: string;
   copy?: string;
@@ -882,8 +977,8 @@ export function PageCTA({
 
       const rect = node.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const travel = Math.max(1, viewportHeight * 0.5184);
-      const progress = clamp01((viewportHeight * 0.78 - rect.top) / travel);
+      const travel = Math.max(1, (viewportHeight * 0.5184) / accentRevealSpeed);
+      const progress = clamp01((viewportHeight * 0.84 - rect.top) / travel);
 
       setAccentReveal((previous) => (
         Math.abs(previous - progress) < 0.001 ? previous : progress
@@ -904,7 +999,7 @@ export function PageCTA({
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", requestUpdate);
     };
-  }, []);
+  }, [accentRevealSpeed]);
 
   const accentRevealClip = `inset(0 0 0 ${((1 - accentReveal) * 100).toFixed(3)}%)`;
 
@@ -1031,9 +1126,11 @@ export function PageCTA({
 export function FormWithFAQ({
   title = "Request Timing Services",
   copy = "Planning a race? We'd love to help. Tell us a little about your race and we'll recommend the services that make the most sense for your goals.",
+  mode = "timing",
 }: {
   title?: string;
   copy?: string;
+  mode?: "timing" | "contact";
 }) {
   const faqs = [
     {
@@ -1070,7 +1167,7 @@ export function FormWithFAQ({
     },
   ];
 
-  const serviceOptions = [
+  const timingServiceOptions = [
     "Race Registration",
     "Chip Timing",
     "Live Results",
@@ -1080,6 +1177,17 @@ export function FormWithFAQ({
     "Race Director Consulting",
     "Not Sure Yet",
   ];
+  const contactTopicOptions = [
+    "Race Timing Services",
+    "An Upcoming Race",
+    "Results",
+    "Registration",
+    "Sponsorship",
+    "General Questions",
+    "Other",
+  ];
+  const isContactMode = mode === "contact";
+  const serviceOptions = isContactMode ? contactTopicOptions : timingServiceOptions;
 
   const raceTypes = ["5k", "10k", "Half Marathon", "Marathon", "Trail", "Triathlon", "Fun Run", "Other"];
 
@@ -1191,8 +1299,18 @@ export function FormWithFAQ({
   const placeholderColor = "rgba(35,41,67,0.32)";
   const fieldClass = "min-h-[52px] rounded-[6px] border-0 bg-white px-5 text-[17px] font-normal text-[var(--text-default)] outline-none placeholder:text-[rgba(35,41,67,0.32)] focus:ring-2 focus:ring-[var(--decorative-highlight)]";
   const sectionLabelClass = "mb-4 block text-[19px] font-bold italic text-white";
-  const submitLabel = submitStatus === "sending" ? "Sending your request..." : submitStatus === "sent" ? "Request sent!" : "Request timing services";
-  const selectedServicesLabel = formValues.services.length > 0 ? formValues.services.join(", ") : "Services Needed";
+  const submitLabel = isContactMode
+    ? submitStatus === "sending"
+      ? "Sending your message..."
+      : submitStatus === "sent"
+        ? "Message sent!"
+        : "Send Message"
+    : submitStatus === "sending"
+      ? "Sending your request..."
+      : submitStatus === "sent"
+        ? "Request sent!"
+        : "Request timing services";
+  const selectedServicesLabel = formValues.services.length > 0 ? formValues.services.join(", ") : isContactMode ? "I'm contacting you about" : "Services Needed";
 
   return (
     <section ref={formSectionRef} className="homepage-built-mobile-padding relative overflow-visible px-5 pb-12 pt-16 @sm:px-10 @sm:pb-[72px] @sm:pt-24" style={{ background: "var(--surface-default)" }}>
@@ -1267,7 +1385,7 @@ export function FormWithFAQ({
             </fieldset>
 
             <fieldset className="mt-8">
-              <legend className={sectionLabelClass}>Services Needed <span className="font-medium not-italic">(check all that apply)</span></legend>
+              <legend className={sectionLabelClass}>{isContactMode ? "I'm contacting you about" : "Services Needed"} <span className="font-medium not-italic">(check all that apply)</span></legend>
               <div className="relative">
                 <button
                   type="button"
@@ -1285,7 +1403,7 @@ export function FormWithFAQ({
                       <label key={service} className="flex min-h-[38px] items-center gap-3 rounded-[4px] px-2 text-[16px] font-semibold text-[var(--text-default)] hover:bg-[var(--surface-subtle)]">
                         <input
                           type="checkbox"
-                          name="services"
+                          name={isContactMode ? "topics" : "services"}
                           value={service}
                           checked={formValues.services.includes(service)}
                           onChange={updateService}
@@ -1298,27 +1416,40 @@ export function FormWithFAQ({
                 )}
               </div>
             </fieldset>
-
-            <fieldset className="mt-8 grid gap-6 min-[601px]:grid-cols-2">
-              <legend className={sectionLabelClass}>About Your Event</legend>
-              <input name="eventDate" type="date" value={formValues.eventDate} onChange={updateField} aria-label="Event Date" className={fieldClass} style={{ color: formValues.eventDate ? "var(--text-default)" : placeholderColor }} />
-              <input name="location" autoComplete="address-level2" value={formValues.location} onChange={updateField} aria-label="Location" placeholder="Location" className={fieldClass} />
-              <input name="participants" type="number" min="0" inputMode="numeric" value={formValues.participants} onChange={updateField} aria-label="Estimated Participants" placeholder="Estimated Participants" className={fieldClass} />
-              <select name="raceType" value={formValues.raceType} onChange={updateField} aria-label="Race Type" className={fieldClass} style={{ color: formValues.raceType ? "var(--text-default)" : placeholderColor }}>
-                <option value="">Race Type</option>
-                {raceTypes.map((raceType) => (
-                  <option key={raceType} value={raceType}>{raceType}</option>
-                ))}
-              </select>
-              <textarea
-                name="comments"
-                value={formValues.comments}
-                onChange={updateField}
-                aria-label="Comments"
-                placeholder="Comments"
-                className={`${fieldClass} min-h-[170px] py-4 min-[601px]:col-span-2`}
-              />
-            </fieldset>
+            {isContactMode ? (
+              <fieldset className="mt-8">
+                <legend className={sectionLabelClass}>Comments</legend>
+                <textarea
+                  name="comments"
+                  value={formValues.comments}
+                  onChange={updateField}
+                  aria-label="Comments"
+                  placeholder="Comments"
+                  className={`${fieldClass} min-h-[170px] w-full py-4`}
+                />
+              </fieldset>
+            ) : (
+              <fieldset className="mt-8 grid gap-6 min-[601px]:grid-cols-2">
+                <legend className={sectionLabelClass}>About Your Event</legend>
+                <input name="eventDate" type="date" value={formValues.eventDate} onChange={updateField} aria-label="Event Date" className={fieldClass} style={{ color: formValues.eventDate ? "var(--text-default)" : placeholderColor }} />
+                <input name="location" autoComplete="address-level2" value={formValues.location} onChange={updateField} aria-label="Location" placeholder="Location" className={fieldClass} />
+                <input name="participants" type="number" min="0" inputMode="numeric" value={formValues.participants} onChange={updateField} aria-label="Estimated Participants" placeholder="Estimated Participants" className={fieldClass} />
+                <select name="raceType" value={formValues.raceType} onChange={updateField} aria-label="Race Type" className={fieldClass} style={{ color: formValues.raceType ? "var(--text-default)" : placeholderColor }}>
+                  <option value="">Race Type</option>
+                  {raceTypes.map((raceType) => (
+                    <option key={raceType} value={raceType}>{raceType}</option>
+                  ))}
+                </select>
+                <textarea
+                  name="comments"
+                  value={formValues.comments}
+                  onChange={updateField}
+                  aria-label="Comments"
+                  placeholder="Comments"
+                  className={`${fieldClass} min-h-[170px] py-4 min-[601px]:col-span-2`}
+                />
+              </fieldset>
+            )}
 
             <div className="mt-8 flex justify-center">
               <button
@@ -1333,14 +1464,14 @@ export function FormWithFAQ({
             <div aria-live="polite" className="mt-6 text-center">
               {submitStatus === "sent" && (
                 <div className="rounded-[6px] px-5 py-4 text-left text-[16px] font-medium leading-snug text-[var(--text-default)]" style={{ background: "#E3E6E0" }}>
-                  <p className="mb-2 text-[20px] font-bold">Thanks for reaching out!</p>
-                  <p>We've received your race information and someone from Arsenal Events will review your request. We'll contact you within one business day to learn more about your event and discuss how we can help.</p>
+                  <p className="mb-2 text-[20px] font-bold">{isContactMode ? "Thanks for contacting Arsenal Events!" : "Thanks for reaching out!"}</p>
+                  <p>{isContactMode ? "We've received your message and will get back to you as soon as possible." : "We've received your race information and someone from Arsenal Events will review your request. We'll contact you within one business day to learn more about your event and discuss how we can help."}</p>
                 </div>
               )}
               {submitStatus === "error" && (
                 <div className="rounded-[6px] bg-white px-5 py-4 text-left text-[16px] font-medium leading-snug text-[var(--text-default)]">
-                  <p className="mb-2 font-bold">Something went wrong while sending your request.</p>
-                  <p>Please try again in a few minutes or contact us directly at <a href="tel:540XXXXXXX" className="font-bold underline">540-XXX-XXXX</a> if the issue continues.</p>
+                  <p className="mb-2 font-bold">{isContactMode ? "We couldn't send your message." : "Something went wrong while sending your request."}</p>
+                  <p>{isContactMode ? "Please try again in a few minutes or contact us by phone at " : "Please try again in a few minutes or contact us directly at "}<a href="tel:540XXXXXXX" className="font-bold underline">540-XXX-XXXX</a>{isContactMode ? " if the problem continues." : " if the issue continues."}</p>
                 </div>
               )}
             </div>
@@ -1424,22 +1555,29 @@ export const SHARED_PATTERN_CSS = `
       background: var(--ae-button-hover) !important;
       transform: skewX(-8deg);
     }
+    .race-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .race-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18) !important;
+    }
     .resource-card {
-      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .resource-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0px 6px 20px rgba(0,0,0,0.13) !important;
+      box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18) !important;
     }
   }
 
-  .resource-card.reveal-from-bottom {
+  .resource-card-shell.reveal-from-bottom {
     opacity: 0;
     transform: translateY(42px);
     transition: opacity 0.7s ease, transform 0.7s ease;
     will-change: opacity, transform;
   }
-  .resource-card.reveal-from-bottom.is-visible {
+  .resource-card-shell.reveal-from-bottom.is-visible {
     opacity: 1;
     transform: translateY(0);
   }
@@ -1503,7 +1641,7 @@ export const SHARED_PATTERN_CSS = `
       margin-right: auto;
       flex-wrap: wrap;
     }
-    .resources-card-row .resource-card {
+    .resources-card-row .resource-card-shell {
       flex: 0 0 384px !important;
       max-width: 384px;
     }

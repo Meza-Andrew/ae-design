@@ -210,7 +210,7 @@ function ArsenalWordmark() {
 function RequestTimingBtn({ onClick }: { onClick?: () => void }) {
   return (
     <Link
-      to="/for-race-directors"
+      to="/contact"
       onClick={onClick}
       className="req-timing-btn inline-flex items-center justify-center shrink-0 whitespace-nowrap"
       style={{
@@ -392,7 +392,7 @@ export function Nav() {
           </nav>
 
           <div className="block shrink-0">
-            <RequestTimingBtn />
+            <RequestTimingBtn onClick={handlePrimaryNavClick} />
           </div>
         </div>
 
@@ -413,7 +413,7 @@ export function Nav() {
 
           <div className="flex flex-1 items-center justify-center">
             <div className="nav-compact-cta">
-              <RequestTimingBtn />
+              <RequestTimingBtn onClick={handlePrimaryNavClick} />
             </div>
           </div>
 
@@ -475,7 +475,7 @@ export function Nav() {
           {/* Request Timing Services — full-width in drawer */}
           <div className="px-6 py-5">
             <Link
-              to="/for-race-directors"
+              to="/contact"
               onClick={handlePrimaryNavClick}
               className="flex items-center justify-center w-full py-3.5 font-semibold text-base"
               style={{

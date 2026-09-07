@@ -84,6 +84,7 @@ type RaceEntry = {
   logoUrl?: string;
   infoUrl?: string;
   resultsUrl?: string;
+  photosUrl?: string;
   registrationUrl?: string;
 };
 
@@ -304,6 +305,23 @@ function EmptyState() {
   );
 }
 
+function ArsenalEventBadgeSvg() {
+  return (
+    <svg width="270" height="40" viewBox="0 0 270 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AN ARSENAL EVENTS RACE">
+      <path d="M0 4C0 1.79086 1.79086 0 4 0H270L249.236 19.5477L270 39.0955H0V10Z" fill="#035A58" />
+      <path d="M22.8285 17.0689V19.6236C23.8076 19.845 24.678 20.2088 25.5896 20.4602V17.9017C24.6142 17.6841 23.7364 17.3202 22.8285 17.0689ZM31.2055 12.4546C29.9187 13.0511 28.3356 13.6513 26.8163 13.6513C24.8093 13.6513 23.1474 12.3458 20.6189 12.3458C19.6811 12.3458 18.8445 12.5109 18.0679 12.796C18.173 12.5221 18.2217 12.2258 18.203 11.9107C18.1355 10.8452 17.2614 9.98991 16.1922 9.94489C14.9918 9.89613 14.0051 10.8565 14.0051 12.0457C14.0051 12.7585 14.3615 13.3887 14.9055 13.7676V28.2519C14.9055 28.7509 15.3069 29.1523 15.8058 29.1523H16.4061C16.905 29.1523 17.3064 28.7509 17.3064 28.2519V24.7106C18.3681 24.2566 19.6923 23.8815 21.598 23.8815C23.6088 23.8815 25.267 25.187 27.7954 25.187C29.6036 25.187 31.0479 24.5755 32.391 23.6527C32.7173 23.4276 32.9086 23.0599 32.9086 22.6623V13.5425C32.9124 12.6684 32.0008 12.087 31.2055 12.4546ZM20.0675 22.1558C19.0996 22.2571 18.1917 22.4635 17.3064 22.7786V20.1338C18.2893 19.7849 19.0883 19.5711 20.0675 19.4811V22.1558ZM31.1117 17.1101C30.2264 17.4778 29.3748 17.8417 28.3506 18.0067V20.674C29.281 20.5465 30.2789 20.2314 31.1117 19.6986V22.3434C30.1701 22.9474 29.2923 23.27 28.3506 23.3601V20.674C27.3378 20.8128 26.5537 20.7303 25.5896 20.4639V22.9924C24.693 22.7148 23.8152 22.3659 22.8285 22.1934V19.6236C22.0895 19.4586 21.2979 19.3685 20.0675 19.4811V16.8551C19.2271 16.9713 18.3943 17.2377 17.3064 17.6391V14.9943C18.5519 14.5367 19.1859 14.2516 20.0675 14.169V16.8551C21.0803 16.7162 21.8832 16.8063 22.8285 17.0689V14.5404C23.7176 14.818 24.5992 15.1669 25.5896 15.3395V17.9055C26.4787 18.1043 27.3753 18.1643 28.3506 18.0067V15.3095C29.3635 15.1294 30.3127 14.7993 31.1117 14.4654V17.1101Z" fill="#FCF3ED" />
+      <text x="47" y="24.5" fill="#FCF3ED" fontFamily="Cooper Hewitt, Arial, sans-serif" fontSize="14" fontWeight="700" letterSpacing="0.4" fontStyle="italic">AN ARSENAL EVENTS RACE</text>
+    </svg>
+  );
+}
+
+function ArsenalRaceFlag() {
+  return (
+    <div className="absolute -top-10 left-0 z-10 h-10 w-[270px] rounded-tl-[4px]" style={{ fontFamily: "Cooper Hewitt, Arial, sans-serif" }}>
+      <ArsenalEventBadgeSvg />
+    </div>
+  );
+}
 function Results() {
   const pastRaces = useMemo(() => races.filter((race) => race.date < TODAY).sort((a, b) => b.date.localeCompare(a.date)), []);
   const options = useMemo(() => getFilterOptions(pastRaces), [pastRaces]);
@@ -313,22 +331,172 @@ function Results() {
   return (
     <PageBand>
       <section id="results" className="mx-auto max-w-[1180px] scroll-mt-20">
+        <style>{`
+          .races-results-result-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+          @media (hover: hover) and (pointer: fine) {
+            .races-results-result-card:hover {
+              transform: translateY(-4px);
+              box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18);
+            }
+          }
+          .races-results-result-actions {
+            align-items: stretch;
+          }
+          .races-results-result-slot {
+            display: grid;
+          }
+          .races-results-result-slot.has-arsenal-flag {
+            padding-top: 40px;
+          }
+          @media (min-width: 900px) and (max-width: 1080px) {
+            .races-results-result-list {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              align-items: start;
+              row-gap: 18px;
+            }
+            .races-results-result-slot {
+              padding-top: 40px;
+            }
+          }
+          @media (min-width: 531px) and (max-width: 1080px) {
+            .races-results-result-card {
+              grid-template-columns: minmax(0, 1fr) !important;
+              justify-items: start;
+              gap: 18px !important;
+              width: 100%;
+              min-width: 0;
+              margin-right: 0;
+              padding: 22px 24px !important;
+            }
+            .races-results-result-main {
+              display: grid;
+              justify-items: start;
+              gap: 14px;
+              width: 100%;
+            }
+            .races-results-result-card img,
+            .races-results-result-logo {
+              max-width: 140px !important;
+              width: 140px !important;
+              height: 72px !important;
+              justify-self: start;
+            }
+            .races-results-result-meta {
+              grid-template-columns: minmax(0, 1fr) !important;
+              align-items: start !important;
+              justify-items: start;
+              width: 100%;
+              min-width: 0;
+            }
+            .races-results-result-actions {
+              display: flex !important;
+              justify-content: flex-start;
+              gap: 12px;
+              width: auto;
+            }
+            .races-results-result-actions a,
+            .races-results-result-actions button {
+              width: auto;
+            }
+          }
+          @media (min-width: 531px) and (max-width: 899px) {
+            .races-results-result-slot {
+              width: 50%;
+              min-width: 430px;
+              margin-right: auto;
+            }
+          }
+          @media (min-width: 900px) and (max-width: 1080px) {
+            .races-results-result-slot {
+              width: 100%;
+              min-width: 0;
+              margin-right: 0;
+            }
+            .races-results-result-card {
+              width: 100%;
+              min-width: 0;
+              margin-right: 0;
+            }
+            .races-results-result-actions {
+              display: grid !important;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              width: 100%;
+            }
+            .races-results-result-actions a,
+            .races-results-result-actions button {
+              min-width: 0 !important;
+              width: 100%;
+            }
+          }
+          @media (max-width: 530px) {
+            .races-results-result-card {
+              grid-template-columns: minmax(0, 1fr) !important;
+              justify-items: stretch;
+            }
+            .races-results-result-main {
+              display: grid;
+              gap: 14px;
+            }
+            .races-results-result-card img,
+            .races-results-result-logo {
+              max-width: none !important;
+            }
+            .races-results-result-meta {
+              grid-template-columns: minmax(0, 1fr) !important;
+              align-items: start !important;
+            }
+            .races-results-result-actions {
+              display: grid !important;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              width: 100%;
+            }
+            .races-results-result-actions a,
+            .races-results-result-actions button {
+              min-width: 0 !important;
+              width: 100%;
+            }
+          }
+          @media (max-width: 420px) {
+            .races-results-result-actions {
+              grid-template-columns: minmax(0, 1fr);
+            }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .races-results-result-card {
+              transition: box-shadow 0.2s ease !important;
+            }
+            .races-results-result-card:hover {
+              transform: none !important;
+            }
+          }
+        `}</style>
         <h2 className="mb-9 flex items-center gap-3 text-[clamp(34px,4vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>
-          <span>Results</span>
+          <span>Results &amp; Photos</span>
           <img src={filledChevron} alt="" className="h-[clamp(24px,3.2vw,42px)] w-auto" />
         </h2>
         <FilterBar filters={filters} onChange={setFilters} options={options} showYear />
-        <div className="mt-10 grid gap-5">
-          {filteredRaces.length > 0 ? filteredRaces.map((race) => (
-            <article key={race.id} className="grid items-center gap-4 rounded-[4px] bg-white p-4 shadow-[0_4px_12px_rgba(35,41,67,0.12)] @md:grid-cols-[120px_1fr_auto]">
+        <div className="races-results-result-list mt-10 grid gap-5">
+                    {filteredRaces.length > 0 ? filteredRaces.map((race) => {
+            const isArsenalEventsRace = ["devils-den-ten-miler-2026", "grand-slamrock-2026"].includes(race.id);
+            return (
+              <div key={race.id} className={`races-results-result-slot ${isArsenalEventsRace ? "has-arsenal-flag" : ""}`}>
+                <article className="races-results-result-card relative grid items-center gap-4 rounded-[4px] bg-white p-4 shadow-[0_4px_12px_rgba(35,41,67,0.12)] @md:grid-cols-[120px_1fr_auto]">
+{isArsenalEventsRace ? <ArsenalRaceFlag /> : null}
               <RaceLogo race={race} className="h-[56px] w-full object-contain @md:max-w-[120px]" />
-              <div className="grid gap-1 @md:grid-cols-[1fr_auto] @md:items-center">
+              <div className="races-results-result-meta grid gap-1 @md:grid-cols-[1fr_auto] @md:items-center">
                 <h3 className="text-[19px] font-bold italic" style={{ color: "var(--text-accent)" }}>{race.title}</h3>
                 <p className="text-[13px] font-medium" style={{ color: "rgba(35,41,67,0.6)" }}>{getMetaLine(race)}</p>
               </div>
-              <AeButton href={race.resultsUrl || race.infoUrl} to={race.resultsUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[38px] min-w-[150px] px-5 py-2 text-[15px]">Results</AeButton>
-            </article>
-          )) : <EmptyState />}
+              <div className="races-results-result-actions flex gap-3">
+                <AeButton href={race.resultsUrl || race.infoUrl} to={race.resultsUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[29px] min-w-[113px] px-4 py-1 text-[12px]">Results</AeButton>
+                <AeButton href={race.photosUrl || race.infoUrl} to={race.photosUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[29px] min-w-[113px] px-4 py-1 text-[12px]">Photos</AeButton>
+              </div>
+                </article>
+              </div>
+            );
+          }) : <EmptyState />}
         </div>
         <SliderControls onPrev={() => undefined} onNext={() => undefined} />
       </section>
@@ -337,29 +505,30 @@ function Results() {
 }
 
 function UpcomingRaceCard({ race }: { race: RaceEntry & { logo?: string } }) {
+  const showArsenalFlag = ["fawn-lake-triathlons-2026", "run-for-juju-2026", "halloween-5k-monster-mile-2026", "frosty-5k-reindeer-run-2026"].includes(race.id);
   return (
-    <article className="overflow-hidden rounded-[4px] bg-white shadow-[0_4px_14px_rgba(35,41,67,0.18)]">
-      <div className="relative flex aspect-[1.45/1] items-center justify-center overflow-hidden bg-white p-6">
-        <div className="absolute left-0 top-0 z-10 rounded-br-[6px] px-3 py-1 text-[12px] font-bold uppercase" style={{ background: "var(--action-tertiary-default)", color: "var(--text-inverse)" }}>
-          Arsenal Event
-        </div>
+    <article className="race-card races-results-upcoming-card flex h-[clamp(460px,36vw,520px)] flex-col overflow-hidden bg-white shadow-[0_4px_14px_rgba(35,41,67,0.18)]" style={{ borderRadius: "10px 10px 5px 5px" }}>
+      <div className="races-results-upcoming-card-image relative flex h-[64%] min-h-0 shrink-0 items-center justify-center overflow-hidden bg-white p-6">
+        <div className="absolute inset-0" style={{ background: "rgba(151,189,183,0.2)" }} />
+        {showArsenalFlag ? (
+          <div className="absolute left-0 top-0 z-10 h-10 w-[270px]">
+            <ArsenalEventBadgeSvg />
+          </div>
+        ) : null}
         <RaceLogo race={race} className="relative z-10 max-h-[76%] max-w-[82%] object-contain" />
       </div>
-      <div className="px-5 pb-6 pt-5 text-center">
+      <div className="races-results-upcoming-card-body flex min-h-0 flex-1 flex-col px-5 pb-6 pt-5 text-center">
         <p className="mb-2 text-[13px] font-medium" style={{ color: "rgba(35,41,67,0.58)" }}>
           {getMetaLine(race)}
         </p>
         <h3 className="mx-auto mb-2 max-w-[260px] text-[20px] font-bold italic leading-[1.05]" style={{ color: "var(--text-accent)" }}>
           {race.title}
         </h3>
-        {getDistanceLabel(race) && (
-          <p className="mx-auto mb-5 max-w-[260px] text-[13px] font-semibold" style={{ color: "rgba(35,41,67,0.62)" }}>
-            {getDistanceLabel(race)}
-          </p>
-        )}
-        <AeButton href={race.registrationUrl || race.infoUrl} to={race.registrationUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[38px] min-w-[172px] px-6 py-2 text-[15px]">
-          Register
-        </AeButton>
+        <div className="mt-auto">
+          <AeButton href={race.registrationUrl || race.infoUrl} to={race.registrationUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[51px] min-w-[206px] rounded-[8px] px-8 py-0 text-[15px]">
+            Register
+          </AeButton>
+        </div>
       </div>
     </article>
   );
@@ -369,20 +538,33 @@ function UpcomingRaces() {
   const upcomingRaces = useMemo(() => races.filter((race) => race.date >= TODAY), []);
   const options = useMemo(() => getFilterOptions(upcomingRaces), [upcomingRaces]);
   const [filters, setFilters] = useState(defaultFilters);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [upcomingPageSize, setUpcomingPageSize] = useState(1);
   const [page, setPage] = useState(0);
   const filteredRaces = useMemo(() => applyRaceFilters(upcomingRaces, filters), [upcomingRaces, filters]);
-  const pageSize = isDesktop ? 3 : 1;
+  const pageSize = upcomingPageSize;
   const pageCount = Math.max(1, Math.ceil(filteredRaces.length / pageSize));
   const activePage = Math.min(page, pageCount - 1);
   const visibleRaces = filteredRaces.slice(activePage * pageSize, activePage * pageSize + pageSize);
 
   useEffect(() => {
-    const query = window.matchMedia("(min-width: 1280px)");
-    const update = () => setIsDesktop(query.matches);
+    const update = () => {
+      if (window.matchMedia("(min-width: 1280px)").matches) {
+        setUpcomingPageSize(6);
+      } else if (window.matchMedia("(min-width: 1080px)").matches) {
+        setUpcomingPageSize(4);
+      } else {
+        setUpcomingPageSize(1);
+      }
+    };
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
+    const tabletQuery = window.matchMedia("(min-width: 1080px)");
     update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
+    desktopQuery.addEventListener("change", update);
+    tabletQuery.addEventListener("change", update);
+    return () => {
+      desktopQuery.removeEventListener("change", update);
+      tabletQuery.removeEventListener("change", update);
+    };
   }, []);
 
   useEffect(() => {
@@ -414,6 +596,23 @@ function UpcomingRaces() {
           width: min(100%, 420px);
           justify-self: center;
         }
+        .races-results-upcoming-card {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .races-results-upcoming-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 8px 18px 0px rgba(35,41,67,0.18);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .races-results-upcoming-card {
+            transition: box-shadow 0.2s ease !important;
+          }
+          .races-results-upcoming-card:hover {
+            transform: none !important;
+          }
+        }
         .races-results-upcoming-controls {
           margin-top: 32px;
           display: flex;
@@ -439,12 +638,26 @@ function UpcomingRaces() {
           width: 38px;
           background: var(--surface-dark);
         }
-        @media (min-width: 1280px) {
+        @media (min-width: 1080px) and (max-width: 1279px) {
           .races-results-upcoming-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            align-items: stretch;
           }
           .races-results-upcoming-card-slot {
             width: 100%;
+            height: 100%;
+          }
+        }
+        @media (min-width: 1280px) {
+          .races-results-upcoming-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            align-items: stretch;
+          }
+          .races-results-upcoming-card-slot {
+            width: 100%;
+            height: 100%;
           }
         }
         @media (min-width: 1921px) {
@@ -503,9 +716,9 @@ export default function RacesResultsPage() {
       <Hero />
       <Results />
       <UpcomingRaces />
-      <StatsBand quotes={RUNNER_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 />
-      <ResourceSection />
-      <PageCTA title="Ready to Run?" />
+      <StatsBand quotes={RUNNER_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 showLeftTrackAccent trackAccentSpeed={1.2} />
+      <ResourceSection audience="For Runners" />
+      <PageCTA title="Ready to Run?" accentRevealSpeed={1.6} />
     </main>
   );
 }
