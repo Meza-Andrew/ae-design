@@ -644,7 +644,7 @@ export default function AboutPage() {
       <Story />
       <Team />
       <PageCTA
-        title="Have a question, want to talk about races, or just want to say hello?"
+        title={"Have a Question for Our\u00A0Team?"}
         copy="We’d love to hear from you. Get in touch."
         primaryLabel="Message Us"
         primaryTo="/contact#contact-form"
