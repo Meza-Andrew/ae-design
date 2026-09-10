@@ -19,7 +19,7 @@ import imgFrostyLogo from "@/imports/12_Dec_2026_Frosty_5K_Reindeer_Run_1.png";
 import blockQuoteSvg from "@/imports/block_quote.svg";
 import timerSvg from "@/imports/timer.svg";
 import medalSvg from "@/imports/medal.svg";
-import smileSvg from "@/imports/smile.svg";
+import calendarCheckSvg from "@/imports/stat-calendar-check.svg";
 import imgResourceRunner from "@/imports/race-results-guide.jpg";
 import imgResourceDirector from "@/imports/image_2.png";
 import imgResourceGear from "@/imports/image_1.png";
@@ -1062,7 +1062,7 @@ function Services({
 
         <p
           ref={servicesIntroCopyRef}
-          className="mx-auto mb-10 max-w-[885px]"
+          className="mx-auto mb-10 max-w-[1106px]"
           style={{
             ...BODY_COPY_STYLE,
             color: "var(--text-default)",
@@ -2115,7 +2115,7 @@ const BUILT_TESTIMONIALS = [
 const BUILT_STATS = [
   { icon: timerSvg, value: "200+", label: "Timed Races" },
   { icon: medalSvg, value: "50k+", label: "Finishers Tracked" },
-  { icon: smileSvg, value: "[#]", label: "Years of Combined Experience" },
+  { icon: calendarCheckSvg, value: "[#]", label: "Years of Combined Experience" },
 ];
 
 type BuiltQuoteLane = "director" | "runner";
@@ -2685,7 +2685,7 @@ function BuiltForRaceDay({
                     className="font-bold italic"
                     style={{ fontSize: "22px", lineHeight: "28px", color: "var(--text-inverse)" }}
                   >
-                    {stat.value} {stat.label}
+                    <span style={{ color: "var(--text-inverse)" }}>{stat.value}</span>{" "}<span style={{ color: "var(--decorative-highlight)" }}>{stat.label}</span>
                   </p>
                 </div>
               ))}
@@ -2965,7 +2965,7 @@ function Resources({
             style={{
               ...BODY_COPY_STYLE,
               color: "var(--text-default)",
-              maxWidth: "680px",
+              maxWidth: "905px",
               marginBottom: "28px",
               alignSelf: resourcesIntroLeftAlign ? "stretch" : undefined,
             }}
@@ -3152,7 +3152,7 @@ function PageCTA({
         .home-cta-button-group {
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           gap: 14px;
           margin-top: 8px;

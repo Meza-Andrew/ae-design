@@ -17,6 +17,7 @@ import blockQuoteSvg from "@/imports/block_quote.svg";
 import timerSvg from "@/imports/timer.svg";
 import medalSvg from "@/imports/medal.svg";
 import smileSvg from "@/imports/smile.svg";
+import calendarCheckSvg from "@/imports/stat-calendar-check.svg";
 import personRunSvg from "@/imports/PersonSimpleRun.svg";
 import raceDirectorIconSvg from "@/imports/for_race_directors_icon.svg";
 import topographyBg from "@/imports/topography-bg-1.svg";
@@ -170,19 +171,25 @@ export function SectionIntro({
   copy,
   align = "center",
   children,
+  className = "",
+  copyClassName = "max-w-[760px]",
+  titleClassName = "",
 }: {
   kicker?: string;
   title: string;
   copy?: string;
   align?: "center" | "left";
   children?: React.ReactNode;
+  className?: string;
+  copyClassName?: string;
+  titleClassName?: string;
 }) {
   const [copyRef, shouldLeftAlign] = useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
   const resolvedAlign = shouldLeftAlign ? "left" : align;
 
   return (
     <div
-      className="mx-auto mb-10 max-w-[890px]"
+      className={`mx-auto mb-10 max-w-[890px] ${className}`}
       style={{ textAlign: resolvedAlign }}
     >
       {kicker && (
@@ -191,7 +198,7 @@ export function SectionIntro({
         </p>
       )}
       <h2
-        className="mb-4 text-[clamp(36px,4.1vw,52px)] font-bold italic leading-none"
+        className={`mb-4 text-[clamp(36px,4.1vw,52px)] font-bold italic leading-none ${titleClassName}`}
         style={{ color: "var(--text-headlines)" }}
       >
         {title}
@@ -199,7 +206,7 @@ export function SectionIntro({
       {copy && (
         <p
           ref={copyRef}
-          className="mx-auto max-w-[760px]"
+          className={`mx-auto ${copyClassName}`}
           style={{
             ...SITE_BODY_COPY_STYLE,
             color: "var(--text-default)",
@@ -505,12 +512,16 @@ export function ResourceSection({
   ctaLabel = "Learn Something New",
   showTabs = false,
   audience,
+  introClassName = "",
+  introTitleClassName = "",
 }: {
   title?: string;
   copy?: string;
   ctaLabel?: string;
   showTabs?: boolean;
   audience?: ResourceAudience;
+  introClassName?: string;
+  introTitleClassName?: string;
 }) {
   const [sectionRef, visible] = useRevealOnce<HTMLElement>(0.18);
   const cards = getAudienceResourceCards(audience);
@@ -518,7 +529,7 @@ export function ResourceSection({
   return (
     <PageBand className="resource-section-band relative overflow-hidden">
       <section ref={sectionRef}>
-        <SectionIntro title={title} copy={copy}>
+        <SectionIntro title={title} copy={copy} className={introClassName} titleClassName={introTitleClassName}>
           {showTabs ? (
             <>
               <AeButton to="/resources" className="min-h-[54px] min-w-[230px]">For Race Directors</AeButton>
@@ -542,7 +553,7 @@ export const BASE_STATS = [
 export const RACE_DIRECTOR_STATS = [
   { label: "200+ Timed Races", icon: timerSvg },
   { label: "50k+ Finishers Tracked", icon: medalSvg },
-  { label: "[#] Years of Combined Experience", icon: smileSvg },
+  { label: "[#] Years of Combined Experience", icon: calendarCheckSvg },
 ];
 
 export type StatsQuote = {
@@ -942,7 +953,7 @@ export function StatsBand({
             {stats.map((stat) => (
               <div key={stat.label} className="flex items-center gap-5">
                 <img src={stat.icon} alt="" className="h-14 w-14 object-contain" />
-                <p className="text-[20px] font-bold italic">{stat.label}</p>
+                <p className="text-[20px] font-bold italic"><span style={{ color: "var(--text-inverse)" }}>{stat.label.split(" ")[0]}</span>{" "}<span style={{ color: "var(--decorative-highlight)" }}>{stat.label.split(" ").slice(1).join(" ")}</span></p>
               </div>
             ))}
           </div>
@@ -961,6 +972,8 @@ export function PageCTA({
   secondaryTo = "/races-results",
   secondaryHref,
   accentRevealSpeed = 1,
+  titleWidth = "680px",
+  buttonAlignment = "center",
 }: {
   title?: string;
   copy?: string;
@@ -969,6 +982,8 @@ export function PageCTA({
   primaryTo?: string;
   secondaryTo?: string;
   secondaryHref?: string;
+  titleWidth?: string;
+  buttonAlignment?: "left" | "center";
 }) {
   const [accentReveal, setAccentReveal] = useState(0);
   const ctaAccentRef = useRef<HTMLDivElement | null>(null);
@@ -1045,7 +1060,7 @@ export function PageCTA({
         .page-cta-buttons {
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           gap: 16px;
           margin-top: 8px;
@@ -1078,6 +1093,12 @@ export function PageCTA({
             width: 272px;
           }
         }
+        @media (max-width: 1160px) {
+          .page-cta-buttons-left-mobile {
+            align-items: flex-start;
+            justify-content: flex-start;
+          }
+        }
       `}</style>
       <div ref={ctaAccentRef} className="relative mx-auto max-w-[1040px]">
         <img
@@ -1106,7 +1127,7 @@ export function PageCTA({
             style={{
               fontSize: "clamp(34px, 4.35vw, 56px)",
               lineHeight: "1.08",
-              width: "min(680px, 100%)",
+              width: `min(${titleWidth}, 100%)`,
               margin: 0,
               alignSelf: ctaLeftAlign ? "stretch" : undefined,
             }}
@@ -1127,7 +1148,7 @@ export function PageCTA({
           >
             {copy}
           </p>
-          <div className="page-cta-buttons">
+          <div className={`page-cta-buttons${buttonAlignment === "left" ? " page-cta-buttons-left-mobile" : ""}`}>
             <AeButton to={primaryTo} className="page-cta-button">{primaryLabel}</AeButton>
             {secondaryLabel ? <AeButton to={secondaryHref ? undefined : secondaryTo} href={secondaryHref} className="page-cta-button">{secondaryLabel}</AeButton> : null}
           </div>
@@ -1141,10 +1162,14 @@ export function FormWithFAQ({
   title = "Request Timing Services",
   copy = "Planning a race? We'd love to help. Tell us a little about your race and we'll recommend the services that make the most sense for your goals.",
   mode = "timing",
+  introClassName = "",
+  introCopyClassName = "max-w-[760px]",
 }: {
   title?: string;
   copy?: string;
   mode?: "timing" | "contact";
+  introClassName?: string;
+  introCopyClassName?: string;
 }) {
   const defaultFaqs = [
     {
@@ -1384,7 +1409,7 @@ export function FormWithFAQ({
       `}</style>
       <img src={topographyBg} alt="" className="form-section-topography" />
       <div className="relative z-10 mx-auto max-w-[1440px]">
-        <SectionIntro title={title} copy={copy} />
+        <SectionIntro title={title} copy={copy} className={introClassName} copyClassName={introCopyClassName} />
         <div className="form-faq-layout">
           <form
             ref={formPanelRef}

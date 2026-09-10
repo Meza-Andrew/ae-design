@@ -5,6 +5,9 @@ import blockQuoteSvg from "@/imports/block_quote.svg";
 import topographyBg from "@/imports/topography-bg-1.svg";
 import whatWeOfferAccent from "@/imports/what-we-offer-accent.svg";
 import upcomingRacesChevronReverse from "@/imports/upcoming-races-chevron-reverse.svg";
+import calendarCheckSvg from "@/imports/stat-calendar-check.svg";
+import flagCheckeredSvg from "@/imports/stat-flag-checkered.svg";
+import locationDotSvg from "@/imports/stat-location-dot.svg";
 import imgTeamKenKristen from "@/imports/team/ken-kristen-serious.avif";
 import imgTeamKenKristenFun from "@/imports/team/ken-kristen-fun.avif";
 import imgTeamTammy from "@/imports/team/tammy-serious.avif";
@@ -25,7 +28,6 @@ import {
   RaceCard,
   SectionIntro,
   SHARED_RACES,
-  BASE_STATS,
   SITE_BODY_COPY_STYLE,
   SliderControls,
   useLeftAlignWhenCopyExceedsLines,
@@ -54,9 +56,9 @@ const placeholderTeam = Array.from({ length: 12 }, (_, index) => ({
 }));
 
 const ABOUT_STATS = [
-  { label: "[#] Races directed by Arsenal Events", icon: BASE_STATS[0].icon },
-  { label: "[#] Communities We’ve Raced With", icon: BASE_STATS[1].icon },
-  { label: "[#] Years of Combined Experience", icon: BASE_STATS[2].icon },
+  { label: "[#] Races Directed by Arsenal Events", icon: flagCheckeredSvg },
+  { label: "[#] Communities We’ve Raced With", icon: locationDotSvg },
+  { label: "[#] Years of Combined Experience", icon: calendarCheckSvg },
 ];
 
 function Hero() {
@@ -314,7 +316,7 @@ function CommunityImpact() {
           {ABOUT_STATS.map((stat) => (
             <div key={stat.label} className="flex items-center gap-4">
               <img src={stat.icon} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
-              <p className="text-[20px] font-bold italic" style={{ color: "var(--decorative-highlight)" }}>{stat.label}</p>
+              <p className="text-[20px] font-bold italic"><span style={{ color: "var(--text-inverse)" }}>{stat.label.split(" ")[0]}</span>{" "}<span style={{ color: "var(--decorative-highlight)" }}>{stat.label.split(" ").slice(1).join(" ")}</span></p>
             </div>
           ))}
         </div>

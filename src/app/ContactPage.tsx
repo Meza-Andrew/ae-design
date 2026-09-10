@@ -174,7 +174,9 @@ function Hero() {
         </h1>
         <p className="sr-only">Contact Arsenal Events</p>
         <p className="mx-auto mb-12 max-w-[1000px]" style={SITE_BODY_COPY_STYLE}>
-          Planning a race, looking for event information, or have a question for our team? We’re here to help.
+          Planning a race, looking for event information, or have a question for our team?
+          <br />
+          <span className="whitespace-nowrap">We’re here to help.</span>
         </p>
         <div className="flex flex-col items-center justify-center gap-6 @sm:flex-row">
           <AeButton href="#contact-form"><span className="inline-flex items-center gap-3"><Mail size={22} /> Message Us</span></AeButton>
@@ -460,6 +462,7 @@ function ServiceArea() {
         <SectionIntro
           title="Serving Race Communities Across the Region"
           copy="Arsenal Events is rooted in the Fredericksburg region, serving race directors, organizations, and runners throughout Stafford, Spotsylvania, and surrounding communities. Our reach continues into Northern Virginia, D.C., and Maryland."
+          copyClassName="max-w-[1011px]"
         />
         <div className="mx-auto max-w-[1180px]">
           <ServiceAreaMap />

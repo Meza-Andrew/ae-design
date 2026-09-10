@@ -348,6 +348,14 @@ function Services() {
       style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
     >
       <style>{`
+        .rd-single-line-headline {
+          white-space: normal;
+        }
+        @media (min-width: 1280px) {
+          .rd-single-line-headline {
+            white-space: nowrap;
+          }
+        }
         .rd-services-inner {
           position: relative;
           z-index: 2;
@@ -698,7 +706,8 @@ function Services() {
           copy="Every race is different. We’ll help you determine the right mix of services for your event."
 
           className="max-w-[1106px]"
-          copyClassName="max-w-[1106px]"        />
+          copyClassName="max-w-[1106px]"
+          titleClassName="rd-single-line-headline"        />
 
         <div className="rd-services-stage" aria-live="polite" onPointerDownCapture={pauseForInteraction} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
           <div className="rd-services-sizer" aria-hidden="true">
@@ -1142,16 +1151,20 @@ export default function ForRaceDirectorsPage() {
       />
       <div id="form" className="scroll-mt-20">
         <FormWithFAQ
-          title="Planning a race? We'd love to help."
+          title="Planning a Race? We'd Love to Help."
           copy="Tell us a little about your event and what you need. We'll review the details and recommend the services that make the most sense for your race."
-        />
+
+          introClassName="!max-w-[950px]"
+          introCopyClassName="!max-w-[950px]"        />
       </div>
       <ResourceSection
         audience="For Race Directors"
         title="Race Planning Without the Guesswork"
         copy="From choosing a timing partner to preparing for race day, get practical advice from a team that works behind the scenes at races year-round."
         ctaLabel="Read Our Resources"
-      />
+
+        introClassName="!max-w-[1180px]"
+        introTitleClassName="rd-single-line-headline"      />
       <PageCTA
         title="You've Got a Race to Run. We'll Help You Run It."
         copy="Tell us what you're planning and we'll help you build the right race-day setup."
@@ -1159,7 +1172,8 @@ export default function ForRaceDirectorsPage() {
         primaryTo="/race-director-services#services"
         secondaryLabel="Request Timing Services"
         secondaryTo="/race-director-services#form"
-      />
+
+        titleWidth="748px"      />
     </main>
   );
 }

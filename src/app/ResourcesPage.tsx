@@ -248,6 +248,7 @@ export default function ResourcesPage() {
         primaryTo="/race-director-services"
         secondaryLabel="Browse Upcoming Events"
         secondaryTo="/races-results#upcoming-races"
+        buttonAlignment="left"
       />
     </main>
   );
