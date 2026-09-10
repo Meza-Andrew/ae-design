@@ -210,7 +210,7 @@ function ArsenalWordmark() {
 function RequestTimingBtn({ onClick }: { onClick?: () => void }) {
   return (
     <Link
-      to="/contact"
+      to="/contact-us"
       onClick={onClick}
       className="req-timing-btn inline-flex items-center justify-center shrink-0 whitespace-nowrap"
       style={{
@@ -334,7 +334,7 @@ export function Nav() {
       <div className="nav-desktop" style={{ background: "var(--surface-subtle)" }}>
         <div className="max-w-[1440px] mx-auto w-full px-5 @sm:px-8 h-[50px] flex items-center justify-end gap-6">
           <Link
-            to="/contact#contact-form"
+            to="/contact-us#contact-form"
             className="inline-flex items-center gap-2 text-sm hover:opacity-70 transition-opacity"
             style={{ color: "var(--text-default)", fontWeight: 500 }}
           >
@@ -345,7 +345,7 @@ export function Nav() {
             Email Us
           </Link>
           <a
-            href="tel:+15400000000"
+            href="tel:+18045723060"
             className="inline-flex items-center gap-2 text-sm hover:opacity-70 transition-opacity"
             style={{ color: "var(--text-default)", fontWeight: 500 }}
           >
@@ -353,7 +353,7 @@ export function Nav() {
             <svg width="20" height="20" viewBox="0 0 29.0183 29.071" fill="none" aria-hidden>
               <path d={svgPaths.p6604a00} stroke="var(--text-default)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
             </svg>
-            540-XXX-XXXX
+            (804) 572-3060
           </a>
         </div>
       </div>
@@ -475,7 +475,7 @@ export function Nav() {
           {/* Request Timing Services — full-width in drawer */}
           <div className="px-6 py-5">
             <Link
-              to="/contact"
+              to="/contact-us"
               onClick={handlePrimaryNavClick}
               className="flex items-center justify-center w-full py-3.5 font-semibold text-base"
               style={{
@@ -493,7 +493,7 @@ export function Nav() {
             style={{ background: "var(--surface-subtle)" }}
           >
             <Link
-              to="/contact#contact-form"
+              to="/contact-us#contact-form"
               onClick={() => setOpen(false)}
               className="inline-flex items-center gap-2 text-sm"
               style={{ color: "var(--text-default)", fontWeight: 500 }}
@@ -502,12 +502,12 @@ export function Nav() {
               Email Us
             </Link>
             <a
-              href="tel:+15400000000"
+              href="tel:+18045723060"
               className="inline-flex items-center gap-2 text-sm"
               style={{ color: "var(--text-default)", fontWeight: 500 }}
             >
               <Phone size={14} />
-              540-XXX-XXXX
+              (804) 572-3060
             </a>
           </div>
         </div>
@@ -523,7 +523,7 @@ const FOOTER_NAV = [
   { label: "Races & Results",    to: "/races-results",      weight: 500 },
   { label: "Resources",          to: "/resources",          weight: 400 },
   { label: "About",              to: "/about-us",           weight: 400 },
-  { label: "Contact",            to: "/contact",            weight: 400 },
+  { label: "Contact",            to: "/contact-us",         weight: 400 },
 ];
 
 export function Footer() {

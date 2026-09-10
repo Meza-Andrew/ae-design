@@ -1146,7 +1146,7 @@ export function FormWithFAQ({
   copy?: string;
   mode?: "timing" | "contact";
 }) {
-  const faqs = [
+  const defaultFaqs = [
     {
       q: "What information do you need to provide a quote?",
       a: "We'll typically need your race date, estimated number of participants, location, race distances, and which services you're interested in. If you don't have everything figured out yet, that's okay - we can help you work through the details.",
@@ -1201,6 +1201,9 @@ export function FormWithFAQ({
     "Other",
   ];
   const isContactMode = mode === "contact";
+  const faqs = isContactMode
+    ? defaultFaqs.map(() => ({ q: "Placeholder Question", a: "Placeholder answer" }))
+    : defaultFaqs;
   const serviceOptions = isContactMode ? contactTopicOptions : timingServiceOptions;
 
   const raceTypes = ["5k", "10k", "Half Marathon", "Marathon", "Trail", "Triathlon", "Fun Run", "Other"];
@@ -1315,16 +1318,16 @@ export function FormWithFAQ({
   const sectionLabelClass = "mb-4 block text-[19px] font-bold italic text-white";
   const submitLabel = isContactMode
     ? submitStatus === "sending"
-      ? "Sending your message..."
+      ? "Sending your message…"
       : submitStatus === "sent"
-        ? "Message sent!"
+        ? "Message Sent!"
         : "Send Message"
     : submitStatus === "sending"
       ? "Sending your request…"
       : submitStatus === "sent"
         ? "Request sent!"
         : "Request timing services";
-  const selectedServicesLabel = formValues.services.length > 0 ? formValues.services.join(", ") : isContactMode ? "I'm contacting you about" : "Services Needed";
+  const selectedServicesLabel = formValues.services.length > 0 ? formValues.services.join(", ") : isContactMode ? "I’m contacting you about:" : "Services Needed";
 
   return (
     <section ref={formSectionRef} className="homepage-built-mobile-padding relative overflow-visible px-5 pb-12 pt-16 @sm:px-10 @sm:pb-[72px] @sm:pt-24" style={{ background: "var(--surface-default)" }}>
@@ -1399,7 +1402,7 @@ export function FormWithFAQ({
             </fieldset>
 
             <fieldset className="mt-8">
-              <legend className={sectionLabelClass}>{isContactMode ? "I'm contacting you about" : "Services Needed"} <span className="font-medium not-italic">(check all that apply)</span></legend>
+              <legend className={sectionLabelClass}>{isContactMode ? "I’m contacting you about:" : "Services Needed"} <span className="font-medium not-italic">(check all that apply)</span></legend>
               <div className="relative">
                 <button
                   type="button"
@@ -1478,14 +1481,14 @@ export function FormWithFAQ({
             <div aria-live="polite" className="mt-6 text-center">
               {submitStatus === "sent" && (
                 <div className="rounded-[6px] px-5 py-4 text-left text-[16px] font-medium leading-snug text-[var(--text-default)]" style={{ background: "#E3E6E0" }}>
-                  <p className="mb-2 text-[20px] font-bold">{isContactMode ? "Thanks for contacting Arsenal Events!" : "Thanks for reaching out!"}</p>
-                  <p>{isContactMode ? "We've received your message and will get back to you as soon as possible." : "We've received your race information and someone from Arsenal Events will review your request. We'll contact you within one business day to learn more about your event and discuss how we can help."}</p>
+                  <p className="mb-2 text-[20px] font-bold">{isContactMode ? "Message Sent!" : "Thanks for reaching out!"}</p>
+                  <p>{isContactMode ? "Thanks for reaching out to Arsenal Events. We’ve received your message and our team will be in touch soon." : "We've received your race information and someone from Arsenal Events will review your request. We'll contact you within one business day to learn more about your event and discuss how we can help."}</p>
                 </div>
               )}
               {submitStatus === "error" && (
                 <div className="rounded-[6px] bg-white px-5 py-4 text-left text-[16px] font-medium leading-snug text-[var(--text-default)]">
-                  <p className="mb-2 font-bold">{isContactMode ? "We couldn't send your message." : "Something went wrong while sending your request."}</p>
-                  <p>{isContactMode ? "Please try again in a few minutes or contact us by phone at " : "Please try again in a few minutes or contact us directly at "}<a href="tel:540XXXXXXX" className="font-bold underline">540-XXX-XXXX</a>{isContactMode ? " if the problem continues." : " if the issue continues."}</p>
+                  <p className="mb-2 font-bold">Something went wrong while sending your request.</p>
+                  <p>Please try again in a few minutes or contact us directly at <a href="tel:8045723060" className="font-bold underline">804-572-3060</a> if the issue continues.</p>
                 </div>
               )}
             </div>
@@ -1496,7 +1499,7 @@ export function FormWithFAQ({
               {faqs.map((faq, index) => {
                 const open = activeFaq === index;
                 return (
-                  <div key={faq.q} className="pb-5">
+                  <div key={`${faq.q}-${index}`} className="pb-5">
                     <button
                       type="button"
                       className="form-faq-button flex w-full items-start gap-3 text-left"

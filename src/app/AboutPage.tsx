@@ -308,7 +308,7 @@ function CommunityImpact() {
             <h2 className="mb-4 text-[clamp(34px,4vw,52px)] font-bold italic leading-none">Rooted Here. Running Farther.</h2>
             <p className="max-w-[760px]" style={SITE_BODY_COPY_STYLE}>Arsenal Events grew out of the local running community. From the races we produce ourselves to the events we support throughout the region, every start line is another opportunity to bring people together, support meaningful causes, and give runners an experience they’ll remember.</p>
           </div>
-          <AeButton to="/contact#service-area">See Our Full Service Area</AeButton>
+          <AeButton to="/contact-us#service-area">See Our Full Service Area</AeButton>
         </div>
         <div className="mb-16 grid gap-8 @md:grid-cols-3">
           {ABOUT_STATS.map((stat) => (
@@ -677,7 +677,7 @@ export default function AboutPage() {
         title={"Have a Question for Our\u00A0Team?"}
         copy="We’d love to hear from you. Get in touch."
         primaryLabel="Message Us"
-        primaryTo="/contact#contact-form"
+        primaryTo="/contact-us#contact-form"
         secondaryLabel="Call Us"
         secondaryHref="tel:8045723060"
       />

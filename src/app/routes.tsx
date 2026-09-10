@@ -93,6 +93,11 @@ function LegacyAboutRedirect() {
   return <Navigate to={{ pathname: "/about-us", search: location.search, hash: location.hash }} replace />;
 }
 
+function LegacyContactRedirect() {
+  const location = useLocation();
+  return <Navigate to={{ pathname: "/contact-us", search: location.search, hash: location.hash }} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -107,7 +112,8 @@ export const router = createBrowserRouter([
       { path: "about", Component: LegacyAboutRedirect },
       { path: "resources", Component: ResourcesPage },
       { path: "resources/understanding-your-race-results", Component: ResourceSinglePage },
-      { path: "contact", Component: ContactPage },
+      { path: "contact-us", Component: ContactPage },
+      { path: "contact", Component: LegacyContactRedirect },
       { path: "*", Component: Placeholder },
     ],
   },

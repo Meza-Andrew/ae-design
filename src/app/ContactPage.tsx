@@ -170,14 +170,15 @@ function Hero() {
       <img src={whatWeOfferAccent} alt="" className="contact-hero-track contact-hero-track-right" />
       <div className="relative z-10 mx-auto max-w-[1245px]">
         <h1 className="mx-auto mb-8 max-w-none text-[clamp(48px,6vw,86px)] font-bold italic leading-none min-[1180px]:whitespace-nowrap" style={{ color: "var(--text-headlines)" }}>
-          We'd Love to Hear From You
+          We’d Love to Hear From You
         </h1>
+        <p className="sr-only">Contact Arsenal Events</p>
         <p className="mx-auto mb-12 max-w-[1000px]" style={SITE_BODY_COPY_STYLE}>
-          Placeholder supporting copy - one or two sentences inviting race directors and runners to reach out with questions, bookings, or general inquiries.
+          Planning a race, looking for event information, or have a question for our team? We’re here to help.
         </p>
         <div className="flex flex-col items-center justify-center gap-6 @sm:flex-row">
           <AeButton href="#contact-form"><span className="inline-flex items-center gap-3"><Mail size={22} /> Message Us</span></AeButton>
-          <AeButton href="tel:5400000000"><span className="inline-flex items-center gap-3"><Phone size={22} /> Call Us</span></AeButton>
+          <AeButton href="tel:8045723060"><span className="inline-flex items-center gap-3"><Phone size={22} /> Call Us</span></AeButton>
         </div>
       </div>
     </section>
@@ -457,8 +458,8 @@ function ServiceArea() {
     <PageBand className="!pt-11 @sm:!pt-16">
       <div id="service-area" className="scroll-mt-20">
         <SectionIntro
-          title="Service Area"
-          copy="Placeholder supporting headline copy with a sentence or two leading into the Runner's Arsenal blog and its benefits."
+          title="Serving Race Communities Across the Region"
+          copy="Arsenal Events is rooted in the Fredericksburg region, serving race directors, organizations, and runners throughout Stafford, Spotsylvania, and surrounding communities. Our reach continues into Northern Virginia, D.C., and Maryland."
         />
         <div className="mx-auto max-w-[1180px]">
           <ServiceAreaMap />
@@ -489,22 +490,49 @@ function PreferToTalk() {
         }
       `}</style>
       <a
-        href="tel:+15400000000"
+        href="tel:8045723060"
         className="prefer-talk-cta mx-auto block max-w-[465px] rounded-[10px] px-6 py-6 text-center no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--action-tertiary-default)]"
       >
-        <p className="text-[clamp(21px,2.25vw,29px)] font-bold leading-tight transition-transform"><Phone className="mr-2 inline" size={26} /> Prefer to Talk?<br />Call us at 540 - XXX - XXXX.</p>
+        <p className="text-[clamp(21px,2.25vw,29px)] font-bold leading-tight transition-transform"><Phone className="mr-2 inline" size={26} /> Prefer to Talk?<br />Call us at 804-572-3060</p>
       </a>
     </PageBand>
   );
 }
 
 export default function ContactPage() {
+  useEffect(() => {
+    const title = "Contact Arsenal Events | Race Timing & Event Support";
+    const description = "Questions about your race, registration, results, or Arsenal Events? Send us a message or give our team a call. We’re here to help.";
+    const previousTitle = document.title;
+    const metadata = [
+      { selector: 'meta[name="description"]', attribute: "content", value: description },
+      { selector: 'meta[property="og:title"]', attribute: "content", value: title },
+      { selector: 'meta[property="og:description"]', attribute: "content", value: description },
+    ];
+    const previousValues = metadata.map(({ selector, attribute }) => {
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      return { element, attribute, value: element?.getAttribute(attribute) };
+    });
+
+    document.title = title;
+    metadata.forEach(({ selector, attribute, value }) => {
+      document.querySelector<HTMLMetaElement>(selector)?.setAttribute(attribute, value);
+    });
+
+    return () => {
+      document.title = previousTitle;
+      previousValues.forEach(({ element, attribute, value }) => {
+        if (element && value !== null) element.setAttribute(attribute, value);
+      });
+    };
+  }, []);
+
   return (
     <main style={{ background: "var(--surface-default)" }}>
       <Hero />
       <ServiceArea />
       <div id="contact-form" className="scroll-mt-20">
-        <FormWithFAQ mode="contact" title="Contact Form" copy="Placeholder - a short line inviting the user to fill out the form and setting expectations for response time." />
+        <FormWithFAQ mode="contact" title="How Can We Help?" copy="Send us a message and tell us what you need. We’ll make sure your message gets to the right person." />
       </div>
       <PreferToTalk />
     </main>
