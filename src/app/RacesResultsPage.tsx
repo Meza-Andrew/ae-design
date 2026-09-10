@@ -741,7 +741,12 @@ export default function RacesResultsPage() {
   }, []);
 
   return (
-    <main style={{ background: "var(--surface-default)" }}>
+    <main className="races-results-page" style={{ background: "var(--surface-default)" }}>
+      <style>{`
+        .races-results-page .stats-band-left-track-accent {
+          transform: translate(-125px, -50%) rotate(180deg);
+        }
+      `}</style>
       <Hero />
       <Results />
       <UpcomingRaces />
