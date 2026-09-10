@@ -88,6 +88,11 @@ function LegacyRacesRedirect() {
   return <Navigate to={{ pathname: "/races-results", search: location.search, hash: location.hash }} replace />;
 }
 
+function LegacyAboutRedirect() {
+  const location = useLocation();
+  return <Navigate to={{ pathname: "/about-us", search: location.search, hash: location.hash }} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -98,7 +103,8 @@ export const router = createBrowserRouter([
       { path: "for-race-directors", Component: LegacyRaceDirectorsRedirect },
       { path: "races-results", Component: RacesResultsPage },
       { path: "races", Component: LegacyRacesRedirect },
-      { path: "about", Component: AboutPage },
+      { path: "about-us", Component: AboutPage },
+      { path: "about", Component: LegacyAboutRedirect },
       { path: "resources", Component: ResourcesPage },
       { path: "resources/understanding-your-race-results", Component: ResourceSinglePage },
       { path: "contact", Component: ContactPage },

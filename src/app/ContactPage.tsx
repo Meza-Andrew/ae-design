@@ -455,12 +455,14 @@ function ServiceAreaMap() {
 function ServiceArea() {
   return (
     <PageBand className="!pt-11 @sm:!pt-16">
-      <SectionIntro
-        title="Service Area"
-        copy="Placeholder supporting headline copy with a sentence or two leading into the Runner's Arsenal blog and its benefits."
-      />
-      <div className="mx-auto max-w-[1180px]">
-        <ServiceAreaMap />
+      <div id="service-area" className="scroll-mt-20">
+        <SectionIntro
+          title="Service Area"
+          copy="Placeholder supporting headline copy with a sentence or two leading into the Runner's Arsenal blog and its benefits."
+        />
+        <div className="mx-auto max-w-[1180px]">
+          <ServiceAreaMap />
+        </div>
       </div>
     </PageBand>
   );

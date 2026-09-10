@@ -756,7 +756,7 @@ export default function RacesResultsPage() {
         quotes={RUNNER_STATS_QUOTES}
         stats={RACE_DIRECTOR_STATS}
         ctaLabel="Meet the Team Behind Race Day"
-        ctaTo="/about"
+        ctaTo="/about-us"
         stackBelow950
         showLeftTrackAccent
         trackAccentSpeed={1.2}

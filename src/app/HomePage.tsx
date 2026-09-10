@@ -2551,7 +2551,7 @@ function BuiltForRaceDay({
               </p>
             </div>
             <Link
-              to="/about"
+              to="/about-us"
               className="bfrd-btn inline-flex items-center justify-center shrink-0"
               style={{
                 background: "var(--action-primary-default)",

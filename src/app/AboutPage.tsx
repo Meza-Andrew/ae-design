@@ -53,6 +53,12 @@ const placeholderTeam = Array.from({ length: 12 }, (_, index) => ({
   bib: `placeholder-${index}`,
 }));
 
+const ABOUT_STATS = [
+  { label: "[#] Races directed by Arsenal Events", icon: BASE_STATS[0].icon },
+  { label: "[#] Communities We’ve Raced With", icon: BASE_STATS[1].icon },
+  { label: "[#] Years of Combined Experience", icon: BASE_STATS[2].icon },
+];
+
 function Hero() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -160,8 +166,9 @@ function Hero() {
           }}
         >
           <h1 className="mb-7 text-[clamp(52px,7vw,92px)] font-bold italic leading-none">Get to Know Arsenal Events</h1>
+          <p className="sr-only">About Arsenal Events</p>
           <p className="mb-9" style={SITE_BODY_COPY_STYLE}>
-            Placeholder supporting copy - two sentences about who Arsenal Events is and what drives the team to show up on race day.
+            We’re runners, coaches, parents, race directors, and event coordinators who know firsthand what it takes to make race day feel worth showing up for.
           </p>
           <AeButton href="#community">See Our Community Impact</AeButton>
         </div>
@@ -298,13 +305,13 @@ function CommunityImpact() {
       <div className="mx-auto max-w-[1245px]">
         <div className="mb-14 grid gap-8 @lg:grid-cols-[1fr_auto] @lg:items-start">
           <div>
-            <h2 className="mb-4 text-[clamp(34px,4vw,52px)] font-bold italic leading-none">Community Impact</h2>
-            <p className="max-w-[760px]" style={SITE_BODY_COPY_STYLE}>Placeholder - a sentence or two about Arsenal's footprint in the running community and what these numbers represent.</p>
+            <h2 className="mb-4 text-[clamp(34px,4vw,52px)] font-bold italic leading-none">Rooted Here. Running Farther.</h2>
+            <p className="max-w-[760px]" style={SITE_BODY_COPY_STYLE}>Arsenal Events grew out of the local running community. From the races we produce ourselves to the events we support throughout the region, every start line is another opportunity to bring people together, support meaningful causes, and give runners an experience they’ll remember.</p>
           </div>
-          <AeButton to="/contact">See Our Full Service Area</AeButton>
+          <AeButton to="/contact#service-area">See Our Full Service Area</AeButton>
         </div>
         <div className="mb-16 grid gap-8 @md:grid-cols-3">
-          {BASE_STATS.map((stat) => (
+          {ABOUT_STATS.map((stat) => (
             <div key={stat.label} className="flex items-center gap-4">
               <img src={stat.icon} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
               <p className="text-[20px] font-bold italic" style={{ color: "var(--decorative-highlight)" }}>{stat.label}</p>
@@ -472,11 +479,11 @@ function Story() {
         />
         <div className="about-story-layout relative z-10 mx-auto grid max-w-[1160px] gap-12 items-center">
           <div>
-            <h2 className="mb-5 text-[clamp(34px,4vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>Our Story</h2>
+            <h2 className="mb-5 text-[clamp(34px,4vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>Meet Arsenal Events</h2>
             <div className="grid gap-5" style={{ ...SITE_BODY_COPY_STYLE, color: "var(--text-default)" }}>
-              <p>Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.</p>
-              <p>Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.</p>
-              <p>Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.</p>
+              <p>Arsenal Events is a full-service race management company providing registration, timing and results, packet pickup, course management, race directing, and consulting for events throughout the region.</p>
+              <p>We also produce eight of our own events each year, giving us firsthand experience on both sides of the starting line. We understand what race directors need to manage a successful event and what runners expect when they arrive on race day.</p>
+              <p>Our approach combines proven technology, experienced staff, and efficient processes to handle the details behind the scenes so race directors can focus on their event, their participants, and their organization.</p>
             </div>
           </div>
           <img src={imgStory} alt="Arsenal Events team members" className="aspect-[1.25/1] w-full rounded-[4px] object-cover" />
@@ -577,9 +584,9 @@ function Team() {
       `}</style>
       <img src={topographyBg} alt="" aria-hidden="true" className="about-team-topography" />
       <div className="relative z-10 mx-auto mb-10 max-w-[1180px] text-center">
-        <h2 className="mb-4 text-[clamp(36px,4.1vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>Meet the Team</h2>
+        <h2 className="mb-4 text-[clamp(36px,4.1vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>The People Behind Race Day</h2>
         <p ref={teamCopyRef} className={`mx-auto max-w-[1180px] ${teamCopyLeftAligned ? "text-left" : "text-center"}`} style={{ ...SITE_BODY_COPY_STYLE, color: "var(--text-default)" }}>
-          Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition.
+          The best race days look effortless because a lot of people are working behind the scenes. Meet the team bringing the experience, energy, and attention to detail that keep Arsenal Events moving.
         </p>
       </div>
       <div ref={teamRef} className="about-team-grid relative z-10 mx-auto grid max-w-[1180px] gap-6">
@@ -602,6 +609,33 @@ function Team() {
   );
 }
 export default function AboutPage() {
+  useEffect(() => {
+    const title = "About Arsenal Events | Meet the Team Behind Race Day";
+    const description = "Get to know the people behind Arsenal Events, our approach to race day, and the community that has shaped who we are.";
+    const previousTitle = document.title;
+    const metadata = [
+      { selector: 'meta[name="description"]', attribute: "content", value: description },
+      { selector: 'meta[property="og:title"]', attribute: "content", value: title },
+      { selector: 'meta[property="og:description"]', attribute: "content", value: description },
+    ];
+    const previousValues = metadata.map(({ selector, attribute }) => {
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      return { element, attribute, value: element?.getAttribute(attribute) };
+    });
+
+    document.title = title;
+    metadata.forEach(({ selector, attribute, value }) => {
+      document.querySelector<HTMLMetaElement>(selector)?.setAttribute(attribute, value);
+    });
+
+    return () => {
+      document.title = previousTitle;
+      previousValues.forEach(({ element, attribute, value }) => {
+        if (element && value !== null) element.setAttribute(attribute, value);
+      });
+    };
+  }, []);
+
   return (
     <main style={{ background: "var(--surface-default)" }}>
       <Hero />
@@ -609,7 +643,14 @@ export default function AboutPage() {
       <CommunityImpact />
       <Story />
       <Team />
-      <PageCTA title="Have a Question for Our Team?" primaryLabel="Message Us" secondaryLabel="Call Us" />
+      <PageCTA
+        title="Have a question, want to talk about races, or just want to say hello?"
+        copy="We’d love to hear from you. Get in touch."
+        primaryLabel="Message Us"
+        primaryTo="/contact#contact-form"
+        secondaryLabel="Call Us"
+        secondaryHref="tel:8045723060"
+      />
     </main>
   );
 }

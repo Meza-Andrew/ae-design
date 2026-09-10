@@ -959,6 +959,7 @@ export function PageCTA({
   secondaryLabel = "Find A Race",
   primaryTo = "/race-director-services",
   secondaryTo = "/races-results",
+  secondaryHref,
   accentRevealSpeed = 1,
 }: {
   title?: string;
@@ -967,6 +968,7 @@ export function PageCTA({
   secondaryLabel?: string | null;
   primaryTo?: string;
   secondaryTo?: string;
+  secondaryHref?: string;
 }) {
   const [accentReveal, setAccentReveal] = useState(0);
   const ctaAccentRef = useRef<HTMLDivElement | null>(null);
@@ -1127,7 +1129,7 @@ export function PageCTA({
           </p>
           <div className="page-cta-buttons">
             <AeButton to={primaryTo} className="page-cta-button">{primaryLabel}</AeButton>
-            {secondaryLabel ? <AeButton to={secondaryTo} className="page-cta-button">{secondaryLabel}</AeButton> : null}
+            {secondaryLabel ? <AeButton to={secondaryHref ? undefined : secondaryTo} href={secondaryHref} className="page-cta-button">{secondaryLabel}</AeButton> : null}
           </div>
         </div>
       </div>
