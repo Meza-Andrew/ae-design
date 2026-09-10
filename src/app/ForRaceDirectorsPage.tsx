@@ -1124,7 +1124,7 @@ export default function ForRaceDirectorsPage() {
     <main className="race-director-services-page" style={{ background: "var(--surface-default)" }}>
       <style>{`
         .race-director-services-page .stats-band-left-track-accent {
-          transform: translate(-200px, -50%) rotate(180deg);
+          transform: translate(-125px, -50%) rotate(180deg);
         }
       `}</style>
       <Hero />
