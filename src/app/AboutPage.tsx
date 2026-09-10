@@ -310,7 +310,7 @@ function CommunityImpact() {
           </div>
           <AeButton to="/contact-us#service-area">See Our Full Service Area</AeButton>
         </div>
-        <div className="mb-16 grid gap-8 @md:grid-cols-3">
+        <div className="mb-16 grid gap-8 min-[1280px]:grid-cols-3">
           {ABOUT_STATS.map((stat) => (
             <div key={stat.label} className="flex items-center gap-4">
               <img src={stat.icon} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
