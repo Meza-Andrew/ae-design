@@ -520,7 +520,12 @@ function TeamCard({ member }: { member: (typeof team)[number] }) {
 function Team() {
   const teamRef = useRef<HTMLDivElement>(null);
   const [teamVisible, setTeamVisible] = useState(false);
+  const [pageSize, setPageSize] = useState(1);
+  const [page, setPage] = useState(0);
   const [teamCopyRef, teamCopyLeftAligned] = useLeftAlignWhenCopyExceedsLines<HTMLParagraphElement>();
+  const pageCount = Math.max(1, Math.ceil(placeholderTeam.length / pageSize));
+  const activePage = Math.min(page, pageCount - 1);
+  const visibleTeam = placeholderTeam.slice(activePage * pageSize, activePage * pageSize + pageSize);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -539,6 +544,26 @@ function Team() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const desktopQuery = window.matchMedia("(min-width: 1281px)");
+    const tabletQuery = window.matchMedia("(min-width: 1001px)");
+    const update = () => setPageSize(desktopQuery.matches ? 3 : tabletQuery.matches ? 2 : 1);
+
+    update();
+    desktopQuery.addEventListener("change", update);
+    tabletQuery.addEventListener("change", update);
+    return () => {
+      desktopQuery.removeEventListener("change", update);
+      tabletQuery.removeEventListener("change", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    setPage(0);
+  }, [pageSize]);
+
+  const goToPage = (nextPage: number) => setPage((nextPage + pageCount) % pageCount);
+
   return (    <PageBand className="about-team-section relative overflow-hidden">
       <style>{`
         .about-team-grid {
@@ -549,7 +574,7 @@ function Team() {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
-        @media (min-width: 1280px) {
+        @media (min-width: 1281px) {
           .about-team-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
           }
@@ -589,8 +614,8 @@ function Team() {
           The best race days look effortless because a lot of people are working behind the scenes. Meet the team bringing the experience, energy, and attention to detail that keep Arsenal Events moving.
         </p>
       </div>
-      <div ref={teamRef} className="about-team-grid relative z-10 mx-auto grid max-w-[1180px] gap-6">
-        {placeholderTeam.map((member, index) => (
+      <div ref={teamRef} className="about-team-grid relative z-10 mx-auto grid max-w-[1180px] gap-6" aria-live="polite">
+        {visibleTeam.map((member, index) => (
           <div
             key={`${member.bib}-${index}`}
             style={{
@@ -605,6 +630,11 @@ function Team() {
           </div>
         ))}
       </div>
+      {pageCount > 1 ? (
+        <div className="relative z-10">
+          <SliderControls onPrev={() => goToPage(activePage - 1)} onNext={() => goToPage(activePage + 1)} />
+        </div>
+      ) : null}
     </PageBand>
   );
 }
