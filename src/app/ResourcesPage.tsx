@@ -242,7 +242,7 @@ export default function ResourcesPage() {
       <Hero />
       <LatestArticles />
       <PageCTA
-        title="Put What You Know Into Motion."
+        title={"Put What You Know Into\u00A0Motion."}
         copy="Planning an event or looking for your next start line? Arsenal Events has the tools, experience, and race-day support to help you take the next step."
         primaryLabel="Plan Your Event"
         primaryTo="/race-director-services"
