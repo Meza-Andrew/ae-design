@@ -770,7 +770,7 @@ function Hero({
         {/* CTA buttons */}
         <div className="homepage-hero-actions flex flex-wrap gap-5 items-center">
           {/* Plan Your Event */}
-          <HeroBtn to="/for-race-directors">Plan Your Event</HeroBtn>
+          <HeroBtn to="/race-director-services">Plan Your Event</HeroBtn>
 
           {/* Find Your Next Race */}
           <HeroBtn to="/races">Find Your Next Race</HeroBtn>
@@ -783,11 +783,11 @@ function Hero({
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 const DIRECTORS_SERVICES = [
-  { label: "Registration", accent: true, to: "/for-race-directors?service=registration#services" },
-  { label: "Timing & Results", accent: false, to: "/for-race-directors?service=timing-results#services" },
-  { label: "Packet Pickup", accent: false, to: "/for-race-directors?service=packet-pickup#services" },
-  { label: "Course Management", accent: false, to: "/for-race-directors?service=course-management#services" },
-  { label: "Consulting", accent: false, to: "/for-race-directors?service=race-directing#services" },
+  { label: "Registration", accent: true, to: "/race-director-services?service=registration#services" },
+  { label: "Timing & Results", accent: false, to: "/race-director-services?service=timing-results#services" },
+  { label: "Packet Pickup", accent: false, to: "/race-director-services?service=packet-pickup#services" },
+  { label: "Course Management", accent: false, to: "/race-director-services?service=course-management#services" },
+  { label: "Consulting", accent: false, to: "/race-director-services?service=race-directing#services" },
 ];
 
 const RUNNERS_SERVICES = [
@@ -1087,7 +1087,7 @@ function Services({
                   boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
                 }}
               >
-              <Link to="/for-race-directors" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
+              <Link to="/race-director-services" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
                 <RaceDirectorsIcon size={28} />
                 <h3 className="font-bold italic" style={{ fontSize: "28px", lineHeight: "1.2", color: "var(--text-inverse)" }}>
                   For Race Directors
@@ -1158,7 +1158,7 @@ function Services({
       {/* ── Mobile: stacked cards ── */}
         <div className="services-mobile-layout flex-col items-center gap-5 text-left">
           <div className="overflow-hidden w-full max-w-[390px]" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
-            <Link to="/for-race-directors" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
+            <Link to="/race-director-services" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
               <RaceDirectorsIcon size={20} />
               <h3 className="font-bold italic" style={{ fontSize: "22px", lineHeight: "32px", color: "var(--text-inverse)" }}>
                 For Race Directors
@@ -3233,7 +3233,7 @@ function PageCTA({
         </p>
         <div className="home-cta-button-group">
           <Link
-            to="/for-race-directors#form"
+            to="/race-director-services#form"
             className="cta-btn"
             style={{
               display: "inline-flex",

@@ -539,6 +539,12 @@ export const BASE_STATS = [
   { label: "100% Race Director Satisfaction", icon: smileSvg },
 ];
 
+export const RACE_DIRECTOR_STATS = [
+  { label: "200+ Timed Races", icon: timerSvg },
+  { label: "50k+ Finishers Tracked", icon: medalSvg },
+  { label: "[#] Years of Combined Experience", icon: smileSvg },
+];
+
 export type StatsQuote = {
   audience: string;
   quote: string;
@@ -638,8 +644,9 @@ export function StatsBand({
   quote = "Arsenal made our race day seamless from start to finish. We had real-time results posted instantly.",
   quoteAttribution = "Jim C., Nonprofit Director",
   quotes,
+  stats = BASE_STATS,
   ctaLabel = "See Our Race Day Tech",
-  ctaTo = "/for-race-directors",
+  ctaTo = "/race-director-services",
   stackBelow950 = false,
   showLeftTrackAccent = false,
   trackAccentSpeed = 1,
@@ -649,6 +656,7 @@ export function StatsBand({
   quote?: string;
   quoteAttribution?: string;
   quotes?: StatsQuote[];
+  stats?: typeof BASE_STATS;
   ctaLabel?: string;
   ctaTo?: string;
   stackBelow950?: boolean;
@@ -931,7 +939,7 @@ export function StatsBand({
             </div>
           </div>
           <div className="stats-list grid gap-8">
-            {BASE_STATS.map((stat) => (
+            {stats.map((stat) => (
               <div key={stat.label} className="flex items-center gap-5">
                 <img src={stat.icon} alt="" className="h-14 w-14 object-contain" />
                 <p className="text-[20px] font-bold italic">{stat.label}</p>
@@ -949,12 +957,16 @@ export function PageCTA({
   copy = "Placeholder about copy - one or two sentences about Arsenal Events, its mission, and what differentiates the service for both race directors and runners.",
   primaryLabel = "Request Timing Services",
   secondaryLabel = "Find A Race",
+  primaryTo = "/race-director-services",
+  secondaryTo = "/races",
   accentRevealSpeed = 1,
 }: {
   title?: string;
   copy?: string;
   primaryLabel?: string;
   secondaryLabel?: string;
+  primaryTo?: string;
+  secondaryTo?: string;
 }) {
   const [accentReveal, setAccentReveal] = useState(0);
   const ctaAccentRef = useRef<HTMLDivElement | null>(null);
@@ -1114,8 +1126,8 @@ export function PageCTA({
             {copy}
           </p>
           <div className="page-cta-buttons">
-            <AeButton to="/for-race-directors" className="page-cta-button">{primaryLabel}</AeButton>
-            <AeButton to="/races" className="page-cta-button">{secondaryLabel}</AeButton>
+            <AeButton to={primaryTo} className="page-cta-button">{primaryLabel}</AeButton>
+            <AeButton to={secondaryTo} className="page-cta-button">{secondaryLabel}</AeButton>
           </div>
         </div>
       </div>
@@ -1306,7 +1318,7 @@ export function FormWithFAQ({
         ? "Message sent!"
         : "Send Message"
     : submitStatus === "sending"
-      ? "Sending your request..."
+      ? "Sending your request…"
       : submitStatus === "sent"
         ? "Request sent!"
         : "Request timing services";

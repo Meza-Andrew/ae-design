@@ -28,6 +28,7 @@ import {
   FormWithFAQ,
   PageBand,
   PageCTA,
+  RACE_DIRECTOR_STATS,
   RACE_DIRECTOR_STATS_QUOTES,
   ResourceSection,
   SectionIntro,
@@ -38,31 +39,31 @@ import {
 const services = [
   {
     title: "Race Registration",
-    body: "Race registration should be easy for the race director, and we handle the RunSignup setup details that make your event work.",
+    body: "Make registration easier for you and your runners. We know the ins and outs of RunSignup and can build an organized registration experience around your event.",
     image: imgServiceRegistration,
     icon: iconRegistration,
   },
   {
     title: "Timing & Results",
-    body: "We combine proven timing technology, experienced people, and live result monitoring so race directors can trust every finish.",
+    body: "Accurate timing is only the beginning. We pair proven technology with an experienced race-day team to deliver fast, reliable results your runners can access in real time.",
     image: imgServiceTiming,
     icon: iconTiming,
   },
   {
-    title: "Race Directing",
-    body: "With RRCA-certified race directors and hands-on event experience, we help plan smoother races from permitting through race day.",
+    title: "Race Directing & Consulting",
+    body: "With RRCA-certified race directors and hands-on event experience, we’ve got planning, permitting, logistics, volunteers, and all the rest of the details covered.",
     image: imgServiceRaceDirecting,
     icon: iconRaceDirecting,
   },
   {
     title: "Course Management",
-    body: "We help make sure your course is safe, clearly marked, organized, and ready when the first runner arrives.",
+    body: "A great race starts with a course that's safe, clear, and ready to go. We make sure your course is safe, clearly marked, organized, and ready when the first runner arrives.",
     image: imgServiceCourseManagement,
     icon: iconCourseManagement,
   },
   {
     title: "Packet Pickup",
-    body: "Our RunSignup-integrated packet pickup process keeps check-in moving quickly and gets runners to the starting line on time.",
+    body: "Keep check-in moving and race-day bottlenecks to a minimum with our RunSignup-integrated packet pickup process that gets runners to the starting line on time.",
     image: imgServicePacketPickup,
     icon: iconPacketPickup,
   },
@@ -191,8 +192,9 @@ function Hero() {
             <h1 className="mb-5 text-[clamp(46px,5.5vw,72px)] font-bold italic leading-none" style={{ color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
               Race Day, Handled.
             </h1>
+            <p className="sr-only">Race Timing &amp; Event Services for Race Directors</p>
             <p className="max-w-[650px]" style={{ ...SITE_BODY_COPY_STYLE, color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
-              Placeholder supporting headline copy - one or two sentences describing both race director and runner-facing value propositions.
+              From registration to results, we bring the people, technology, and race-day experience you need to keep your event moving and your runners happy.
             </p>
           </div>
           <div className="race-directors-hero-actions ml-auto flex flex-col items-end gap-5 @sm:flex-row @sm:justify-end @lg:flex-col @lg:pb-2">
@@ -227,7 +229,7 @@ function ServiceCard({
         <div className="rd-service-copy">
           <p>{service.body}</p>
           <a href="#form" className="rd-service-link"><ChevronRight size={16} className="rd-service-chevron" /><span>Request This Service</span></a>
-          <a href="#faqs" className="rd-service-link"><ChevronRight size={16} className="rd-service-chevron" /><span>Browse FAQs</span></a>
+          <a href="#form" className="rd-service-link"><ChevronRight size={16} className="rd-service-chevron" /><span>Browse FAQs</span></a>
         </div>
         <img src={service.image} alt="" className="rd-service-image" />
       </div>
@@ -764,8 +766,8 @@ function Services() {
       />
       <div className="rd-services-inner">
         <SectionIntro
-          title="What We Offer"
-          copy="Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition. Placeholder supporting headline copy - one or two sentences describing the runner-facing value proposition."
+          title="Everything You Need for a Smoother Race Day"
+          copy="Every race is different. We’ll help you determine the right mix of services for your event."
         />
 
         <div className="rd-services-stage" aria-live="polite" onPointerDownCapture={pauseForInteraction} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
@@ -879,25 +881,25 @@ const galleryItems = [
     className: "rd-gallery-crew",
     src: imgGalleryCrew,
     alt: "Arsenal Events crew working at a race timing station",
-    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+    caption: "The Arsenal Events crew manages timing and results from the race-day timing station.",
   },
   {
     className: "rd-gallery-equipment",
     src: imgGalleryEquipment,
     alt: "Race timing equipment in an orange case",
-    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+    caption: "Professional race timing equipment is organized and ready for deployment.",
   },
   {
     className: "rd-gallery-results",
     src: imgGalleryResults,
     alt: "Race results displayed on a monitor",
-    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+    caption: "Live race results are monitored throughout the event.",
   },
   {
     className: "rd-gallery-trophies",
     src: imgGalleryTrophies,
     alt: "Race awards lined up on a table",
-    caption: "Placeholder supporting gallery copy describing the moment captured in this race-day image.",
+    caption: "Race awards are staged and ready for the finish-line celebration.",
   },
 ];
 
@@ -1115,7 +1117,7 @@ function Gallery() {
       <img src={topographyBg} alt="" className="rd-gallery-topography" />
       <div className="rd-gallery-inner">
         <div className="rd-gallery-heading">
-          <h2>Arsenal on Race Day</h2>
+          <h2>See What a Well-Run Race Looks Like</h2>
           <img src={raceDayChevron} alt="" className="rd-gallery-chevron" />
         </div>
         <div className="rd-gallery-grid">
@@ -1161,17 +1163,68 @@ function Gallery() {
   );
 }
 export default function ForRaceDirectorsPage() {
+  useEffect(() => {
+    const title = "Race Timing & Director Services | Arsenal Events";
+    const description = "Plan a smoother race day with professional registration, timing, results, course management and race director support from Arsenal Events.";
+    const previousTitle = document.title;
+    const metadata = [
+      { selector: 'meta[name="description"]', attribute: "content", value: description },
+      { selector: 'meta[property="og:title"]', attribute: "content", value: title },
+      { selector: 'meta[property="og:description"]', attribute: "content", value: description },
+    ];
+    const previousValues = metadata.map(({ selector, attribute }) => {
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      return { element, attribute, value: element?.getAttribute(attribute) };
+    });
+
+    document.title = title;
+    metadata.forEach(({ selector, attribute, value }) => {
+      document.querySelector<HTMLMetaElement>(selector)?.setAttribute(attribute, value);
+    });
+
+    return () => {
+      document.title = previousTitle;
+      previousValues.forEach(({ element, attribute, value }) => {
+        if (element && value !== null) element.setAttribute(attribute, value);
+      });
+    };
+  }, []);
+
   return (
     <main style={{ background: "var(--surface-default)" }}>
       <Hero />
       <Services />
       <Gallery />
-      <StatsBand quotes={RACE_DIRECTOR_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 showLeftTrackAccent />
+      <StatsBand
+        title="Your Race Has One Shot to Get It Right"
+        copy="Race day moves fast, and small problems can become big ones quickly. Arsenal Events brings experienced people, proven technology, and hands-on race-day support together so you can spend less time worrying about logistics and more time delivering a great event."
+        quotes={RACE_DIRECTOR_STATS_QUOTES}
+        stats={RACE_DIRECTOR_STATS}
+        ctaLabel="See Our Race Day Tech"
+        ctaTo="/resources"
+        stackBelow950
+        showLeftTrackAccent
+      />
       <div id="form" className="scroll-mt-20">
-        <FormWithFAQ />
+        <FormWithFAQ
+          title="Planning a race? We'd love to help."
+          copy="Tell us a little about your event and what you need. We'll review the details and recommend the services that make the most sense for your race."
+        />
       </div>
-      <ResourceSection audience="For Race Directors" />
-      <PageCTA />
+      <ResourceSection
+        audience="For Race Directors"
+        title="Race Planning Without the Guesswork"
+        copy="From choosing a timing partner to preparing for race day, get practical advice from a team that works behind the scenes at races year-round."
+        ctaLabel="Read Our Resources"
+      />
+      <PageCTA
+        title="You've Got a Race to Run. We'll Help You Run It."
+        copy="Tell us what you're planning and we'll help you build the right race-day setup."
+        primaryLabel="See What We Offer"
+        primaryTo="/race-director-services#services"
+        secondaryLabel="Request Timing Services"
+        secondaryTo="/race-director-services#form"
+      />
     </main>
   );
 }

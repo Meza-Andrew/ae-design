@@ -1,4 +1,5 @@
-import { createBrowserRouter, Outlet } from "react-router";
+import { useEffect } from "react";
+import { createBrowserRouter, Navigate, Outlet, useLocation } from "react-router";
 import { Nav, Footer } from "./shared";
 import HomePage from "./HomePage";
 import ForRaceDirectorsPage from "./ForRaceDirectorsPage";
@@ -13,6 +14,7 @@ function Root() {
   return (
     <div className="@container min-h-screen bg-background font-[Inter,sans-serif]">
       <style>{SHARED_PATTERN_CSS}</style>
+      <ScrollToLocation />
       <Nav />
       <Outlet />
       <Footer />
@@ -51,13 +53,44 @@ function Placeholder() {
   );
 }
 
+function ScrollToLocation() {
+  const location = useLocation();
+
+  useEffect(() => {
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        if (location.hash) {
+          const targetId = decodeURIComponent(location.hash.slice(1));
+          document.getElementById(targetId)?.scrollIntoView();
+          return;
+        }
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [location.pathname, location.search, location.hash]);
+
+  return null;
+}
+
+function LegacyRaceDirectorsRedirect() {
+  const location = useLocation();
+  return <Navigate to={{ pathname: "/race-director-services", search: location.search, hash: location.hash }} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Root,
     children: [
       { index: true, Component: HomePage },
-      { path: "for-race-directors", Component: ForRaceDirectorsPage },
+      { path: "race-director-services", Component: ForRaceDirectorsPage },
+      { path: "for-race-directors", Component: LegacyRaceDirectorsRedirect },
       { path: "races", Component: RacesResultsPage },
       { path: "about", Component: AboutPage },
       { path: "resources", Component: ResourcesPage },

@@ -249,7 +249,7 @@ export function Nav() {
   const [open, setOpen] = useState(false);
 
   const navLinks: { label: string; to: string }[] = [
-    { label: "For Race Directors", to: "/for-race-directors" },
+    { label: "For Race Directors", to: "/race-director-services" },
     { label: "Races & Results", to: "/races" },
     { label: "About Us", to: "/about" },
     { label: "Resources", to: "/resources" },
@@ -519,7 +519,7 @@ export function Nav() {
 // ─── Global Footer ─────────────────────────────────────────────────────────────
 
 const FOOTER_NAV = [
-  { label: "For Race Directors", to: "/for-race-directors", weight: 500 },
+  { label: "For Race Directors", to: "/race-director-services", weight: 500 },
   { label: "Races & Results",    to: "/races",              weight: 500 },
   { label: "Resources",          to: "/resources",          weight: 400 },
   { label: "About",              to: "/about",              weight: 400 },

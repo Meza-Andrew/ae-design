@@ -716,7 +716,7 @@ export default function RacesResultsPage() {
       <Hero />
       <Results />
       <UpcomingRaces />
-      <StatsBand quotes={RUNNER_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/for-race-directors" stackBelow950 showLeftTrackAccent trackAccentSpeed={1.2} />
+      <StatsBand quotes={RUNNER_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/race-director-services" stackBelow950 showLeftTrackAccent trackAccentSpeed={1.2} />
       <ResourceSection audience="For Runners" />
       <PageCTA title="Ready to Run?" accentRevealSpeed={1.6} />
     </main>
