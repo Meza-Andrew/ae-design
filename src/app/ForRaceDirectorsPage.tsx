@@ -621,7 +621,7 @@ function Services() {
             opacity: 1;
           }
           .rd-services-swiper-desktop .swiper-slide:not(.swiper-slide-active) .rd-service-card {
-            box-shadow: inset 0 0 0 3px var(--surface-card), 0 4px 12px rgba(35,41,67,0.16);
+            box-shadow: inset 0 0 0 3px var(--surface-card), 0 4px 12px rgba(35,41,67,0.07);
           }
           .rd-services-swiper-desktop .swiper-slide:not(.swiper-slide-active) .rd-service-card::after {
             content: "";
