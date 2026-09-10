@@ -185,8 +185,8 @@ function LatestArticles() {
       `}</style>
       <div className="mx-auto max-w-[1260px]">
         <SectionIntro
-          title="Latest Articles"
-          copy="Placeholder supporting headline copy with a sentence or two leading into the Runner's Arsenal blog and its benefits."
+          title="Race Knowledge, Shared."
+          copy="Practical advice for better race days. Explore guides, insights, and helpful resources for runners, race directors, and anyone working to create a great event experience."
         >
           <div className="resources-filter-tabs" role="tablist" aria-label="Filter resource articles">
             {resourceFilters.map((filter) => (
@@ -210,11 +210,45 @@ function LatestArticles() {
 }
 
 export default function ResourcesPage() {
+  useEffect(() => {
+    const title = "Arsenal Events | Race Resources & Guides";
+    const description = "Practical race-day knowledge for runners and race directors from planning and registration to timing, results, and getting more from every event.";
+    const previousTitle = document.title;
+    const metadata = [
+      { selector: 'meta[name="description"]', attribute: "content", value: description },
+      { selector: 'meta[property="og:title"]', attribute: "content", value: title },
+      { selector: 'meta[property="og:description"]', attribute: "content", value: description },
+    ];
+    const previousValues = metadata.map(({ selector, attribute }) => {
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      return { element, attribute, value: element?.getAttribute(attribute) };
+    });
+
+    document.title = title;
+    metadata.forEach(({ selector, attribute, value }) => {
+      document.querySelector<HTMLMetaElement>(selector)?.setAttribute(attribute, value);
+    });
+
+    return () => {
+      document.title = previousTitle;
+      previousValues.forEach(({ element, attribute, value }) => {
+        if (element && value !== null) element.setAttribute(attribute, value);
+      });
+    };
+  }, []);
+
   return (
     <main style={{ background: "var(--surface-default)", color: "var(--text-default)" }}>
       <Hero />
       <LatestArticles />
-      <PageCTA title="Ready to Run?" />
+      <PageCTA
+        title="Put What You Know Into Motion."
+        copy="Planning an event or looking for your next start line? Arsenal Events has the tools, experience, and race-day support to help you take the next step."
+        primaryLabel="Plan Your Event"
+        primaryTo="/race-director-services"
+        secondaryLabel="Browse Upcoming Events"
+        secondaryTo="/races-results#upcoming-races"
+      />
     </main>
   );
 }
