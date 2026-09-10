@@ -289,7 +289,7 @@ export function RaceCard({ race }: { race: (typeof SHARED_RACES)[number] }) {
         <h3 className="mx-auto mb-5 max-w-[260px] text-[20px] font-bold italic leading-[1.05]" style={{ color: "var(--text-accent)" }}>
           {race.title}
         </h3>
-        <AeButton to="/races" variant="secondary" className="min-h-[38px] min-w-[172px] px-6 py-2 text-[15px]">
+        <AeButton to="/races-results" variant="secondary" className="min-h-[38px] min-w-[172px] px-6 py-2 text-[15px]">
           Register
         </AeButton>
       </div>
@@ -958,13 +958,13 @@ export function PageCTA({
   primaryLabel = "Request Timing Services",
   secondaryLabel = "Find A Race",
   primaryTo = "/race-director-services",
-  secondaryTo = "/races",
+  secondaryTo = "/races-results",
   accentRevealSpeed = 1,
 }: {
   title?: string;
   copy?: string;
   primaryLabel?: string;
-  secondaryLabel?: string;
+  secondaryLabel?: string | null;
   primaryTo?: string;
   secondaryTo?: string;
 }) {
@@ -1127,7 +1127,7 @@ export function PageCTA({
           </p>
           <div className="page-cta-buttons">
             <AeButton to={primaryTo} className="page-cta-button">{primaryLabel}</AeButton>
-            <AeButton to={secondaryTo} className="page-cta-button">{secondaryLabel}</AeButton>
+            {secondaryLabel ? <AeButton to={secondaryTo} className="page-cta-button">{secondaryLabel}</AeButton> : null}
           </div>
         </div>
       </div>

@@ -35,6 +35,7 @@ import {
   AeButton,
   PageBand,
   PageCTA,
+  RACE_DIRECTOR_STATS,
   RUNNER_STATS_QUOTES,
   ResourceSection,
   SITE_BODY_COPY_STYLE,
@@ -240,8 +241,9 @@ function Hero() {
             <h1 className="mb-5 text-[clamp(48px,5.7vw,76px)] font-bold italic leading-none" style={{ color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
               Races & Results
             </h1>
+            <p className="sr-only">Find Your Next Race &amp; Race Results</p>
             <p className="max-w-[650px]" style={{ ...SITE_BODY_COPY_STYLE, color: "var(--text-inverse)", textShadow: "0 4px 4px rgba(0,0,0,0.25)" }}>
-              Placeholder supporting headline copy - one or two sentences describing both race director and runner-facing value propositions.
+              Find your next starting line, chase a new goal, or see how you finished. Everything you need for pre- and post-race day is here.
             </p>
           </div>
           <div className="races-results-hero-actions ml-auto flex flex-col items-end gap-5 @sm:flex-row @sm:justify-end @lg:flex-col @lg:pb-2">
@@ -473,7 +475,7 @@ function Results() {
           }
         `}</style>
         <h2 className="mb-9 flex items-center gap-3 text-[clamp(34px,4vw,52px)] font-bold italic leading-none" style={{ color: "var(--text-headlines)" }}>
-          <span>Results &amp; Photos</span>
+          <span>Results</span>
           <img src={filledChevron} alt="" className="h-[clamp(24px,3.2vw,42px)] w-auto" />
         </h2>
         <FilterBar filters={filters} onChange={setFilters} options={options} showYear />
@@ -490,8 +492,8 @@ function Results() {
                 <p className="text-[13px] font-medium" style={{ color: "rgba(35,41,67,0.6)" }}>{getMetaLine(race)}</p>
               </div>
               <div className="races-results-result-actions flex gap-3">
-                <AeButton href={race.resultsUrl || race.infoUrl} to={race.resultsUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[29px] min-w-[113px] px-4 py-1 text-[12px]">Results</AeButton>
-                <AeButton href={race.photosUrl || race.infoUrl} to={race.photosUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[29px] min-w-[113px] px-4 py-1 text-[12px]">Photos</AeButton>
+                <AeButton href={race.resultsUrl || race.infoUrl} to={race.resultsUrl || race.infoUrl ? undefined : "/races-results"} variant="secondary" className="min-h-[29px] min-w-[113px] px-4 py-1 text-[12px]">Results</AeButton>
+                <AeButton href={race.photosUrl || race.infoUrl} to={race.photosUrl || race.infoUrl ? undefined : "/races-results"} variant="secondary" className="min-h-[29px] min-w-[113px] px-4 py-1 text-[12px]">Photos</AeButton>
               </div>
                 </article>
               </div>
@@ -525,7 +527,7 @@ function UpcomingRaceCard({ race }: { race: RaceEntry & { logo?: string } }) {
           {race.title}
         </h3>
         <div className="mt-auto">
-          <AeButton href={race.registrationUrl || race.infoUrl} to={race.registrationUrl || race.infoUrl ? undefined : "/races"} variant="secondary" className="min-h-[51px] min-w-[206px] rounded-[8px] px-8 py-0 text-[15px]">
+          <AeButton href={race.registrationUrl || race.infoUrl} to={race.registrationUrl || race.infoUrl ? undefined : "/races-results"} variant="secondary" className="min-h-[51px] min-w-[206px] rounded-[8px] px-8 py-0 text-[15px]">
             Register
           </AeButton>
         </div>
@@ -711,14 +713,63 @@ function UpcomingRaces() {
   );
 }
 export default function RacesResultsPage() {
+  useEffect(() => {
+    const title = "Races & Results | Arsenal Events";
+    const description = "Your next race starts here. Browse upcoming events, find your results, and relive race day with photos from Arsenal Events.";
+    const previousTitle = document.title;
+    const metadata = [
+      { selector: 'meta[name="description"]', attribute: "content", value: description },
+      { selector: 'meta[property="og:title"]', attribute: "content", value: title },
+      { selector: 'meta[property="og:description"]', attribute: "content", value: description },
+    ];
+    const previousValues = metadata.map(({ selector, attribute }) => {
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      return { element, attribute, value: element?.getAttribute(attribute) };
+    });
+
+    document.title = title;
+    metadata.forEach(({ selector, attribute, value }) => {
+      document.querySelector<HTMLMetaElement>(selector)?.setAttribute(attribute, value);
+    });
+
+    return () => {
+      document.title = previousTitle;
+      previousValues.forEach(({ element, attribute, value }) => {
+        if (element && value !== null) element.setAttribute(attribute, value);
+      });
+    };
+  }, []);
+
   return (
     <main style={{ background: "var(--surface-default)" }}>
       <Hero />
       <Results />
       <UpcomingRaces />
-      <StatsBand quotes={RUNNER_STATS_QUOTES} ctaLabel="See Our Race Day Tech" ctaTo="/race-director-services" stackBelow950 showLeftTrackAccent trackAccentSpeed={1.2} />
-      <ResourceSection audience="For Runners" />
-      <PageCTA title="Ready to Run?" accentRevealSpeed={1.6} />
+      <StatsBand
+        title="There’s a Team Behind Every Finish Line"
+        copy="The clock may stop when you cross the line, but a lot happens before you ever get there. We’re runners, coaches, parents, race organizers, and timing experts who know what makes race day feel worth it."
+        quotes={RUNNER_STATS_QUOTES}
+        stats={RACE_DIRECTOR_STATS}
+        ctaLabel="Meet the Team Behind Race Day"
+        ctaTo="/about"
+        stackBelow950
+        showLeftTrackAccent
+        trackAccentSpeed={1.2}
+      />
+      <ResourceSection
+        audience="For Runners"
+        title="Run Smarter. Enjoy Race Day More."
+        copy="From signing up to crossing the finish line, find practical tips to help you feel prepared, understand your results, and get more out of your next race."
+        ctaLabel="Explore Our Runner Resources"
+      />
+      <PageCTA
+        title="Ready to Run?"
+        copy="Pick your race, grab your spot, and start working toward your next finish line. We’ll see you out there."
+        primaryLabel="Sign Up For Your Next Race"
+        primaryTo="/races-results#upcoming-races"
+        secondaryLabel={null}
+        accentRevealSpeed={1.6}
+      />
     </main>
   );
 }

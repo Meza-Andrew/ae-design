@@ -250,7 +250,7 @@ export function Nav() {
 
   const navLinks: { label: string; to: string }[] = [
     { label: "For Race Directors", to: "/race-director-services" },
-    { label: "Races & Results", to: "/races" },
+    { label: "Races & Results", to: "/races-results" },
     { label: "About Us", to: "/about" },
     { label: "Resources", to: "/resources" },
   ];
@@ -520,7 +520,7 @@ export function Nav() {
 
 const FOOTER_NAV = [
   { label: "For Race Directors", to: "/race-director-services", weight: 500 },
-  { label: "Races & Results",    to: "/races",              weight: 500 },
+  { label: "Races & Results",    to: "/races-results",      weight: 500 },
   { label: "Resources",          to: "/resources",          weight: 400 },
   { label: "About",              to: "/about",              weight: 400 },
   { label: "Contact",            to: "/contact",            weight: 400 },

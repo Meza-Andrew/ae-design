@@ -773,7 +773,7 @@ function Hero({
           <HeroBtn to="/race-director-services">Plan Your Event</HeroBtn>
 
           {/* Find Your Next Race */}
-          <HeroBtn to="/races">Find Your Next Race</HeroBtn>
+          <HeroBtn to="/races-results">Find Your Next Race</HeroBtn>
         </div>
       </div>
     </section>
@@ -791,9 +791,9 @@ const DIRECTORS_SERVICES = [
 ];
 
 const RUNNERS_SERVICES = [
-  { label: "Upcoming Races", to: "/races#upcoming-races" },
-  { label: "Results", to: "/races#results" },
-  { label: "Photos", to: "/races#results" },
+  { label: "Upcoming Races", to: "/races-results#upcoming-races" },
+  { label: "Results", to: "/races-results#results" },
+  { label: "Photos", to: "/races-results#results" },
 ];
 
 function RaceDirectorsIcon({ size = 28 }: { size?: number }) {
@@ -1123,7 +1123,7 @@ function Services({
                   boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
                 }}
               >
-              <Link to="/races" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
+              <Link to="/races-results" className="flex items-center justify-center gap-3 px-6" style={{ background: "var(--surface-dark)", height: "88px", textDecoration: "none" }}>
                 <RunnersIcon size={34} />
                 <h3 className="font-bold italic" style={{ fontSize: "28px", lineHeight: "1.2", color: "var(--text-inverse)" }}>
                   For Runners
@@ -1181,7 +1181,7 @@ function Services({
           </div>
 
           <div className="overflow-hidden w-full max-w-[390px]" style={{ background: "var(--surface-card)", boxShadow: "0px 1px 4px rgba(165,162,169,0.9)", borderRadius: "10px" }}>
-            <Link to="/races" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
+            <Link to="/races-results" className="flex items-center gap-3 px-5 py-4" style={{ background: "var(--surface-dark)", textDecoration: "none" }}>
               <RunnersIcon size={25} />
               <h3 className="font-bold italic" style={{ fontSize: "22px", lineHeight: "32px", color: "var(--text-inverse)" }}>
                 For Runners
@@ -1283,7 +1283,7 @@ const races = [
     name: "Halloween 5k & Monster Mile",
     date: "October 30, 2026",
     location: "Stafford, VA",
-    to: "/races#upcoming-races",
+    to: "/races-results#upcoming-races",
     isArsenalEvent: true,
     bgImg: imgHalloweenBg,
     logoImg: imgHalloweenLogo,
@@ -1292,7 +1292,7 @@ const races = [
     name: "Frosty 5k & Reindeer Run",
     date: "December 30, 2026",
     location: "Fredericksburg, VA",
-    to: "/races#upcoming-races",
+    to: "/races-results#upcoming-races",
     isArsenalEvent: false,
     bgImg: imgFrostyBg,
     logoImg: imgFrostyLogo,
@@ -1768,7 +1768,7 @@ function FeaturedRaces({
                     </p>
 
                     <Link
-                      to="/races#upcoming-races"
+                      to="/races-results#upcoming-races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
                       style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
                     >
@@ -1817,7 +1817,7 @@ function FeaturedRaces({
                     </p>
 
                     <Link
-                      to="/races#upcoming-races"
+                      to="/races-results#upcoming-races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
                       style={{ background: "var(--action-primary-default)", color: "var(--action-primary-text)", fontSize: "20px", fontWeight: 600, padding: "0 40px", borderRadius: "10px" }}
                     >
@@ -1970,7 +1970,7 @@ function FeaturedRaces({
                     </p>
 
                     <Link
-                      to="/races#upcoming-races"
+                      to="/races-results#upcoming-races"
                       className="upcoming-races-cta ae-btn ae-btn-primary"
                       style={{
                         background: "var(--action-primary-default)",
@@ -3258,7 +3258,7 @@ function PageCTA({
             Request Timing Services
           </Link>
           <Link
-            to="/races#upcoming-races"
+            to="/races-results#upcoming-races"
             className="cta-btn"
             style={{
               display: "inline-flex",

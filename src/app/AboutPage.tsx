@@ -380,7 +380,7 @@ function CommunityImpact() {
             <SliderControls onPrev={() => goToPage(activePage - 1)} onNext={() => goToPage(activePage + 1)} />
           </div>
         ) : null}
-        <div className="mt-10 flex justify-center"><AeButton to="/races">See All Upcoming Races</AeButton></div>
+        <div className="mt-10 flex justify-center"><AeButton to="/races-results">See All Upcoming Races</AeButton></div>
       </div>
     </section>
   );

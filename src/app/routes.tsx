@@ -46,7 +46,7 @@ function Placeholder() {
         </p>
         <div className="flex flex-col items-center justify-center gap-6 @sm:flex-row">
           <AeButton to="/">Go Home</AeButton>
-          <AeButton to="/races">Find a Race</AeButton>
+          <AeButton to="/races-results">Find a Race</AeButton>
         </div>
       </div>
     </main>
@@ -83,6 +83,11 @@ function LegacyRaceDirectorsRedirect() {
   return <Navigate to={{ pathname: "/race-director-services", search: location.search, hash: location.hash }} replace />;
 }
 
+function LegacyRacesRedirect() {
+  const location = useLocation();
+  return <Navigate to={{ pathname: "/races-results", search: location.search, hash: location.hash }} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -91,7 +96,8 @@ export const router = createBrowserRouter([
       { index: true, Component: HomePage },
       { path: "race-director-services", Component: ForRaceDirectorsPage },
       { path: "for-race-directors", Component: LegacyRaceDirectorsRedirect },
-      { path: "races", Component: RacesResultsPage },
+      { path: "races-results", Component: RacesResultsPage },
+      { path: "races", Component: LegacyRacesRedirect },
       { path: "about", Component: AboutPage },
       { path: "resources", Component: ResourcesPage },
       { path: "resources/understanding-your-race-results", Component: ResourceSinglePage },
