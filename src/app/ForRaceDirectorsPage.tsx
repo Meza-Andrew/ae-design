@@ -22,7 +22,6 @@ import iconTiming from "@/imports/service-timing-results.svg";
 import iconRaceDirecting from "@/imports/service-race-directing.svg";
 import iconCourseManagement from "@/imports/service-course-management.svg";
 import iconPacketPickup from "@/imports/service-packet-pickup.svg";
-import whatWeOfferAccent from "@/imports/what-we-offer-accent.svg";
 import {
   AeButton,
   FormWithFAQ,
@@ -240,7 +239,6 @@ function ServiceCard({
 function Services() {
   const initialServiceIndexRef = useRef(getRequestedServiceIndex());
   const [activeIndex, setActiveIndex] = useState(initialServiceIndexRef.current);
-  const [accentReveal, setAccentReveal] = useState(0);
   const servicesSectionRef = useRef<HTMLElement | null>(null);
   const mobileServiceSwiperRef = useRef<SwiperClass | null>(null);
   const desktopServiceSwiperRef = useRef<SwiperClass | null>(null);
@@ -288,48 +286,6 @@ function Services() {
     getActiveServiceSwiper()?.autoplay?.start();
   }, [isDesktopServices, desktopServiceOffset]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setAccentReveal(1);
-      return;
-    }
-
-    let rafId = 0;
-    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
-    const update = () => {
-      const node = servicesSectionRef.current;
-      if (!node) return;
-
-      const rect = node.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const travel = Math.max(1, viewportHeight * 0.5184);
-      const progress = clamp01((viewportHeight * 0.78 - rect.top) / travel);
-
-      setAccentReveal((previous) => (
-        Math.abs(previous - progress) < 0.001 ? previous : progress
-      ));
-    };
-
-    const requestUpdate = () => {
-      cancelAnimationFrame(rafId);
-      rafId = window.requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
-    };
-  }, []);
-
-  const accentRevealClip = `inset(0 0 0 ${((1 - accentReveal) * 100).toFixed(3)}%)`;
   const desktopServices = [...services, ...services, ...services];
   const normalizeServiceIndex = (index: number) => ((index % services.length) + services.length) % services.length;
 
@@ -392,23 +348,6 @@ function Services() {
       style={{ background: "linear-gradient(to bottom, var(--surface-subtle), var(--surface-default))" }}
     >
       <style>{`
-        .rd-services-accent {
-          position: absolute;
-          top: clamp(10px, 3.42vw, 55px);
-          left: calc(50% + 210px);
-          width: min(33.12vw, 446.4px);
-          max-width: none;
-          pointer-events: none;
-          z-index: 1;
-          transform: translateY(-15%);
-          will-change: clip-path;
-        }
-        @media (min-width: 1550px) {
-          .rd-services-accent {
-            -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 78%, transparent 100%);
-            mask-image: linear-gradient(90deg, #000 0%, #000 78%, transparent 100%);
-          }
-        }
         .rd-services-inner {
           position: relative;
           z-index: 2;
@@ -747,28 +686,19 @@ function Services() {
             padding-top: 15px;
           }
         }
-        @media (max-width: 1160px) {
-          .rd-services-accent {
-            display: none;
-          }
-        }
         @media (prefers-reduced-motion: reduce) {
           .rd-services-swiper .swiper-slide {
             transition: none;
           }
         }
       `}</style>
-      <img
-        src={whatWeOfferAccent}
-        alt=""
-        className="rd-services-accent"
-        style={{ clipPath: accentRevealClip, WebkitClipPath: accentRevealClip }}
-      />
       <div className="rd-services-inner">
         <SectionIntro
           title="Everything You Need for a Smoother Race Day"
           copy="Every race is different. We’ll help you determine the right mix of services for your event."
-        />
+
+          className="max-w-[1106px]"
+          copyClassName="max-w-[1106px]"        />
 
         <div className="rd-services-stage" aria-live="polite" onPointerDownCapture={pauseForInteraction} onFocus={pauseAutoplay} onBlur={resumeAutoplay}>
           <div className="rd-services-sizer" aria-hidden="true">
