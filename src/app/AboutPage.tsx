@@ -545,9 +545,9 @@ function Team() {
   }, []);
 
   useEffect(() => {
-    const desktopQuery = window.matchMedia("(min-width: 1281px)");
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
     const tabletQuery = window.matchMedia("(min-width: 1001px)");
-    const update = () => setPageSize(desktopQuery.matches ? 3 : tabletQuery.matches ? 2 : 1);
+    const update = () => setPageSize(desktopQuery.matches ? placeholderTeam.length : tabletQuery.matches ? 2 : 1);
 
     update();
     desktopQuery.addEventListener("change", update);
@@ -574,7 +574,7 @@ function Team() {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
-        @media (min-width: 1281px) {
+        @media (min-width: 1280px) {
           .about-team-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
           }
